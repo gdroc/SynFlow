@@ -15,6 +15,7 @@ SynFlow is a web application that allows you to visualize the alignment of genom
 ## Usage
 
 1. Upload the chromosome length files and band files using the form.
+
 | File Name      | File Description                                          |
 |----------------|-----------------------------------------------------------|
 | `*.chrlen`     | Table containing chromosome lengths                       |
