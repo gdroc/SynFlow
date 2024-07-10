@@ -164,46 +164,48 @@ export function createSlider(minBandSize, maxBandSize) {
     console.log('create slider from ' + minBandSize + ' to ' + maxBandSize);
 
     const rangeNode = document.getElementById('range-slider-example');
-    rangeSlider(rangeNode, {
-        // min value
-        min: minBandSize - 10000,
-        // max value
-        max: maxBandSize + 10000,
-        
-        // step size
-        step: 10000,
-        // initial values
-        value: [minBandSize - 10000, maxBandSize + 10000],
-        // disable the range slider element
-        disabled: false,
-        // disable the range slider
-        rangeSlideDisabled: false,
-        // disable left/right (top/bottom) thumbs
-        thumbsDisabled: [false, false],
-        // or 'vertical'
-        orientation: 'horizontal',
-        // callback function
-        onInput: function(valueSet) {
-            sliderMinValue = valueSet[0];
-            sliderMaxValue = valueSet[1];
-            updateBandsVisibility();
-        },
-    });
+    rangeNode.innerHTML = ''; // Supprime le contenu existant avant de réécrire
+
+    // Supprime l'ancien titre s'il existe
+    const existingTitle = document.getElementById('slider-title');
+    if (existingTitle) {
+        existingTitle.parentNode.removeChild(existingTitle);
+    }
 
     const title = document.createElement('span');
+    title.id = 'slider-title'; // Ajout d'un ID pour le titre
     title.textContent = "Filter band length";
     title.appendChild(document.createElement('br'));
     title.appendChild(document.createElement('br'));
 
     let parentDiv = rangeNode.parentNode;
     parentDiv.insertBefore(title, rangeNode);
+
+    rangeSlider(rangeNode, {
+        min: minBandSize - 10000,
+        max: maxBandSize + 10000,
+        step: 10000,
+        value: [minBandSize - 10000, maxBandSize + 10000],
+        disabled: false,
+        rangeSlideDisabled: false,
+        thumbsDisabled: [false, false],
+        orientation: 'horizontal',
+        onInput: function(valueSet) {
+            sliderMinValue = valueSet[0];
+            sliderMaxValue = valueSet[1];
+            updateBandsVisibility();
+        },
+    });
 }
+
 
 
 export function createLengthChart(bandLengths) {
     const barChartContainer = d3.select('#bar-chart-container');
-    barChartContainer.style.width = '100%';
-    barChartContainer.style.height = '30px';
+    barChartContainer.selectAll('*').remove(); // Efface tout le contenu existant
+
+    barChartContainer.style('width', '100%');
+    barChartContainer.style('height', '30px');
 
     const width = barChartContainer.node().clientWidth;
     const height = 30;
@@ -248,7 +250,7 @@ export function createLengthChart(bandLengths) {
     const slider = d3.selectAll(".range-slider");
     slider.style('background', `linear-gradient(to right, ${bins.map((bin, i) => `${colorScale(bin.length)} ${(x(bin.x0) / (width - margin.left - margin.right)) * 100}%`).join(', ')})`);
 
-    //axe x
+    // axe x
     svg.append('g')
         .attr('transform', `translate(0,${height - margin.top - margin.bottom})`)
         .call(d3.axisBottom(x));

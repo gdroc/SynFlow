@@ -1,7 +1,7 @@
 import { genomeLengths, loadAllChromosomeLengths, calculateGlobalMaxChromosomeLengths, 
 	parseSyriData, orderFilesByGenomes,
 	reorderFileList } from './form.js';
-import { drawChromosomes, drawStackedChromosomes, drawCorrespondenceBands } from './draw.js';
+import { drawChromosomes, drawStackedChromosomes, drawCorrespondenceBands, resetDrawGlobals } from './draw.js';
 import { generateLegend, createSlider, createLengthChart } from './filter.js';
 import { Spinner } from './spin.js';
 
@@ -10,8 +10,6 @@ export let queryGenome; // Définir globalement
 export let genomeColors = {};
 let uniqueGenomes;
 let orderedFileObjects = []; // Défini globalement
-
-
 let previousChromosomePositions = null;
 let globalMaxChromosomeLengths = {};
 let currentFile; // Défini globalement
@@ -28,6 +26,20 @@ const opts = {
 };
 var target = document.getElementById('spinner');
 var spinner = new Spinner(opts);
+
+function resetGlobals() {
+    refGenome = null;
+    queryGenome = null;
+    genomeColors = {};
+    uniqueGenomes = null;
+    orderedFileObjects = [];
+    previousChromosomePositions = null;
+    globalMaxChromosomeLengths = {};
+    currentFile = null;
+    numGenomes = null;
+    resetDrawGlobals(); // Réinitialiser currentYOffset
+
+}
 
 function generateColor(index) {
     const colors = [
@@ -121,6 +133,13 @@ function allDone() {
 
     // Add download buttons
     const formContainer = document.getElementById('file-upload-form');
+
+    // Remove existing download button if it exists
+    const existingDownloadButton = document.getElementById('download-svg');
+    if (existingDownloadButton) {
+        formContainer.removeChild(existingDownloadButton);
+    }
+
     const downloadSvgButton = document.createElement('button');
     downloadSvgButton.id = 'download-svg';
     downloadSvgButton.textContent = 'Download SVG';
@@ -213,6 +232,7 @@ function findUniqueGenomes(bandFileNames, genomeNames) {
 
 
 function handleFileUpload(chrlenFiles, bandFiles) {
+    resetGlobals(); // Réinitialiser les variables globales
     spinner.spin(target);
 
     console.log('Chromosome Length Files:', chrlenFiles);

@@ -1,5 +1,10 @@
 import { refGenome, queryGenome, genomeColors } from "./process.js";
-let currentYOffset = 0;
+
+export let currentYOffset = 0; // Définir globalement
+
+export function resetDrawGlobals() {
+    currentYOffset = 0;
+}
 
 export function drawMiniChromosome(genome, svg) {
     const width = 40;
