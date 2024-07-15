@@ -104,6 +104,11 @@ export function createForm() {
     stackModeCheckbox.setAttribute('id', 'stack-mode');
     stackModeCheckbox.setAttribute('name', 'stack-mode');
     stackModeCheckbox.setAttribute('style', 'margin-left: 10px;');
+    
+    // Ajouter un écouteur d'événements à la case à cocher
+    stackModeCheckbox.addEventListener('change', () => {
+        submitButton.click(); // Simuler un clic sur le bouton "Draw"
+    });
 
     // Append elements to form
 
