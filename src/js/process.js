@@ -120,6 +120,68 @@ function processNextFile() {
     }
 }
 
+function updateChromList(globalMaxChromosomeLengths) {
+    const chromListDiv = document.getElementById('chrom-list');
+    chromListDiv.innerHTML = ''; // Clear the previous list
+
+    // Mise à jour de la liste des chromosomes
+    const chromNames = Object.keys(globalMaxChromosomeLengths);
+    const chromPositions = {};
+
+    chromNames.forEach(chromName => {
+        const chromElement = document.getElementById(chromName + "_ref");
+        if (chromElement) {
+            const bbox = chromElement.getBBox();
+            chromPositions[chromName] = { refX: bbox.x, refY: bbox.y, width: bbox.width, height: bbox.height };
+        }
+    });
+
+    chromNames.forEach(chromName => {
+        const listItem = document.createElement('div');
+        listItem.style.display = 'flex';
+        listItem.style.alignItems = 'center';
+
+        const arrow = document.createElement('span');
+        arrow.textContent = '→'; // Flèche
+        arrow.style.cursor = 'pointer';
+        arrow.style.marginRight = '10px';
+
+        arrow.addEventListener('click', () => {
+            const chromPos = chromPositions[chromName];
+            if (chromPos) {
+                const svgElement = document.getElementById('viz');
+                const { refX, refY, width, height } = chromPos;
+
+                const adjustedWidth = width*20 ;
+                const adjustedHeight = height*20;
+                const adjustedX = refX -100 ;
+                const adjustedY = refY +100;
+
+                // Définir la nouvelle vue avec GSAP
+                gsap.to(svgElement, {
+                    duration: 1.5,
+                    attr: {
+                        viewBox: `${adjustedX} ${adjustedY} ${adjustedWidth} ${adjustedHeight}`
+                    },
+                    ease: "power2.inOut"
+                });
+            }
+        });
+
+        listItem.appendChild(arrow);
+
+        const text = document.createElement('span');
+        text.textContent = chromName;
+        listItem.appendChild(text);
+        chromListDiv.appendChild(listItem);
+    });
+}
+
+
+
+
+
+
 function allDone() {
     // Determine min and max band sizes
     const allBandLengths = d3.selectAll('path.band').nodes().map(path => parseFloat(path.getAttribute('data-length')));
@@ -130,6 +192,8 @@ function allDone() {
     createSlider(minBandSize, maxBandSize);
     // Create the bar chart to display band size distribution
     createLengthChart(allBandLengths);
+
+    updateChromList(globalMaxChromosomeLengths);
 
     // Add download buttons
     const formContainer = document.getElementById('file-upload-form');
