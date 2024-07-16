@@ -136,6 +136,9 @@ function updateChromList(globalMaxChromosomeLengths) {
         }
     });
 
+    const svgElement = document.getElementById('viz');
+    const svgGroup = document.getElementById('zoomGroup');
+
     chromNames.forEach(chromName => {
         const listItem = document.createElement('div');
         listItem.style.display = 'flex';
@@ -149,21 +152,25 @@ function updateChromList(globalMaxChromosomeLengths) {
         arrow.addEventListener('click', () => {
             const chromPos = chromPositions[chromName];
             if (chromPos) {
-                const svgElement = document.getElementById('viz');
                 const { refX, refY, width, height } = chromPos;
 
-                const adjustedWidth = width*20 ;
-                const adjustedHeight = height*20;
-                const adjustedX = refX -100 ;
-                const adjustedY = refY +100;
+                // Récupérer la transformation actuelle appliquée au groupe de zoom
+                const transform = d3.zoomTransform(svgGroup);
+                const transformedX = transform.applyX(refX);
+                const transformedY = transform.applyY(refY);
+
+                const adjustedWidth = width * 10;
+                const adjustedHeight = height * 10;
+                const adjustedX = transformedX - 100;
+                const adjustedY = transformedY + 100; 
 
                 // Définir la nouvelle vue avec GSAP
                 gsap.to(svgElement, {
-                    duration: 1.5,
+                    duration: 2,
                     attr: {
                         viewBox: `${adjustedX} ${adjustedY} ${adjustedWidth} ${adjustedHeight}`
                     },
-                    ease: "power2.inOut"
+                    ease: "power1.inOut"
                 });
             }
         });
@@ -176,6 +183,8 @@ function updateChromList(globalMaxChromosomeLengths) {
         chromListDiv.appendChild(listItem);
     });
 }
+
+
 
 
 
