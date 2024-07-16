@@ -202,8 +202,47 @@ function allDone() {
     // Create the bar chart to display band size distribution
     createLengthChart(allBandLengths);
 
-    updateChromList(globalMaxChromosomeLengths);
+    // Container for chromosomes list
+    const chromListContainer = document.createElement('div');
+    chromListContainer.setAttribute('id', 'chrom-list-container');
+    chromListContainer.style.marginRight = '20px';
 
+    // Toggle button
+    const toggleButton = document.createElement('div');
+    toggleButton.setAttribute('id', 'toggle-button');
+    toggleButton.style.position = 'absolute';
+    toggleButton.style.top = '0px';
+    toggleButton.style.left = '0px';
+    toggleButton.style.cursor = 'pointer';
+    toggleButton.style.zIndex = '20';
+    toggleButton.innerHTML = '&#x25C0;'; // Flèche gauche
+
+    const chromListDiv = document.createElement('div');
+    chromListDiv.setAttribute('id', 'chrom-list');
+    chromListContainer.appendChild(toggleButton); 
+    chromListContainer.appendChild(chromListDiv);
+
+    // Append legend and chromosomes list container to viz container
+    const vizContainer = document.getElementById('viz-container')
+    const viz = document.getElementById('viz')
+    vizContainer.insertBefore(chromListContainer, viz);
+
+    // Toggle button event listener
+    let isListVisible = true;
+    toggleButton.addEventListener('click', () => {
+        if (isListVisible) {
+            chromListDiv.style.display = 'none';
+            toggleButton.innerHTML = '&#x25B6;'; // Flèche droite
+        } else {
+            chromListDiv.style.display = 'block';
+            toggleButton.innerHTML = '&#x25C0;'; // Flèche gauche
+        }
+        isListVisible = !isListVisible;
+    });
+
+
+    updateChromList(globalMaxChromosomeLengths);
+    
     // Add download buttons
     const formContainer = document.getElementById('file-upload-form');
 

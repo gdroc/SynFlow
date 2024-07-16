@@ -149,6 +149,30 @@
         border: 1px solid grey;
         background: transparent;
     }
+
+    #viz-container {
+        position: relative;
+    }
+
+    #chrom-list {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background-color: rgba(255, 255, 255, 0.8); /* Couleur de fond avec transparence */
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Ombre pour un effet de profondeur */
+        max-height: 80vh; /* Limite la hauteur maximale */
+        overflow-y: auto; /* Ajoute une barre de défilement si nécessaire */
+        z-index: 10; /* Assure que la liste est au-dessus du dessin */
+    }
+    #toggle-button {
+        background-color: rgba(255, 255, 255, 0.8); /* Couleur de fond avec transparence */
+        padding: 3px;
+        border-radius: 5px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1); /* Ombre pour un effet de profondeur */
+        z-index: 20; /* Assure que le bouton est au-dessus du dessin */
+    }
     </style>
 </head>
 

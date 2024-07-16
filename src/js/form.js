@@ -61,18 +61,6 @@ export function createForm() {
     inputContainer.appendChild(chrLenContainer);
     inputContainer.appendChild(bandContainer);
 
-    // Container for chromosomes list
-    const chromListContainer = document.createElement('div');
-    chromListContainer.setAttribute('id', 'chrom-list-container');
-    chromListContainer.style.marginRight = '20px';
-
-    const chromListDiv = document.createElement('div');
-    chromListDiv.setAttribute('id', 'chrom-list');
-
-    chromListContainer.appendChild(chromListDiv);
-    // Append legend and chromosomes list container to input container
-    inputContainer.appendChild(chromListContainer);
-
     // Container for legend
     const legendContainer = document.createElement('div');
     legendContainer.setAttribute('id', 'legend-container');
