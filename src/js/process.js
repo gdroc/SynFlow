@@ -202,6 +202,13 @@ function allDone() {
     // Create the bar chart to display band size distribution
     createLengthChart(allBandLengths);
 
+    // Remove existing chromlist container
+    const vizContainer = document.getElementById('viz-container')
+    const existingchromListContainer = document.getElementById('chrom-list-container');
+    if (existingchromListContainer) {
+        vizContainer.removeChild(existingchromListContainer);
+    }
+
     // Container for chromosomes list
     const chromListContainer = document.createElement('div');
     chromListContainer.setAttribute('id', 'chrom-list-container');
@@ -223,7 +230,6 @@ function allDone() {
     chromListContainer.appendChild(chromListDiv);
 
     // Append legend and chromosomes list container to viz container
-    const vizContainer = document.getElementById('viz-container')
     const viz = document.getElementById('viz')
     vizContainer.insertBefore(chromListContainer, viz);
 
