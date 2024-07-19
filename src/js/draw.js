@@ -43,7 +43,7 @@ export function drawChromosomes(refLengths, queryLengths, maxLengths, isFirstFil
     const totalLength = Object.values(maxLengths).reduce((a, b) => a + b, 0);
     const totalWidth = (totalLength / 100000) + spaceBetween * (Object.keys(maxLengths).length) + margin.left + margin.right;
 
-    d3.select('#viz').attr('width', totalWidth);
+    // d3.select('#viz').attr('width', totalWidth);
 
     const radius = 5; // Exemple de radius pour les extrémités des chromosomes, moitié de la hauteur
 
@@ -87,9 +87,9 @@ export function drawStackedChromosomes(refLengths, queryLengths, maxLengths, fil
     const margin = { top: 30, bottom: 30, left: 50, right: 50 };
     const spaceBetween = 100;
     const totalSpaceBetween = totalGenomes * 100;
-    const totalLength = Object.values(maxLengths).reduce((a, b) => a + b, 0);
-    const totalWidth = (totalLength / 100000) + spaceBetween * (Object.keys(maxLengths).length) + margin.left + margin.right;
-    d3.select('#viz').attr('width', totalWidth);
+    const maxLength = Math.max(...Object.values(maxLengths));
+    const totalWidth = (maxLength / 100000) + margin.left + margin.right;
+    // d3.select('#viz').attr('width', totalWidth);
 
     const radius = 5; // Exemple de radius pour les extrémités des chromosomes, moitié de la hauteur
 

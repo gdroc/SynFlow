@@ -153,16 +153,19 @@ function updateChromList(globalMaxChromosomeLengths) {
             const chromPos = chromPositions[chromName];
             if (chromPos) {
                 const { refX, refY, width, height } = chromPos;
+                console.log(chromPos);
 
                 // Récupérer la transformation actuelle appliquée au groupe de zoom
                 const transform = d3.zoomTransform(svgGroup);
                 const transformedX = transform.applyX(refX);
                 const transformedY = transform.applyY(refY);
 
-                const adjustedWidth = width * 10;
-                const adjustedHeight = height * 10;
-                const adjustedX = transformedX - 100;
-                const adjustedY = transformedY + 100; 
+                const adjustedWidth = 600 ;
+                const adjustedHeight = 500 ;
+                const adjustedX = transformedX;
+                const adjustedY = transformedY - 100; 
+
+                console.log(`${adjustedX} ${adjustedY} ${adjustedWidth} ${adjustedHeight}`);
 
                 // Définir la nouvelle vue avec GSAP
                 gsap.to(svgElement, {
@@ -425,14 +428,26 @@ function handleFileUpload(chrlenFiles, bandFiles) {
 
 function downloadSvg() {
     const svgElement = document.getElementById('viz');
+    const zoomGroup = document.getElementById('zoomGroup');
     const serializer = new XMLSerializer();
-    const source = serializer.serializeToString(svgElement);
+
+    // Calculate the bounding box of the entire SVG content
+    const bbox = zoomGroup.getBBox();
+    const viewBox = [bbox.x, bbox.y, bbox.width, bbox.height].join(' ');
+
+    // Clone the SVG element to avoid modifying the original
+    const clonedSvgElement = svgElement.cloneNode(true);
+    clonedSvgElement.setAttribute('viewBox', viewBox);
+
+    // Serialize and create a blob
+    const source = serializer.serializeToString(clonedSvgElement);
     const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(blob);
 
+    // Create a download link and trigger the download
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'visualization.svg';
+    link.download = 'SynFlow.svg';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
