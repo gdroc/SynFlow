@@ -137,7 +137,7 @@ function updateChromList(globalMaxChromosomeLengths) {
     });
 
     const svgElement = document.getElementById('viz');
-    const svgGroup = document.getElementById('zoomGroup');
+    const svgGroup = d3.select('#zoomGroup');
 
     chromNames.forEach(chromName => {
         const listItem = document.createElement('div');
@@ -179,14 +179,17 @@ function updateChromList(globalMaxChromosomeLengths) {
                 const { refX, refY, width, height } = chromPos;
 
                 // Récupérer la transformation actuelle appliquée au groupe de zoom
-                const transform = d3.zoomTransform(svgGroup);
+                const transform = d3.zoomTransform(svgGroup.node());
                 const transformedX = transform.applyX(refX);
                 const transformedY = transform.applyY(refY);
 
-                const adjustedWidth = width * 10;
-                const adjustedHeight = height * 10;
-                const adjustedX = transformedX - 100;
-                const adjustedY = transformedY + 100;
+                const adjustedWidth = width * transform.k +200;
+                const adjustedHeight = height * transform.k;
+                const adjustedX = transformedX / transform.k -100;
+                const adjustedY = transformedY / transform.k + 100;
+
+                console.log(chromPos);
+                console.log(adjustedX, adjustedY, adjustedWidth, adjustedHeight);
 
                 // Définir la nouvelle vue avec GSAP
                 gsap.to(svgElement, {
@@ -208,6 +211,7 @@ function updateChromList(globalMaxChromosomeLengths) {
         chromListDiv.appendChild(listItem);
     });
 }
+
 
 
 
