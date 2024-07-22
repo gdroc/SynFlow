@@ -144,6 +144,30 @@ function updateChromList(globalMaxChromosomeLengths) {
         listItem.style.display = 'flex';
         listItem.style.alignItems = 'center';
 
+        // Create eye icon
+        const eyeIcon = document.createElement('i');
+        eyeIcon.setAttribute('class', 'fas fa-eye');
+        eyeIcon.style.cursor = 'pointer';
+        eyeIcon.style.marginRight = '10px';
+
+        eyeIcon.addEventListener('click', () => {
+            const viz = d3.select('#viz');
+
+            const chromElements = viz.selectAll(`#${chromName}_ref, #${chromName}_query`);
+            const bandElements = viz.selectAll(`.band[data-ref="${chromName}"], .band[data-query="${chromName}"]`);
+            if (eyeIcon.classList.contains('fa-eye')) {
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+                chromElements.style('display', 'none');
+                bandElements.style('display', 'none');
+            } else {
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+                chromElements.style('display', 'block');
+                bandElements.style('display', 'block');
+            }
+        });
+
         const arrow = document.createElement('span');
         arrow.textContent = '→'; // Flèche
         arrow.style.cursor = 'pointer';
@@ -153,19 +177,16 @@ function updateChromList(globalMaxChromosomeLengths) {
             const chromPos = chromPositions[chromName];
             if (chromPos) {
                 const { refX, refY, width, height } = chromPos;
-                console.log(chromPos);
 
                 // Récupérer la transformation actuelle appliquée au groupe de zoom
                 const transform = d3.zoomTransform(svgGroup);
                 const transformedX = transform.applyX(refX);
                 const transformedY = transform.applyY(refY);
 
-                const adjustedWidth = 600 ;
-                const adjustedHeight = 500 ;
-                const adjustedX = transformedX;
-                const adjustedY = transformedY - 100; 
-
-                console.log(`${adjustedX} ${adjustedY} ${adjustedWidth} ${adjustedHeight}`);
+                const adjustedWidth = width * 10;
+                const adjustedHeight = height * 10;
+                const adjustedX = transformedX - 100;
+                const adjustedY = transformedY + 100;
 
                 // Définir la nouvelle vue avec GSAP
                 gsap.to(svgElement, {
@@ -178,6 +199,7 @@ function updateChromList(globalMaxChromosomeLengths) {
             }
         });
 
+        listItem.appendChild(eyeIcon);
         listItem.appendChild(arrow);
 
         const text = document.createElement('span');
@@ -186,6 +208,7 @@ function updateChromList(globalMaxChromosomeLengths) {
         chromListDiv.appendChild(listItem);
     });
 }
+
 
 
 

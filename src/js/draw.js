@@ -284,6 +284,8 @@ export function drawCorrespondenceBands(data, chromPositions, isFirstFile) {
                 .attr('data-length', bandLength) // Ajouter l'attribut de longueur
                 .attr('data-pos', bandPos) // Ajouter l'attribut de position inter ou intra
                 .attr('data-type', d.type) // Ajouter l'attribut de type de bande
+                .attr('data-ref', d.refChr) //ajoute l'attribut ref
+                .attr('data-query', d.queryChr) // ajoute l'attribut query
                 .on('mouseover', function (event, d) {
                     d3.select(this).attr('opacity', 1); // Mettre en gras au survol
                     tip.show(event, d); // Afficher le tooltip
