@@ -158,13 +158,13 @@ function updateChromList(globalMaxChromosomeLengths) {
             if (eyeIcon.classList.contains('fa-eye')) {
                 eyeIcon.classList.remove('fa-eye');
                 eyeIcon.classList.add('fa-eye-slash');
-                chromElements.style('display', 'none');
-                bandElements.style('display', 'none');
+                chromElements.attr('display', 'none');
+                bandElements.attr('display', 'none');
             } else {
                 eyeIcon.classList.remove('fa-eye-slash');
                 eyeIcon.classList.add('fa-eye');
-                chromElements.style('display', 'block');
-                bandElements.style('display', 'block');
+                chromElements.attr('display', 'null');
+                bandElements.attr('display', 'null');
             }
         });
 
