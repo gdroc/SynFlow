@@ -61,6 +61,17 @@ export function createForm() {
     inputContainer.appendChild(chrLenContainer);
     inputContainer.appendChild(bandContainer);
 
+
+    // Button to load test dataset
+    const loadTestButton = document.createElement('button');
+    loadTestButton.setAttribute('type', 'button');
+    loadTestButton.setAttribute('id', 'load-test');
+    loadTestButton.textContent = 'Load Test Data';
+    loadTestButton.style.marginLeft = '10px';
+
+    // Event listener for the load test button
+    loadTestButton.addEventListener('click', loadTestData);
+
     // Container for legend
     const legendContainer = document.createElement('div');
     legendContainer.setAttribute('id', 'legend-container');
@@ -118,7 +129,7 @@ export function createForm() {
     form.appendChild(document.createElement('br'));
 
     form.appendChild(submitButton);
-    
+    form.appendChild(loadTestButton);
     
     const formContainer = document.getElementById('form-container');
 	formContainer.appendChild(form);
@@ -259,4 +270,56 @@ export function parseSyriData(data) {
         };
     });
     return parsedData.filter(d => d.refChr && d.queryChr && d.queryChr !== '-' && d.refChr !== '-'); // Filtrer les lignes invalides
+}
+
+async function loadTestData() {
+    // Define paths to your test files
+    const testChrLenFiles = [
+        'public/data/C5_126_2.chrlen',
+        'public/data/C21_464.chrlen',
+        'public/data/C23_A03.chrlen',
+        'public/data/C45_410.chrlen',
+        'public/data/DH_200_94.chrlen'
+    ];
+
+    const testBandFiles = [
+        'public/data/C21_464_C23_A03.out',
+        'public/data/C23_A03_C45_410.out',
+        'public/data/C45_410_C5_126_2.out',
+        'public/data/DH_200_94_C21_464.out'
+    ];
+
+    // Fetch file contents and create File objects
+    const chrLenFiles = await Promise.all(testChrLenFiles.map(async path => {
+        const response = await fetch(path);
+        const text = await response.text();
+        const fileName = path.split('/').pop();
+        return new File([text], fileName, { type: 'text/plain' });
+    }));
+
+    const bandFiles = await Promise.all(testBandFiles.map(async path => {
+        const response = await fetch(path);
+        const text = await response.text();
+        const fileName = path.split('/').pop();
+        return new File([text], fileName, { type: 'text/plain' });
+    }));
+
+    // Creating DataTransfer objects to simulate file upload
+    const chrLenDataTransfer = new DataTransfer();
+    const bandDataTransfer = new DataTransfer();
+
+    // Add files to the DataTransfer objects
+    chrLenFiles.forEach(file => chrLenDataTransfer.items.add(file));
+    bandFiles.forEach(file => bandDataTransfer.items.add(file));
+
+    // Set the files to the input fields
+    const chrLenInput = document.getElementById('chrlen-files');
+    const bandInput = document.getElementById('band-files');
+
+    chrLenInput.files = chrLenDataTransfer.files;
+    bandInput.files = bandDataTransfer.files;
+
+    // Update the file lists
+    updateFileList(chrLenInput, document.getElementById('chrlen-file-list'));
+    updateFileList(bandInput, document.getElementById('band-file-list'));
 }
