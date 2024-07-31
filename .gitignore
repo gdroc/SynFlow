@@ -1,1 +1,2 @@
-/data
+# Ignorer tout le contenu du dossier public/data
+public/data/*
