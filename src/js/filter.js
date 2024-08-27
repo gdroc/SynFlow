@@ -135,7 +135,7 @@ export function generateLegend() {
 }
 
 
-function updateBandsVisibility() {
+export function updateBandsVisibility() {
     const showIntra = !document.getElementById('intrachromosomal-filter').classList.contains('fa-eye-slash');
     const showInter = !document.getElementById('interchromosomal-filter').classList.contains('fa-eye-slash');
 
@@ -144,21 +144,43 @@ function updateBandsVisibility() {
         .filter(icon => !icon.classList.contains('fa-eye-slash'))
         .map(icon => icon.getAttribute('data-type'));
 
+    const chromEyeIcons = document.querySelectorAll('i.chrom-eye-icon');
+    const visibleChromosomes = Array.from(chromEyeIcons)
+        .filter(icon => icon.classList.contains('fa-eye'))
+        .map(icon => icon.getAttribute('data-chrom'));
+
     d3.selectAll('path.band').each(function() {
         const band = d3.select(this);
         const bandPosType = band.attr('data-pos');
         const bandType = band.attr('data-type');
+        const bandRef = band.attr('data-ref');
+        const bandQuery = band.attr('data-query');
         const bandLength = parseInt(band.attr('data-length'));
 
-        if (((bandPosType === 'intra' && showIntra) || (bandPosType === 'inter' && showInter)) &&
-            selectedTypes.includes(bandType) &&
-            bandLength >= sliderMinValue && bandLength <= sliderMaxValue) {
+        const isVisibleChrom = visibleChromosomes.includes(bandRef) || visibleChromosomes.includes(bandQuery);
+        const isVisibleBandType = selectedTypes.includes(bandType);
+        const isVisibleBandPos = (bandPosType === 'intra' && showIntra) || (bandPosType === 'inter' && showInter);
+        const isVisibleBandLength = bandLength >= sliderMinValue && bandLength <= sliderMaxValue;
+
+        if (isVisibleChrom && isVisibleBandType && isVisibleBandPos && isVisibleBandLength) {
             band.attr('display', null);
         } else {
             band.attr('display', 'none');
         }
     });
+
+    d3.selectAll('.chrom').each(function() {
+        const chrom = d3.select(this);
+        const chromName = chrom.attr('id').split('_')[0];
+
+        if (visibleChromosomes.includes(chromName)) {
+            chrom.attr('display', null);
+        } else {
+            chrom.attr('display', 'none');
+        }
+    });
 }
+
 
 export function createSlider(minBandSize, maxBandSize) {
     console.log('create slider from ' + minBandSize + ' to ' + maxBandSize);

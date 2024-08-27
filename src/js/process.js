@@ -2,7 +2,7 @@ import { genomeLengths, loadAllChromosomeLengths, calculateGlobalMaxChromosomeLe
 	parseSyriData, orderFilesByGenomes,
 	reorderFileList } from './form.js';
 import { drawChromosomes, drawStackedChromosomes, drawCorrespondenceBands, resetDrawGlobals } from './draw.js';
-import { generateLegend, createSlider, createLengthChart } from './filter.js';
+import { generateLegend, createSlider, createLengthChart, updateBandsVisibility } from './filter.js';
 import { Spinner } from './spin.js';
 
 export let refGenome; // Définir globalement
@@ -135,6 +135,7 @@ function updateChromList(globalMaxChromosomeLengths) {
             chromPositions[chromName] = { refX: bbox.x, refY: bbox.y, width: bbox.width, height: bbox.height };
         }
     });
+    
 
     const svgElement = document.getElementById('viz');
     const svgGroup = d3.select('#zoomGroup');
@@ -146,26 +147,20 @@ function updateChromList(globalMaxChromosomeLengths) {
 
         // Create eye icon
         const eyeIcon = document.createElement('i');
-        eyeIcon.setAttribute('class', 'fas fa-eye');
+        eyeIcon.setAttribute('class', 'fas fa-eye chrom-eye-icon');
+        eyeIcon.setAttribute('data-chrom', chromName);
         eyeIcon.style.cursor = 'pointer';
         eyeIcon.style.marginRight = '10px';
 
         eyeIcon.addEventListener('click', () => {
-            const viz = d3.select('#viz');
-
-            const chromElements = viz.selectAll(`#${chromName}_ref, #${chromName}_query`);
-            const bandElements = viz.selectAll(`.band[data-ref="${chromName}"], .band[data-query="${chromName}"]`);
             if (eyeIcon.classList.contains('fa-eye')) {
                 eyeIcon.classList.remove('fa-eye');
                 eyeIcon.classList.add('fa-eye-slash');
-                chromElements.attr('display', 'none');
-                bandElements.attr('display', 'none');
             } else {
                 eyeIcon.classList.remove('fa-eye-slash');
                 eyeIcon.classList.add('fa-eye');
-                chromElements.attr('display', 'null');
-                bandElements.attr('display', 'null');
             }
+            updateBandsVisibility();
         });
 
         const arrow = document.createElement('span');
