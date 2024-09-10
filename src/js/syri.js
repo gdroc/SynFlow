@@ -30,6 +30,5 @@ document.addEventListener('DOMContentLoaded', () => {
         handleFileUpload(chrlenFiles, bandFiles);
     });
     
-    
 });
 

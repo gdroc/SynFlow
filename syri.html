@@ -32,6 +32,18 @@
     <script type="module" src="src/js/spin.js"></script>
     <link rel="stylesheet" type="text/css" href="src/css/spin.css">
 
+    <!--SocketIO-->
+    <script src="node_modules/socket.io/client-dist/socket.io.js"></script>
+    <script>
+        //montmedy
+        // var socket = io('https://195.221.175.11:3000', {transports: ['websocket']});
+
+        //garenne gemo
+        var socket = io('https://wsp1453.southgreen.fr', {transports: ['websocket']});
+        socket.emit('clientInfo', { url: window.location.href });   
+        socket.emit('synflow');
+    </script>
+
 </head>
 
 <body>
