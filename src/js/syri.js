@@ -29,6 +29,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         handleFileUpload(chrlenFiles, bandFiles);
     });
+
+    // Réception des messages du serveur et affichage dans la console
+    socket.on('consoleMessage', (message) => {
+        const consoleOutput = document.getElementById('consoleOutput');
+        consoleOutput.innerHTML += `<pre>${message}</pre>`;
+        consoleOutput.scrollTop = consoleOutput.scrollHeight;  // Auto-scroll vers le bas
+    });
     
 });
 

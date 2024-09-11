@@ -72,6 +72,35 @@ export function createForm() {
     // Event listener for the load test button
     loadTestButton.addEventListener('click', loadTestData);
 
+    // Bouton pour lancer le calcul
+    const runCalculationButton = document.createElement('button');
+    runCalculationButton.setAttribute('type', 'button');
+    runCalculationButton.setAttribute('id', 'runCalculation');
+    runCalculationButton.textContent = 'Lancer le calcul';
+    runCalculationButton.style.marginLeft = '10px';
+
+    // Ajouter un conteneur pour la console, caché par défaut
+    const consoleDiv = document.createElement('div');
+    consoleDiv.setAttribute('id', 'consoleOutput');
+    consoleDiv.style.display = 'none';  // Caché au départ
+    consoleDiv.style.border = '1px solid black';
+    consoleDiv.style.height = '200px';
+    consoleDiv.style.overflowY = 'scroll';
+    consoleDiv.style.padding = '10px';  // Ajouter du padding pour une marge intérieure
+    
+    // Ajouter un titre pour la console, au-dessus de la console
+    const consoleTitle = document.createElement('h4');
+    consoleTitle.textContent = 'Console';
+    consoleTitle.style.marginTop = '20px';
+    consoleTitle.style.display = 'none';  // Caché au départ
+
+    // Event listener pour envoyer l'événement de calcul au serveur
+    runCalculationButton.addEventListener('click', () => {
+        consoleTitle.style.display = 'block'; //affiche le titre et la console
+        consoleDiv.style.display = 'block';
+        socket.emit('runSyri'); // Envoi du signal au serveur Node.js
+    });
+
     // Container for legend
     const legendContainer = document.createElement('div');
     legendContainer.setAttribute('id', 'legend-container');
@@ -130,7 +159,10 @@ export function createForm() {
 
     form.appendChild(submitButton);
     form.appendChild(loadTestButton);
-    
+    form.appendChild(runCalculationButton); 
+    form.appendChild(consoleTitle);  
+    form.appendChild(consoleDiv);
+
     const formContainer = document.getElementById('form-container');
 	formContainer.appendChild(form);
 
