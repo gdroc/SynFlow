@@ -1,5 +1,6 @@
 import { createForm,  } from './form.js';
 import { handleFileUpload} from './process.js';
+// import * as toolkit from '../../../toolkit/toolkit.js';
 
 console.log("syri");
 
@@ -30,12 +31,35 @@ document.addEventListener('DOMContentLoaded', () => {
         handleFileUpload(chrlenFiles, bandFiles);
     });
 
-    // Réception des messages du serveur et affichage dans la console
-    socket.on('consoleMessage', (message) => {
-        const consoleOutput = document.getElementById('consoleOutput');
-        consoleOutput.innerHTML += `<pre>${message}</pre>`;
-        consoleOutput.scrollTop = consoleOutput.scrollHeight;  // Auto-scroll vers le bas
-    });
+
+
+    ///////////////
+    //TOOLKIT
+    ///////////////
+    
+    // //crée le container pour le module toolkit
+    // const toolkitContainer = document.createElement("div");
+    // toolkitContainer.id = "toolkitContainer";    
+    // document.body.appendChild(toolkitContainer);
+
+    // // Option pour générer le selecteur de service ou appeler un service spécifique
+    // const generateSelect = true;
+    // const serviceName = 'synflow';
+
+    // // Chargement des services lors du chargement de la page
+    // toolkit.loadServices()
+    //   .then(() => {
+    //     if(generateSelect){
+    //       // Appeler la fonction populateServiceSelect après le chargement
+    //       toolkit.populateServiceSelect();
+    //     }else{
+    //       toolkit.generateForm(serviceName);
+    //     }
+        
+    //   })
+    //   .catch(error => {
+    //     console.error(error);
+    //   });
     
 });
 

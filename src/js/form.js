@@ -1,4 +1,5 @@
 import { drawMiniChromosome } from "./draw.js";
+import * as toolkit from '../../../toolkit/toolkit.js';
 
 export function createForm() {
     const form = document.createElement('form');
@@ -79,26 +80,31 @@ export function createForm() {
     runCalculationButton.textContent = 'Lancer le calcul';
     runCalculationButton.style.marginLeft = '10px';
 
-    // Ajouter un conteneur pour la console, caché par défaut
-    const consoleDiv = document.createElement('div');
-    consoleDiv.setAttribute('id', 'consoleOutput');
-    consoleDiv.style.display = 'none';  // Caché au départ
-    consoleDiv.style.border = '1px solid black';
-    consoleDiv.style.height = '200px';
-    consoleDiv.style.overflowY = 'scroll';
-    consoleDiv.style.padding = '10px';  // Ajouter du padding pour une marge intérieure
-    
-    // Ajouter un titre pour la console, au-dessus de la console
-    const consoleTitle = document.createElement('h4');
-    consoleTitle.textContent = 'Console';
-    consoleTitle.style.marginTop = '20px';
-    consoleTitle.style.display = 'none';  // Caché au départ
+    //////////////////:
+    // TOOLKIT
+    ///////////////////
+
+    //crée le container pour le module toolkit
+    const toolkitContainer = document.createElement("div");
+    toolkitContainer.id = "toolkitContainer";    
+    document.body.appendChild(toolkitContainer);
 
     // Event listener pour envoyer l'événement de calcul au serveur
     runCalculationButton.addEventListener('click', () => {
-        consoleTitle.style.display = 'block'; //affiche le titre et la console
-        consoleDiv.style.display = 'block';
-        socket.emit('runSyri'); // Envoi du signal au serveur Node.js
+
+        // Option pour générer le selecteur de service ou appeler un service spécifique
+        const generateSelect = false;
+        const serviceName = 'synflow';
+
+        //init toolkit
+        toolkit.initToolkit(generateSelect, serviceName);
+
+        //reception des resultats du serveur
+        socket.on('outputResult', (result) => {
+            //recupère les urls des fichiers chrlen et syri.out
+            //affiche un bouton dans la console pour charger les fichiers dans le formulaire
+            //affiche un bouton pour dessiner le graphe            
+        })
     });
 
     // Container for legend
@@ -160,8 +166,9 @@ export function createForm() {
     form.appendChild(submitButton);
     form.appendChild(loadTestButton);
     form.appendChild(runCalculationButton); 
-    form.appendChild(consoleTitle);  
-    form.appendChild(consoleDiv);
+    // form.appendChild(consoleTitle);  
+    // form.appendChild(consoleDiv);
+    form.appendChild(toolkitContainer);
 
     const formContainer = document.getElementById('form-container');
 	formContainer.appendChild(form);
