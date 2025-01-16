@@ -11,30 +11,6 @@ export function createForm() {
     inputContainer.style.justifyContent = 'space-between';
     inputContainer.style.alignItems = 'flex-start';
 
-    // Container for chromosome length files
-    const chrLenContainer = document.createElement('div');
-
-    const chrLenLabel = document.createElement('label');
-    chrLenLabel.setAttribute('for', 'chrlen-files');
-    chrLenLabel.textContent = 'Upload Chromosome Length Files:';
-
-    const chrLenInput = document.createElement('input');
-    chrLenInput.setAttribute('type', 'file');
-    chrLenInput.setAttribute('id', 'chrlen-files');
-    chrLenInput.setAttribute('name', 'chrlen-files');
-    chrLenInput.setAttribute('multiple', true);
-    chrLenInput.setAttribute('accept', '.chrlen');
-
-    const chrLenFileList = document.createElement('div');
-    chrLenFileList.setAttribute('id', 'chrlen-file-list');
-    chrLenFileList.setAttribute('style', 'margin-bottom:20px');
-    chrLenFileList.classList.add('file-list');
-
-    chrLenContainer.appendChild(chrLenLabel);
-    chrLenContainer.appendChild(document.createElement('br'));
-    chrLenContainer.appendChild(chrLenInput);
-    chrLenContainer.appendChild(chrLenFileList);
-
     // Container for band files
     const bandContainer = document.createElement('div');
 
@@ -59,9 +35,7 @@ export function createForm() {
     bandContainer.appendChild(bandFileList);
 
     // Append containers to input container
-    inputContainer.appendChild(chrLenContainer);
     inputContainer.appendChild(bandContainer);
-
 
     // Button to load test dataset
     const loadTestButton = document.createElement('button');
@@ -114,10 +88,33 @@ export function createForm() {
     legendContainer.style.borderLeft = '1px solid #ccc';
     legendContainer.style.paddingLeft = '20px';
 
+    const legendTitle = document.createElement('div');
+    legendTitle.setAttribute('id', 'legend-title');
+
+    const title = document.createElement('span');
+    title.textContent = "Legend";
+    legendTitle.appendChild(title);
+    legendTitle.appendChild(document.createElement('br'));
+    legendTitle.appendChild(document.createElement('br'));
+
+    legendContainer.appendChild(legendTitle);
+
+    const legendContent = document.createElement('div');
+    legendContent.setAttribute('id', 'legend-content');
+    legendContent.setAttribute('style', 'display:flex;');
+
+    // Container for genome names and order
+    const genomeList = document.createElement('div');
+    genomeList.setAttribute('id', 'genome-list');
+    genomeList.setAttribute('style', 'margin-bottom:20px; margin-right:30px;');
+
     const legendDiv = document.createElement('div');
     legendDiv.setAttribute('id', 'legend');
+    
+    legendContent.appendChild(genomeList);
+    legendContent.appendChild(legendDiv);
 
-    legendContainer.appendChild(legendDiv);
+    legendContainer.appendChild(legendContent);
 
     // Append legend container to input container
     inputContainer.appendChild(legendContainer);
@@ -132,9 +129,9 @@ export function createForm() {
     
 
     // Event listeners for file inputs
-    chrLenInput.addEventListener('change', (event) => {
-        updateFileList(chrLenInput, chrLenFileList);
-    });
+    // chrLenInput.addEventListener('change', (event) => {
+    //     updateFileList(chrLenInput, genomeList);
+    // });
 
     bandInput.addEventListener('change', (event) => {
         updateFileList(bandInput, bandFileList);
@@ -313,13 +310,13 @@ export function parseSyriData(data) {
 
 async function loadTestData() {
     // Define paths to your test files
-    const testChrLenFiles = [
-        'public/data/C5_126_2.chrlen',
-        'public/data/C21_464.chrlen',
-        'public/data/C23_A03.chrlen',
-        'public/data/C45_410.chrlen',
-        'public/data/DH_200_94.chrlen'
-    ];
+    // const testChrLenFiles = [
+    //     'public/data/C5_126_2.chrlen',
+    //     'public/data/C21_464.chrlen',
+    //     'public/data/C23_A03.chrlen',
+    //     'public/data/C45_410.chrlen',
+    //     'public/data/DH_200_94.chrlen'
+    // ];
 
     const testBandFiles = [
         'public/data/C21_464_C23_A03.out',
@@ -329,12 +326,12 @@ async function loadTestData() {
     ];
 
     // Fetch file contents and create File objects
-    const chrLenFiles = await Promise.all(testChrLenFiles.map(async path => {
-        const response = await fetch(path);
-        const text = await response.text();
-        const fileName = path.split('/').pop();
-        return new File([text], fileName, { type: 'text/plain' });
-    }));
+    // const chrLenFiles = await Promise.all(testChrLenFiles.map(async path => {
+    //     const response = await fetch(path);
+    //     const text = await response.text();
+    //     const fileName = path.split('/').pop();
+    //     return new File([text], fileName, { type: 'text/plain' });
+    // }));
 
     const bandFiles = await Promise.all(testBandFiles.map(async path => {
         const response = await fetch(path);
@@ -344,21 +341,21 @@ async function loadTestData() {
     }));
 
     // Creating DataTransfer objects to simulate file upload
-    const chrLenDataTransfer = new DataTransfer();
+    // const chrLenDataTransfer = new DataTransfer();
     const bandDataTransfer = new DataTransfer();
 
     // Add files to the DataTransfer objects
-    chrLenFiles.forEach(file => chrLenDataTransfer.items.add(file));
+    // chrLenFiles.forEach(file => chrLenDataTransfer.items.add(file));
     bandFiles.forEach(file => bandDataTransfer.items.add(file));
 
     // Set the files to the input fields
-    const chrLenInput = document.getElementById('chrlen-files');
+    // const chrLenInput = document.getElementById('chrlen-files');
     const bandInput = document.getElementById('band-files');
 
-    chrLenInput.files = chrLenDataTransfer.files;
+    // chrLenInput.files = chrLenDataTransfer.files;
     bandInput.files = bandDataTransfer.files;
 
     // Update the file lists
-    updateFileList(chrLenInput, document.getElementById('chrlen-file-list'));
+    // updateFileList(chrLenInput, document.getElementById('chrlen-file-list'));
     updateFileList(bandInput, document.getElementById('band-file-list'));
 }

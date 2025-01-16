@@ -25,10 +25,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Ajoutez un groupe à l'intérieur de l'élément SVG pour contenir les éléments zoomables
         d3.select("#viz").append("g").attr("id", "zoomGroup");
 
-        const chrlenFiles = document.getElementById('chrlen-files').files;
+
+        ///////////////changement
+        // const chrlenFiles = document.getElementById('chrlen-files').files;
         const bandFiles = document.getElementById('band-files').files;
 
-        handleFileUpload(chrlenFiles, bandFiles);
+        handleFileUpload(bandFiles);
     });
 
 

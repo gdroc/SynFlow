@@ -1,7 +1,7 @@
 import { genomeLengths, loadAllChromosomeLengths, calculateGlobalMaxChromosomeLengths, 
 	parseSyriData, orderFilesByGenomes,
 	reorderFileList } from './form.js';
-import { drawChromosomes, drawStackedChromosomes, drawCorrespondenceBands, resetDrawGlobals } from './draw.js';
+import { drawChromosomes, drawStackedChromosomes, drawCorrespondenceBands, resetDrawGlobals, drawMiniChromosome } from './draw.js';
 import { generateLegend, createSlider, createLengthChart, updateBandsVisibility } from './filter.js';
 import { Spinner } from './spin.js';
 
@@ -207,15 +207,6 @@ function updateChromList(globalMaxChromosomeLengths) {
     });
 }
 
-
-
-
-
-
-
-
-
-
 function allDone() {
     // Determine min and max band sizes
     const allBandLengths = d3.selectAll('path.band').nodes().map(path => parseFloat(path.getAttribute('data-length')));
@@ -321,11 +312,13 @@ function extractGenomeNames(chrlenFileNames) {
 }
 
 // Trouver les génomes uniques à partir des fichiers de bandes
-function findUniqueGenomes(bandFileNames, genomeNames) {
+function findUniqueGenomes(bandFileNames) {
     const fileCount = bandFileNames.length;
     const uniqueNamesToFind = fileCount + 1;
     numGenomes = uniqueNamesToFind;
     let possibleNames = new Set();
+
+    // Extraire les noms de génomes directement à partir des noms de fichiers de bandes
     bandFileNames.forEach(file => {
         const baseName = file.replace('.out', '');
         const parts = baseName.split('_');
@@ -336,9 +329,6 @@ function findUniqueGenomes(bandFileNames, genomeNames) {
     });
 
     possibleNames = Array.from(possibleNames);
-
-    // Filtrer les possibleNames pour ne garder que ceux qui existent dans les fichiers chrlen
-    possibleNames = possibleNames.filter(name => genomeNames.includes(name));
 
     function findCombination(currentCombination, depth) {
         if (depth === uniqueNamesToFind) {
@@ -373,28 +363,18 @@ function findUniqueGenomes(bandFileNames, genomeNames) {
     return findCombination([], 0);
 }
 
-
-function handleFileUpload(chrlenFiles, bandFiles) {
+function handleFileUpload(bandFiles) {
     resetGlobals(); // Réinitialiser les variables globales
     spinner.spin(target);
 
-    console.log('Chromosome Length Files:', chrlenFiles);
+    // console.log('Chromosome Length Files:', chrlenFiles);
     console.log('Band Files:', bandFiles);
 
     // Extraire les noms de fichiers des objets File
     const bandFileNames = Array.from(bandFiles).map(file => file.name);
-    const chrlenFileNames = Array.from(chrlenFiles).map(file => file.name);
-    const genomeNames = extractGenomeNames(chrlenFileNames);
-
-    // Vérifier si tous les fichiers .chrlen nécessaires sont présents
-    if (genomeNames.length < 2) {
-        alert('Some .chrlen files are missing. Please ensure all necessary files are uploaded.');
-        spinner.stop();
-        return;
-    }
-
+    
     // Trouver et ordonne les génomes à partir des noms de fichiers de bandes
-    uniqueGenomes = findUniqueGenomes(bandFileNames, genomeNames);
+    uniqueGenomes = findUniqueGenomes(bandFileNames);
 
     // Vérifier si tous les fichiers de bandes nécessaires sont présents
     if (!uniqueGenomes || uniqueGenomes.length < 2) {
@@ -425,11 +405,11 @@ function handleFileUpload(chrlenFiles, bandFiles) {
     generateLegend();
 
     // Réordonner les listes de fichiers
-    const chrLenFileList = document.getElementById('chrlen-file-list');
+    const genomeList = document.getElementById('genome-list');
     const bandFileList = document.getElementById('band-file-list');
-    reorderFileList(chrLenFileList, uniqueGenomes.map(genome => `${genome}.chrlen`), 'chrlen');
-    reorderFileList(bandFileList, orderedFiles, 'out');
-
+    reorderFileList(genomeList, uniqueGenomes, 'chrlen'); //affiche les mini chromosomes
+    reorderFileList(bandFileList, orderedFiles, 'out'); // réordonne les fichier de bandes dans la div band-file-list
+    
     // Utiliser les objets File pour lire les fichiers
     orderedFileObjects = orderedFiles.map(fileName => 
         Array.from(bandFiles).find(file => file.name === fileName)
@@ -441,10 +421,72 @@ function handleFileUpload(chrlenFiles, bandFiles) {
     refGenome = uniqueGenomes[0];
     queryGenome = uniqueGenomes[1];
 
-    // Traiter les fichiers ordonnés
-    loadAllChromosomeLengths(chrlenFiles).then(() => {
+    // Lire les longueurs des chromosomes à partir du fichier band
+    calculateChromosomeLengthsFromBandFiles(orderedFileObjects, uniqueGenomes).then(() => {
+        console.log("Genome Lengths: ", genomeLengths);
         globalMaxChromosomeLengths = calculateGlobalMaxChromosomeLengths(genomeLengths);
+        //traite les fichiers
         readFileInChunks(currentFile, true, refGenome, queryGenome);
+    });
+}
+
+//calcule la taille des chromosomes a partir du fichier band
+//format : genomeLengths[genome] = lengths;
+async function calculateChromosomeLengthsFromBandFiles(orderedFileObjects, uniqueGenomes) {
+    for (let i = 0; i < orderedFileObjects.length; i++) {
+        let currentFile = orderedFileObjects[i];
+        let refGenome = uniqueGenomes[i];
+        let queryGenome = uniqueGenomes[i + 1];
+
+        // Lire les longueurs des chromosomes à partir du fichier band
+        const { refLengths, queryLengths } = await readChromosomeLengthsFromBandFile(currentFile);
+
+        // Mettre à jour genomeLengths pour refGenome
+        if (!genomeLengths[refGenome]) {
+            genomeLengths[refGenome] = {};
+        }
+        Object.assign(genomeLengths[refGenome], refLengths);
+
+        // Mettre à jour genomeLengths pour queryGenome
+        if (!genomeLengths[queryGenome]) {
+            genomeLengths[queryGenome] = {};
+        }
+        Object.assign(genomeLengths[queryGenome], queryLengths);
+    }
+}
+
+function readChromosomeLengthsFromBandFile(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const refLengths = {};
+            const queryLengths = {};
+            const lines = event.target.result.split('\n');
+            lines.forEach(line => {
+                const parts = line.split('\t');
+                if (parts.length >= 8) {
+                    const refChromosome = parts[0];
+                    const queryChromosome = parts[5];
+                    const refPosition = +parts[2];
+                    const queryPosition = +parts[7];
+
+                    if (refChromosome !== "-") {
+                        if (!refLengths[refChromosome] || refPosition > refLengths[refChromosome]) {
+                            refLengths[refChromosome] = refPosition;
+                        }
+                    }
+
+                    if (queryChromosome !== "-") {
+                        if (!queryLengths[queryChromosome] || queryPosition > queryLengths[queryChromosome]) {
+                            queryLengths[queryChromosome] = queryPosition;
+                        }
+                    }
+                }
+            });
+            resolve({ refLengths, queryLengths });
+        };
+        reader.onerror = (error) => reject(error);
+        reader.readAsText(file);
     });
 }
 

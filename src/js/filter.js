@@ -3,14 +3,8 @@ let sliderMinValue = 0;
 let sliderMaxValue = Infinity;
 
 export function generateLegend() {
-    const legendContainer = document.getElementById('legend');
-    legendContainer.innerHTML = ''; // Clear previous legend
-
-    const title = document.createElement('span');
-    title.textContent = "Legend";
-    legendContainer.appendChild(title);
-    legendContainer.appendChild(document.createElement('br'));
-    legendContainer.appendChild(document.createElement('br'));
+    const legendDiv = document.getElementById('legend');
+    legendDiv.innerHTML = ''; // Clear previous legend
 
     const colors = [
         { type: 'Syntenic region', color: '#d3d3d3', attr: 'SYN' },
@@ -83,7 +77,7 @@ export function generateLegend() {
         legendItem.appendChild(eyeIcon);
         legendItem.appendChild(miniBandSvg);
         legendItem.appendChild(label);
-        legendContainer.appendChild(legendItem);
+        legendDiv.appendChild(legendItem);
     });
 
     // Checkbox for filtering bands
@@ -127,11 +121,11 @@ export function generateLegend() {
         updateBandsVisibility();
     });
 
-    legendContainer.appendChild(filterInterCheckbox);
-    legendContainer.appendChild(filterInterLabel);
-    legendContainer.appendChild(document.createElement('br'));
-    legendContainer.appendChild(filterIntraCheckbox);
-    legendContainer.appendChild(filterIntraLabel);
+    legendDiv.appendChild(filterInterCheckbox);
+    legendDiv.appendChild(filterInterLabel);
+    legendDiv.appendChild(document.createElement('br'));
+    legendDiv.appendChild(filterIntraCheckbox);
+    legendDiv.appendChild(filterIntraLabel);
 }
 
 
