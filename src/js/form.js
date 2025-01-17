@@ -276,16 +276,36 @@ export function loadAllChromosomeLengths(files) {
     return Promise.all(lengthPromises);
 }
 
-export function calculateGlobalMaxChromosomeLengths(genomeLengths) {
+// export function calculateGlobalMaxChromosomeLengths(genomeLengths) {
+//     const globalMaxLengths = {};
+//     for (const genome in genomeLengths) {
+//         const lengths = genomeLengths[genome];
+//         for (const chr in lengths) {
+//             if (!globalMaxLengths[chr] || lengths[chr] > globalMaxLengths[chr]) {
+//                 globalMaxLengths[chr] = lengths[chr];
+//             }
+//         }
+//     }
+//     return globalMaxLengths;
+// }
+
+export function calculateGlobalMaxChromosomeLengths(genomeData) {
     const globalMaxLengths = {};
-    for (const genome in genomeLengths) {
-        const lengths = genomeLengths[genome];
-        for (const chr in lengths) {
-            if (!globalMaxLengths[chr] || lengths[chr] > globalMaxLengths[chr]) {
-                globalMaxLengths[chr] = lengths[chr];
+
+    for (const genome in genomeData) {
+        const chromosomes = genomeData[genome];
+        for (const index in chromosomes) {
+            const chrData = chromosomes[index];
+            if (!globalMaxLengths[index]) {
+                globalMaxLengths[index] = chrData.length;
+            } else {
+                if (chrData.length > globalMaxLengths[index]) {
+                    globalMaxLengths[index] = chrData.length;
+                }
             }
         }
     }
+
     return globalMaxLengths;
 }
 

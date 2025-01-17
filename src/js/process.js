@@ -1,4 +1,4 @@
-import { genomeLengths, loadAllChromosomeLengths, calculateGlobalMaxChromosomeLengths, 
+import {calculateGlobalMaxChromosomeLengths, 
 	parseSyriData, orderFilesByGenomes,
 	reorderFileList } from './form.js';
 import { drawChromosomes, drawStackedChromosomes, drawCorrespondenceBands, resetDrawGlobals, drawMiniChromosome } from './draw.js';
@@ -8,6 +8,9 @@ import { Spinner } from './spin.js';
 export let refGenome; // Définir globalement
 export let queryGenome; // Définir globalement
 export let genomeColors = {};
+let genomeLengths; // taille des chromosomes
+let genomeData; // Données des chromosomes
+let maxAlignments; //duo de chromosomes ref/query avec le plus grand alignement
 let uniqueGenomes;
 let orderedFileObjects = []; // Défini globalement
 let previousChromosomePositions = null;
@@ -83,17 +86,18 @@ function processChunks(lines, isFirstFile) {
         if (offset < lines.length) {
             requestAnimationFrame(processNextChunk);
         } else {
-            const refChromosomeLengths = genomeLengths[refGenome];
-            const queryChromosomeLengths = genomeLengths[queryGenome];
-            console.log(refChromosomeLengths);
-            console.log(queryChromosomeLengths);
+            // const refChromosomeLengths = genomeLengths[refGenome];
+            // const queryChromosomeLengths = genomeLengths[queryGenome];
+            // console.log(refChromosomeLengths);
+            // console.log(queryChromosomeLengths);
 
             let chromPositions;
             if(stackMode){
                 const fileIndex = orderedFileObjects.indexOf(currentFile);
                 chromPositions = drawStackedChromosomes(refChromosomeLengths, queryChromosomeLengths, globalMaxChromosomeLengths, fileIndex, numGenomes)
             }else{
-                chromPositions = drawChromosomes(refChromosomeLengths, queryChromosomeLengths, globalMaxChromosomeLengths, isFirstFile);
+                chromPositions = drawChromosomes(genomeData, globalMaxChromosomeLengths, refGenome, queryGenome, isFirstFile);
+
             }
             
             drawCorrespondenceBands(parsedData, chromPositions, isFirstFile);
@@ -422,37 +426,102 @@ function handleFileUpload(bandFiles) {
     queryGenome = uniqueGenomes[1];
 
     // Lire les longueurs des chromosomes à partir du fichier band
-    calculateChromosomeLengthsFromBandFiles(orderedFileObjects, uniqueGenomes).then(() => {
-        console.log("Genome Lengths: ", genomeLengths);
-        globalMaxChromosomeLengths = calculateGlobalMaxChromosomeLengths(genomeLengths);
+    calculateChromosomeDataFromBandFiles(orderedFileObjects, uniqueGenomes).then((data) => {
+        genomeData = data;
+        console.log(genomeData)
+        globalMaxChromosomeLengths = calculateGlobalMaxChromosomeLengths(genomeData);
+        console.log("Global Max Chromosome Lengths: ", globalMaxChromosomeLengths);
         //traite les fichiers
         readFileInChunks(currentFile, true, refGenome, queryGenome);
     });
 }
 
-//calcule la taille des chromosomes a partir du fichier band
-//format : genomeLengths[genome] = lengths;
-async function calculateChromosomeLengthsFromBandFiles(orderedFileObjects, uniqueGenomes) {
+// Calcule la taille des chromosomes à partir des fichiers band
+// Format : genomeData[genomeName][index] = { name: chrName, length: chrLength };
+async function calculateChromosomeDataFromBandFiles(orderedFileObjects, uniqueGenomes) {
+    const genomeDataTemp = {};
+    const alignmentInfo = {};
+
     for (let i = 0; i < orderedFileObjects.length; i++) {
         let currentFile = orderedFileObjects[i];
         let refGenome = uniqueGenomes[i];
         let queryGenome = uniqueGenomes[i + 1];
-
+    
         // Lire les longueurs des chromosomes à partir du fichier band
-        const { refLengths, queryLengths } = await readChromosomeLengthsFromBandFile(currentFile);
+        const { refLengths, queryLengths, alignments } = await readChromosomeLengthsFromBandFile(currentFile);
 
-        // Mettre à jour genomeLengths pour refGenome
-        if (!genomeLengths[refGenome]) {
-            genomeLengths[refGenome] = {};
+        // Mettre à jour genomeDataTemp pour refGenome
+        if (!genomeDataTemp[refGenome]) {
+            genomeDataTemp[refGenome] = {};
         }
-        Object.assign(genomeLengths[refGenome], refLengths);
+        for (const [refChr, length] of Object.entries(refLengths)) {
+            if (!genomeDataTemp[refGenome][refChr]) {
+                genomeDataTemp[refGenome][refChr] = { name: refChr, length: length };
+            }
+        }
 
-        // Mettre à jour genomeLengths pour queryGenome
-        if (!genomeLengths[queryGenome]) {
-            genomeLengths[queryGenome] = {};
+        // Mettre à jour genomeDataTemp pour queryGenome
+        if (!genomeDataTemp[queryGenome]) {
+            genomeDataTemp[queryGenome] = {};
         }
-        Object.assign(genomeLengths[queryGenome], queryLengths);
+        for (const [queryChr, length] of Object.entries(queryLengths)) {
+            if (!genomeDataTemp[queryGenome][queryChr]) {
+                genomeDataTemp[queryGenome][queryChr] = { name: queryChr, length: length };
+            }
+        }
+
+        // Mettre à jour alignmentInfo pour refGenome
+        if (!alignmentInfo[refGenome]) {
+            alignmentInfo[refGenome] = {};
+        }
+        for (const [refChr, queryAlignments] of Object.entries(alignments)) {
+            if (!alignmentInfo[refGenome][refChr]) {
+                alignmentInfo[refGenome][refChr] = {};
+            }
+            for (const [queryChr, alignmentLength] of Object.entries(queryAlignments)) {
+                if (!alignmentInfo[refGenome][refChr][queryChr]) {
+                    alignmentInfo[refGenome][refChr][queryChr] = 0;
+                }
+                alignmentInfo[refGenome][refChr][queryChr] += alignmentLength;
+            }
+        }
     }
+
+    // Déterminer le numéro des chromosomes en se basant sur les duos d'alignement
+    const genomeDataIndexed = {};
+    for (const [refGenome, refChromosomes] of Object.entries(alignmentInfo)) {
+        const refIndex = uniqueGenomes.indexOf(refGenome);
+        queryGenome = uniqueGenomes[refIndex + 1];
+        if (!genomeDataIndexed[refGenome]) {
+            genomeDataIndexed[refGenome] = {};
+        }
+        if (!genomeDataIndexed[queryGenome]) {
+            genomeDataIndexed[queryGenome] = {};
+        }
+        let index = 1;
+        for (const [refChr, queryAlignments] of Object.entries(refChromosomes)) {
+            let maxQueryChr = null;
+            let maxAlignmentLength = 0;
+            for (const [queryChr, alignmentLength] of Object.entries(queryAlignments)) {
+                if (alignmentLength > maxAlignmentLength) {
+                    maxAlignmentLength = alignmentLength;
+                    maxQueryChr = queryChr;
+                }
+            }
+            if (genomeDataTemp[refGenome][refChr]) {
+                genomeDataIndexed[refGenome][index] = { name: refChr, length: genomeDataTemp[refGenome][refChr].length };
+            }
+            if (genomeDataTemp[queryGenome][maxQueryChr]) {
+                if (!genomeDataIndexed[queryGenome]) {
+                    genomeDataIndexed[queryGenome] = {};
+                }
+                genomeDataIndexed[queryGenome][index] = { name: maxQueryChr, length: genomeDataTemp[queryGenome][maxQueryChr].length };
+            }
+            index++;
+        }
+    }
+    console.log(genomeDataTemp);
+    return genomeDataIndexed;
 }
 
 function readChromosomeLengthsFromBandFile(file) {
@@ -461,34 +530,50 @@ function readChromosomeLengthsFromBandFile(file) {
         reader.onload = (event) => {
             const refLengths = {};
             const queryLengths = {};
+            const alignments = {};
             const lines = event.target.result.split('\n');
             lines.forEach(line => {
                 const parts = line.split('\t');
                 if (parts.length >= 8) {
                     const refChromosome = parts[0];
                     const queryChromosome = parts[5];
-                    const refPosition = +parts[2];
-                    const queryPosition = +parts[7];
+                    const refStart = +parts[1];
+                    const refEnd = +parts[2];
+                    const queryStart = +parts[6];
+                    const queryEnd = +parts[7];
+                    const alignmentLength = refEnd - refStart;
 
                     if (refChromosome !== "-") {
-                        if (!refLengths[refChromosome] || refPosition > refLengths[refChromosome]) {
-                            refLengths[refChromosome] = refPosition;
+                        if (!refLengths[refChromosome] || refEnd > refLengths[refChromosome]) {
+                            refLengths[refChromosome] = refEnd;
                         }
                     }
 
                     if (queryChromosome !== "-") {
-                        if (!queryLengths[queryChromosome] || queryPosition > queryLengths[queryChromosome]) {
-                            queryLengths[queryChromosome] = queryPosition;
+                        if (!queryLengths[queryChromosome] || queryEnd > queryLengths[queryChromosome]) {
+                            queryLengths[queryChromosome] = queryEnd;
                         }
                     }
+
+                    if (!alignments[refChromosome]) {
+                        alignments[refChromosome] = {};
+                    }
+                    if (!alignments[refChromosome][queryChromosome]) {
+                        alignments[refChromosome][queryChromosome] = 0;
+                    }
+                    alignments[refChromosome][queryChromosome] += alignmentLength;
                 }
             });
-            resolve({ refLengths, queryLengths });
+            resolve({ refLengths, queryLengths, alignments });
         };
         reader.onerror = (error) => reject(error);
         reader.readAsText(file);
     });
 }
+
+
+
+
 
 function downloadSvg() {
     const svgElement = document.getElementById('viz');

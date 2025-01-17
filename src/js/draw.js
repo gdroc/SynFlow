@@ -29,8 +29,9 @@ export function drawMiniChromosome(genome, svg) {
         .attr("stroke", genomeColors[genome]);
 }
 
-export function drawChromosomes(refLengths, queryLengths, maxLengths, isFirstFile) {
+export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, isFirstFile) {
     console.log("Draw chromosomes"); 
+
     const svgGroup = d3.select('#zoomGroup');
     const width = +d3.select('#viz').attr('width');
     const height = 300;
@@ -49,35 +50,38 @@ export function drawChromosomes(refLengths, queryLengths, maxLengths, isFirstFil
 
     let currentX = margin.left; // Position de départ en X
     const chromPositions = {};
+    console.log(genomeData);
+    console.log(genomeData[refGenome]);
+    for (const chrom in genomeData[refGenome]) {
+        const refWidth = (genomeData[refGenome][chrom].length || 0) / 100000;
+        const queryWidth = (genomeData[queryGenome][chrom].length || 0) / 100000;
+        const chromWidth = maxLengths[chrom] / 100000;
 
-    for (const chromName in maxLengths) {
-        const refWidth = (refLengths[chromName] || 0) / 100000;
-        const queryWidth = (queryLengths[chromName] || 0) / 100000;
-        const chromWidth = maxLengths[chromName] / 100000;
+        console.log(chrom, refWidth, queryWidth, chromWidth);
 
         if (!isNaN(chromWidth) && chromWidth > 0) {
             if (isFirstFile) {
-                drawChromPathNoArm(currentX, yRefPosition, refWidth, radius, chromName + "_ref", refGenome, svgGroup);
+                drawChromPathNoArm(currentX, yRefPosition, refWidth, radius, genomeData[refGenome][chrom].name + "_ref", refGenome, svgGroup);
                 // Ajouter les noms des chromosomes
                 if (isFirstFile) {
                     svgGroup.append('text')
                         .attr('x', currentX + chromWidth / 2)
                         .attr('y', yRefPosition - 10) // Position au-dessus des chromosomes de référence
                         .attr('text-anchor', 'middle')
-                        .text(chromName);
+                        .text(genomeData[refGenome][chrom].name);
                 }
             }
-            drawChromPathNoArm(currentX, yQueryPosition, queryWidth, radius, chromName + "_query", queryGenome, svgGroup);
+            drawChromPathNoArm(currentX, yQueryPosition, queryWidth, radius, genomeData[queryGenome][chrom].name + "_query", queryGenome, svgGroup);
 
-            chromPositions[chromName] = { refX: currentX, queryX: currentX, refY: yRefPosition, queryY: yQueryPosition };
+            chromPositions[genomeData[refGenome][chrom].name] = { refX: currentX, queryX: currentX, refY: yRefPosition, queryY: yQueryPosition };
             currentX += chromWidth + spaceBetween; // Ajouter un espace entre les chromosomes
         } else {
-            console.error(`Invalid chromosome width for ${chromName}: ${chromWidth}`);
+            console.error(`Invalid chromosome width for ${genomeData[refGenome][chrom].name}: ${chromWidth}`);
         }
     }
 
     currentYOffset = yQueryPosition - 90; // Mettre à jour la position Y pour le fichier suivant
-
+    console.log(chromPositions);
     return chromPositions; // Retourner les positions des chromosomes
 }
 
@@ -222,7 +226,7 @@ export function drawCorrespondenceBands(data, chromPositions, isFirstFile) {
     const allowedTypes = ['SYN', 'INV', 'TRANS', 'DUP']; // Types à afficher
     const filteredData = data.filter(d => allowedTypes.includes(d.type)); // Filtrer les lignes invalides et les types non désirés
     console.log(filteredData.length);
-
+    console.log(filteredData);
     // Configuration du tooltip
     const tip = d3.tip()
         .attr('class', 'd3-tip')
@@ -243,7 +247,9 @@ export function drawCorrespondenceBands(data, chromPositions, isFirstFile) {
 
     filteredData.forEach(d => {
         const refX = chromPositions[d.refChr]?.refX;
-        const queryX = chromPositions[d.queryChr]?.queryX;
+        // const queryX = chromPositions[d.queryChr]?.queryX;
+        const queryX = chromPositions[d.refChr]?.queryX;
+
 
         if (refX !== undefined && queryX !== undefined) {
             const refStartX = refX + (d.refStart / 100000);
@@ -253,7 +259,8 @@ export function drawCorrespondenceBands(data, chromPositions, isFirstFile) {
             const color = typeColors[d.type] || '#ccc'; // Utiliser la couleur définie ou gris clair par défaut
 
             const refY = chromPositions[d.refChr]?.refY + 10; // Ajuster pour aligner sur le chromosome de référence
-            const queryY = chromPositions[d.queryChr]?.queryY; // Ajuster pour aligner sur le chromosome de requête
+            // const queryY = chromPositions[d.queryChr]?.queryY; // Ajuster pour aligner sur le chromosome de requête
+            const queryY = chromPositions[d.refChr]?.queryY; // Ajuster pour aligner sur le chromosome de requête
 
             // Inverser les positions queryStart et queryEnd pour les types d'inversion
             if (d.type === 'INV' || d.type === 'INVDPAL' || d.type === 'INVTR' || d.type === 'INVTRAL') {
