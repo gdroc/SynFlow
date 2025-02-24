@@ -9,7 +9,7 @@ export let refGenome; // Définir globalement
 export let queryGenome; // Définir globalement
 export let genomeColors = {};
 let genomeLengths; // taille des chromosomes
-let genomeData; // Données des chromosomes
+export let genomeData; // Données des chromosomes
 let maxAlignments; //duo de chromosomes ref/query avec le plus grand alignement
 let uniqueGenomes;
 let orderedFileObjects = []; // Défini globalement
@@ -124,7 +124,10 @@ function processNextFile() {
     }
 }
 
+// Mise à jour de la liste des chromosomes à filtrer
+// event listener pour afficher / cacher les chromosomes 
 function updateChromList(globalMaxChromosomeLengths) {
+    console.log(globalMaxChromosomeLengths);
     const chromListDiv = document.getElementById('chrom-list');
     chromListDiv.innerHTML = ''; // Clear the previous list
 
@@ -520,7 +523,8 @@ async function calculateChromosomeDataFromBandFiles(orderedFileObjects, uniqueGe
             index++;
         }
     }
-    console.log(genomeDataTemp);
+    // console.log(genomeDataTemp);
+    // console.log(genomeDataIndexed);
     return genomeDataIndexed;
 }
 

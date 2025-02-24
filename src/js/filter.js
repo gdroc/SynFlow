@@ -142,22 +142,28 @@ export function updateBandsVisibility() {
     const visibleChromosomes = Array.from(chromEyeIcons)
         .filter(icon => icon.classList.contains('fa-eye'))
         .map(icon => icon.getAttribute('data-chrom'));
+    
+    console.log('visibleChromosomes', visibleChromosomes);
 
     d3.selectAll('path.band').each(function() {
         const band = d3.select(this);
         const bandPosType = band.attr('data-pos');
         const bandType = band.attr('data-type');
         const bandRef = band.attr('data-ref');
+        const bandRefNum = band.attr('data-ref-num');
         const bandQuery = band.attr('data-query');
         const bandLength = parseInt(band.attr('data-length'));
 
-        const isVisibleChrom = visibleChromosomes.includes(bandRef) || visibleChromosomes.includes(bandQuery);
+        //modif pour fix bug = bandRefNum au lieu de bandRef
+        const isVisibleChrom = visibleChromosomes.includes(bandRefNum) || visibleChromosomes.includes(bandQuery);
+        // console.log(`Band ${bandRef}-${bandQuery}: isVisibleChrom=${isVisibleChrom}`);
+
         const isVisibleBandType = selectedTypes.includes(bandType);
         const isVisibleBandPos = (bandPosType === 'intra' && showIntra) || (bandPosType === 'inter' && showInter);
         const isVisibleBandLength = bandLength >= sliderMinValue && bandLength <= sliderMaxValue;
 
         if (isVisibleChrom && isVisibleBandType && isVisibleBandPos && isVisibleBandLength) {
-            band.attr('display', null);
+            band.attr('display', '');
         } else {
             band.attr('display', 'none');
         }
@@ -165,9 +171,11 @@ export function updateBandsVisibility() {
 
     d3.selectAll('.chrom').each(function() {
         const chrom = d3.select(this);
-        const chromName = chrom.attr('id').split('_')[0];
+        // const chromName = chrom.attr('id').split('_')[0];
+        const chromNum = chrom.attr('chromNum');
 
-        if (visibleChromosomes.includes(chromName)) {
+        // if (visibleChromosomes.includes(chromName)) {
+        if (visibleChromosomes.includes(chromNum)) {
             chrom.attr('display', null);
         } else {
             chrom.attr('display', 'none');

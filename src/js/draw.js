@@ -1,4 +1,4 @@
-import { refGenome, queryGenome, genomeColors } from "./process.js";
+import { refGenome, queryGenome, genomeColors, genomeData } from "./process.js";
 
 export let currentYOffset = 0; // Définir globalement
 
@@ -53,6 +53,7 @@ export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, 
     console.log(genomeData);
     console.log(genomeData[refGenome]);
     for (const chrom in genomeData[refGenome]) {
+        //chrom est le numéro du chromosome ex: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
         const refWidth = (genomeData[refGenome][chrom].length || 0) / 100000;
         const queryWidth = (genomeData[queryGenome][chrom].length || 0) / 100000;
         const chromWidth = maxLengths[chrom] / 100000;
@@ -61,7 +62,7 @@ export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, 
 
         if (!isNaN(chromWidth) && chromWidth > 0) {
             if (isFirstFile) {
-                drawChromPathNoArm(currentX, yRefPosition, refWidth, radius, genomeData[refGenome][chrom].name + "_ref", refGenome, svgGroup);
+                drawChromPathNoArm(currentX, yRefPosition, refWidth, radius, chrom, genomeData[refGenome][chrom].name + "_ref", refGenome, svgGroup);
                 // Ajouter les noms des chromosomes
                 if (isFirstFile) {
                     svgGroup.append('text')
@@ -71,7 +72,7 @@ export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, 
                         .text(genomeData[refGenome][chrom].name);
                 }
             }
-            drawChromPathNoArm(currentX, yQueryPosition, queryWidth, radius, genomeData[queryGenome][chrom].name + "_query", queryGenome, svgGroup);
+            drawChromPathNoArm(currentX, yQueryPosition, queryWidth, radius, chrom, genomeData[queryGenome][chrom].name + "_query", queryGenome, svgGroup);
 
             chromPositions[genomeData[refGenome][chrom].name] = { refX: currentX, queryX: currentX, refY: yRefPosition, queryY: yQueryPosition };
             currentX += chromWidth + spaceBetween; // Ajouter un espace entre les chromosomes
@@ -102,7 +103,9 @@ export function drawStackedChromosomes(refLengths, queryLengths, maxLengths, fil
 
     const chromPositions = {};
 
+    let chromNum = 0;
     for (const chromName in maxLengths) {
+        chromNum++;
         const refWidth = (refLengths[chromName] || 0) / 100000;
         const queryWidth = (queryLengths[chromName] || 0) / 100000;
         const chromWidth = maxLengths[chromName] / 100000;
@@ -110,7 +113,7 @@ export function drawStackedChromosomes(refLengths, queryLengths, maxLengths, fil
         if (!isNaN(chromWidth) && chromWidth > 0) {
             if (fileIndex == 0) { // si c'est le premier fichier on dessine la ref, sinon elle est dejà dessinée
                 //chr ref
-                drawChromPathNoArm(currentX, currentY, refWidth, radius, chromName + "_ref", refGenome, svgGroup);
+                drawChromPathNoArm(currentX, currentY, refWidth, radius,chromNum, chromName + "_ref", refGenome, svgGroup);
                 // Ajouter les noms des chromosomes
                 svgGroup.append('text')
                     .attr('x', currentX + chromWidth / 2)
@@ -119,7 +122,7 @@ export function drawStackedChromosomes(refLengths, queryLengths, maxLengths, fil
                     .text(chromName);
             }
             //chr query
-            drawChromPathNoArm(currentX, currentY+spaceBetween , queryWidth, radius, chromName + "_query", queryGenome, svgGroup);
+            drawChromPathNoArm(currentX, currentY+spaceBetween , queryWidth, radius, chromNum, chromName + "_query", queryGenome, svgGroup);
 
             chromPositions[chromName] = { refX: currentX, queryX: currentX, refY: currentY, queryY: currentY+spaceBetween };
             currentY += totalSpaceBetween;
@@ -136,7 +139,7 @@ export function drawStackedChromosomes(refLengths, queryLengths, maxLengths, fil
 
 
 //dessin d'un chromosome sans bras
-function drawChromPathNoArm(x, y, width, radius, chromName, genome, svg) {
+function drawChromPathNoArm(x, y, width, radius, chromNum, chromName, genome, svg) {
     // Inclus la taille du radius dans le chromosome
     x = parseInt(x + radius);
     // Longueur des bras sans les radius
@@ -156,6 +159,7 @@ function drawChromPathNoArm(x, y, width, radius, chromName, genome, svg) {
         .attr("d", path)
         .attr("class", "chrom") // Ajoute une classe chrom
         .attr("id", chromName)
+        .attr("chromNum", chromNum)
         .style("stroke", genomeColors[genome]) // Utiliser la couleur du génome
         .style("fill", "rgba(0, 0, 0, 0)")
         .style("fill-opacity", "0");
@@ -212,6 +216,8 @@ export function drawCorrespondenceBands(data, chromPositions, isFirstFile) {
     console.log("Draw correspondence bands");
     const svgGroup = d3.select('#zoomGroup');
 
+    // console.log(chromPositions);
+
     // Définir les couleurs pour chaque type
     const typeColors = {
         'SYN': '#d3d3d3', // gris clair
@@ -222,11 +228,11 @@ export function drawCorrespondenceBands(data, chromPositions, isFirstFile) {
     };
 
     // Filtrer les types ne se terminant pas par "AL"
-    console.log(data.length);
+    // console.log(data.length);
     const allowedTypes = ['SYN', 'INV', 'TRANS', 'DUP']; // Types à afficher
     const filteredData = data.filter(d => allowedTypes.includes(d.type)); // Filtrer les lignes invalides et les types non désirés
-    console.log(filteredData.length);
-    console.log(filteredData);
+    // console.log(filteredData.length);
+    // console.log(filteredData);
     // Configuration du tooltip
     const tip = d3.tip()
         .attr('class', 'd3-tip')
@@ -246,6 +252,26 @@ export function drawCorrespondenceBands(data, chromPositions, isFirstFile) {
     svgGroup.call(tip);
 
     filteredData.forEach(d => {
+        
+        // Récupère l'index dans genomeData sachant que genomeData[index].name === d.refChr
+        const genomeDataArray = Object.values(genomeData);
+        // console.log("genomeDataArray", genomeDataArray);
+
+        const findChromosomeIndex = (genomeDataArray, chrName) => {
+            for (let i = 0; i < genomeDataArray.length; i++) {
+                const genome = genomeDataArray[i];
+                const index = Object.values(genome).findIndex(item => item.name === chrName);
+                if (index !== -1) {
+                    return index + 1; // +1 pour correspondre à l'index 1-based
+                }
+            }
+            return -1; // Si le chromosome n'est pas trouvé
+        };
+
+        const index = findChromosomeIndex(genomeDataArray, d.refChr);
+        // console.log("index", index, "d.refChr", d.refChr);
+
+
         const refX = chromPositions[d.refChr]?.refX;
         // const queryX = chromPositions[d.queryChr]?.queryX;
         const queryX = chromPositions[d.refChr]?.queryX;
@@ -292,6 +318,7 @@ export function drawCorrespondenceBands(data, chromPositions, isFirstFile) {
                 .attr('data-pos', bandPos) // Ajouter l'attribut de position inter ou intra
                 .attr('data-type', d.type) // Ajouter l'attribut de type de bande
                 .attr('data-ref', d.refChr) //ajoute l'attribut ref
+                .attr('data-ref-num', index) // ajoute l'attribut ref-num
                 .attr('data-query', d.queryChr) // ajoute l'attribut query
                 .on('mouseover', function (event, d) {
                     d3.select(this).attr('opacity', 1); // Mettre en gras au survol
