@@ -1,4 +1,5 @@
 import { drawMiniChromosome } from "./draw.js";
+import { handleFileUpload } from "./process.js";
 import * as toolkit from '../../../toolkit/toolkit.js';
 
 export function createForm() {
@@ -68,16 +69,68 @@ export function createForm() {
 
         // Option pour générer le selecteur de service ou appeler un service spécifique
         const generateSelect = false;
-        const serviceName = 'synflow';
+        const serviceName = 'synflow-galaxy';
 
         //init toolkit
         toolkit.initToolkit(generateSelect, serviceName);
 
-        //reception des resultats du serveur
-        socket.on('outputResult', (result) => {
-            //recupère les urls des fichiers chrlen et syri.out
+        //reception des resultats de toolkit
+        document.addEventListener('ToolkitResultEvent', (event) => {
+            const data = event.detail;
+            console.log('Data received in other script:', data);
+     
+            //recupère le chemin vers syri.out
+            console.log(data);   
+
+            //data to path
+            // data type = /opt/projects/gemo.southgreen.fr/prod/tmp/toolkit_run/toolkit_AmC0Yl-V3-bZ4f9OAAFq/ref_querry.txt
+            //path type = https://gemo.southgreen.fr/tmp/toolkit_run/toolkit_AmC0Yl-V3-bZ4f9OAAFq/ref_querry.txt
+            const toolkitID = data.split('/')[7];
+            const fileName = data.split('/')[8];
+            const path = `https://gemo.southgreen.fr/tmp/toolkit_run/${toolkitID}/${fileName}`;
+            console.log(path);
+
             //affiche un bouton dans la console pour charger les fichiers dans le formulaire
-            //affiche un bouton pour dessiner le graphe            
+            const loadOutputButton = document.createElement('button');
+            loadOutputButton.textContent = 'Draw Output';
+            loadOutputButton.style.marginLeft = '10px';
+            loadOutputButton.style.marginTop = '10px';
+            loadOutputButton.style.display = 'block';
+            const consoleDiv = document.getElementById('console');
+            consoleDiv.appendChild(loadOutputButton);
+
+            // event pour lancer le dessin des fichiers de sortie
+            loadOutputButton.addEventListener('click', async (event) => {
+                //prevent default
+                event.preventDefault();
+                try {
+
+                    const response = await fetch(path);
+                    const text = await response.text();
+                    const fileName = path.split('/').pop();
+                    const bandFile = new File([text], fileName, { type: 'text/plain' });
+                
+                
+                    // Creating DataTransfer objects to simulate file upload
+                    // const chrLenDataTransfer = new DataTransfer();
+                    const bandDataTransfer = new DataTransfer();
+                
+                    // Add files to the DataTransfer objects
+                    bandDataTransfer.items.add(bandFile);
+                
+                    // Set the files to the input fields
+                    const bandInput = document.getElementById('band-files');
+                
+                    // chrLenInput.files = chrLenDataTransfer.files;
+                    bandInput.files = bandDataTransfer.files;
+                
+                    // Update the file lists
+                    // updateFileList(chrLenInput, document.getElementById('chrlen-file-list'));
+                    updateFileList(bandInput, document.getElementById('band-file-list'));
+                } catch (error) {
+                    console.error('Error fetching the file:', error);
+                }
+            });
         })
     });
 
