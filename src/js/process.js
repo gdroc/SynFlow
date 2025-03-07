@@ -18,6 +18,7 @@ let globalMaxChromosomeLengths = {};
 let currentFile; // Défini globalement
 const CHUNK_SIZE = 20000; // Nombre de lignes à traiter à la fois
 let numGenomes; //nombre de génomes à traiter
+export let scale = 100000; // diviseur pour la taille des chromosomes
 
 //spinner
 const opts = {
@@ -94,13 +95,13 @@ function processChunks(lines, isFirstFile) {
             let chromPositions;
             if(stackMode){
                 const fileIndex = orderedFileObjects.indexOf(currentFile);
-                chromPositions = drawStackedChromosomes(refChromosomeLengths, queryChromosomeLengths, globalMaxChromosomeLengths, fileIndex, numGenomes)
+                chromPositions = drawStackedChromosomes(refChromosomeLengths, queryChromosomeLengths, globalMaxChromosomeLengths, fileIndex, numGenomes, scale)
             }else{
-                chromPositions = drawChromosomes(genomeData, globalMaxChromosomeLengths, refGenome, queryGenome, isFirstFile);
+                chromPositions = drawChromosomes(genomeData, globalMaxChromosomeLengths, refGenome, queryGenome, isFirstFile, scale);
 
             }
             
-            drawCorrespondenceBands(parsedData, chromPositions, isFirstFile);
+            drawCorrespondenceBands(parsedData, chromPositions, isFirstFile, scale);
             previousChromosomePositions = chromPositions;
             window.fullParsedData = parsedData; // Sauvegarder les données complètes dans une variable globale
             processNextFile(); // Traiter le fichier suivant

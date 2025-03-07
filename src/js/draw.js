@@ -1,4 +1,4 @@
-import { refGenome, queryGenome, genomeColors, genomeData } from "./process.js";
+import { refGenome, queryGenome, genomeColors, genomeData, scale } from "./process.js";
 
 export let currentYOffset = 0; // Définir globalement
 
@@ -29,7 +29,7 @@ export function drawMiniChromosome(genome, svg) {
         .attr("stroke", genomeColors[genome]);
 }
 
-export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, isFirstFile) {
+export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, isFirstFile, scale) {
     console.log("Draw chromosomes"); 
 
     const svgGroup = d3.select('#zoomGroup');
@@ -42,7 +42,7 @@ export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, 
 
     const spaceBetween = 50;
     const totalLength = Object.values(maxLengths).reduce((a, b) => a + b, 0);
-    const totalWidth = (totalLength / 100000) + spaceBetween * (Object.keys(maxLengths).length) + margin.left + margin.right;
+    const totalWidth = (totalLength / scale) + spaceBetween * (Object.keys(maxLengths).length) + margin.left + margin.right;
 
     // d3.select('#viz').attr('width', totalWidth);
 
@@ -54,15 +54,15 @@ export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, 
     console.log(genomeData[refGenome]);
     for (const chrom in genomeData[refGenome]) {
         //chrom est le numéro du chromosome ex: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-        const refWidth = (genomeData[refGenome][chrom].length || 0) / 100000;
-        const queryWidth = (genomeData[queryGenome][chrom].length || 0) / 100000;
-        const chromWidth = maxLengths[chrom] / 100000;
+        const refWidth = (genomeData[refGenome][chrom].length || 0) / scale;
+        const queryWidth = (genomeData[queryGenome][chrom].length || 0) / scale;
+        const chromWidth = maxLengths[chrom] / scale;
 
         console.log(chrom, refWidth, queryWidth, chromWidth);
 
         if (!isNaN(chromWidth) && chromWidth > 0) {
             if (isFirstFile) {
-                drawChromPathNoArm(currentX, yRefPosition, refWidth, radius, chrom, genomeData[refGenome][chrom].name + "_ref", refGenome, svgGroup);
+                drawChromPathNoArm(currentX, yRefPosition, refWidth, radius, chrom, genomeData[refGenome][chrom].name + "_ref", refGenome, svgGroup, scale);
                 // Ajouter les noms des chromosomes
                 if (isFirstFile) {
                     svgGroup.append('text')
@@ -72,7 +72,7 @@ export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, 
                         .text(genomeData[refGenome][chrom].name);
                 }
             }
-            drawChromPathNoArm(currentX, yQueryPosition, queryWidth, radius, chrom, genomeData[queryGenome][chrom].name + "_query", queryGenome, svgGroup);
+            drawChromPathNoArm(currentX, yQueryPosition, queryWidth, radius, chrom, genomeData[queryGenome][chrom].name + "_query", queryGenome, svgGroup, scale);
 
             chromPositions[genomeData[refGenome][chrom].name] = { refX: currentX, queryX: currentX, refY: yRefPosition, queryY: yQueryPosition };
             currentX += chromWidth + spaceBetween; // Ajouter un espace entre les chromosomes
@@ -86,14 +86,14 @@ export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, 
     return chromPositions; // Retourner les positions des chromosomes
 }
 
-export function drawStackedChromosomes(refLengths, queryLengths, maxLengths, fileIndex, totalGenomes) {
+export function drawStackedChromosomes(refLengths, queryLengths, maxLengths, fileIndex, totalGenomes, scale) {
     console.log("Draw stacked chromosomes"); 
     const svgGroup = d3.select('#zoomGroup');
     const margin = { top: 30, bottom: 30, left: 50, right: 50 };
     const spaceBetween = 100;
     const totalSpaceBetween = totalGenomes * 100;
     const maxLength = Math.max(...Object.values(maxLengths));
-    const totalWidth = (maxLength / 100000) + margin.left + margin.right;
+    const totalWidth = (maxLength / scale) + margin.left + margin.right;
     // d3.select('#viz').attr('width', totalWidth);
 
     const radius = 5; // Exemple de radius pour les extrémités des chromosomes, moitié de la hauteur
@@ -106,14 +106,14 @@ export function drawStackedChromosomes(refLengths, queryLengths, maxLengths, fil
     let chromNum = 0;
     for (const chromName in maxLengths) {
         chromNum++;
-        const refWidth = (refLengths[chromName] || 0) / 100000;
-        const queryWidth = (queryLengths[chromName] || 0) / 100000;
-        const chromWidth = maxLengths[chromName] / 100000;
+        const refWidth = (refLengths[chromName] || 0) / scale;
+        const queryWidth = (queryLengths[chromName] || 0) / scale;
+        const chromWidth = maxLengths[chromName] / scale;
 
         if (!isNaN(chromWidth) && chromWidth > 0) {
             if (fileIndex == 0) { // si c'est le premier fichier on dessine la ref, sinon elle est dejà dessinée
                 //chr ref
-                drawChromPathNoArm(currentX, currentY, refWidth, radius,chromNum, chromName + "_ref", refGenome, svgGroup);
+                drawChromPathNoArm(currentX, currentY, refWidth, radius,chromNum, chromName + "_ref", refGenome, svgGroup, scale);
                 // Ajouter les noms des chromosomes
                 svgGroup.append('text')
                     .attr('x', currentX + chromWidth / 2)
@@ -122,7 +122,7 @@ export function drawStackedChromosomes(refLengths, queryLengths, maxLengths, fil
                     .text(chromName);
             }
             //chr query
-            drawChromPathNoArm(currentX, currentY+spaceBetween , queryWidth, radius, chromNum, chromName + "_query", queryGenome, svgGroup);
+            drawChromPathNoArm(currentX, currentY+spaceBetween , queryWidth, radius, chromNum, chromName + "_query", queryGenome, svgGroup, scale);
 
             chromPositions[chromName] = { refX: currentX, queryX: currentX, refY: currentY, queryY: currentY+spaceBetween };
             currentY += totalSpaceBetween;
@@ -139,7 +139,7 @@ export function drawStackedChromosomes(refLengths, queryLengths, maxLengths, fil
 
 
 //dessin d'un chromosome sans bras
-function drawChromPathNoArm(x, y, width, radius, chromNum, chromName, genome, svg) {
+function drawChromPathNoArm(x, y, width, radius, chromNum, chromName, genome, svg, scale) {
     // Inclus la taille du radius dans le chromosome
     x = parseInt(x + radius);
     // Longueur des bras sans les radius
@@ -178,7 +178,7 @@ function drawSNPDensityHeatmap(snpDensity, refLengths, chromPositions, binSize =
 
         const x = chromPositions[chr].refX;
         const y = chromPositions[chr].refY;
-        const width = chrLength / 100000; // Same scaling as chromosomes
+        const width = chrLength / scale; // Same scaling as chromosomes
         const binWidth = width / numBins;
         const height = 10; // Height of the heatmap bar
 
@@ -212,7 +212,7 @@ function drawSNPDensityHeatmap(snpDensity, refLengths, chromPositions, binSize =
     }
 }
 
-export function drawCorrespondenceBands(data, chromPositions, isFirstFile) {
+export function drawCorrespondenceBands(data, chromPositions, isFirstFile, scale) {
     console.log("Draw correspondence bands");
     const svgGroup = d3.select('#zoomGroup');
 
@@ -278,10 +278,10 @@ export function drawCorrespondenceBands(data, chromPositions, isFirstFile) {
 
 
         if (refX !== undefined && queryX !== undefined) {
-            const refStartX = refX + (d.refStart / 100000);
-            const refEndX = refX + (d.refEnd / 100000);
-            let queryStartX = queryX + (d.queryStart / 100000);
-            let queryEndX = queryX + (d.queryEnd / 100000);
+            const refStartX = refX + (d.refStart / scale);
+            const refEndX = refX + (d.refEnd / scale);
+            let queryStartX = queryX + (d.queryStart / scale);
+            let queryEndX = queryX + (d.queryEnd / scale);
             const color = typeColors[d.type] || '#ccc'; // Utiliser la couleur définie ou gris clair par défaut
 
             const refY = chromPositions[d.refChr]?.refY + 10; // Ajuster pour aligner sur le chromosome de référence
