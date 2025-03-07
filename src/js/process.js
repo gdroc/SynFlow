@@ -434,11 +434,100 @@ function handleFileUpload(bandFiles) {
         genomeData = data;
         console.log(genomeData)
         globalMaxChromosomeLengths = calculateGlobalMaxChromosomeLengths(genomeData);
+        scale = calculateScale(globalMaxChromosomeLengths);
         console.log("Global Max Chromosome Lengths: ", globalMaxChromosomeLengths);
         //traite les fichiers
         readFileInChunks(currentFile, true, refGenome, queryGenome);
     });
 }
+
+//calcul le scale a partir des tailles des chromosomes globalMaxChromosomeLengths
+        // {
+        //     "1": 70856583,
+        //     "2": 54676892,
+        //     "3": 47271773,
+        //     "4": 82204888,
+        //     "5": 50696038,
+        //     "6": 61498972,
+        //     "7": 55122646,
+        //     "8": 77822268,
+        //     "9": 47989177,
+        //     "10": 61339363,
+        //     "11": 47069596
+        // }
+        // ici max = 82204888 donc scale = 100000
+        // {
+        //     "1": 562643,
+        //     "2": 230218,
+        //     "3": 813184,
+        //     "4": 316620,
+        //     "5": 1531933,
+        //     "6": 576874,
+        //     "7": 279643,
+        //     "8": 1090940,
+        //     "9": 439888,
+        //     "10": 745751,
+        //     "11": 666816,
+        //     "12": 1556556,
+        //     "13": 924431,
+        //     "14": 784333,
+        //     "15": 1091291,
+        //     "16": 948066
+        // }
+        //ici max = 1556556 donc scale = 10000
+        // Selon l'ordre de grandeur des chromosomes, on peut ajuster le scale
+        function calculateScale(chromosomeLengths) {
+            // Trouver la longueur maximale parmi les chromosomes
+            const maxLength = Math.max(...Object.values(chromosomeLengths));
+            
+            // Calculer l'ordre de grandeur du plus grand chromosome
+            const orderOfMagnitude = Math.pow(10, Math.floor(Math.log10(maxLength)));
+            
+            // Ajuster le scale en fonction de l'ordre de grandeur
+            const scale = orderOfMagnitude / 100;
+            console.log(scale);
+            return scale;
+        }
+        
+        // // Exemple d'utilisation
+        // const globalMaxChromosomeLengths1 = {
+        //     "1": 70856583,
+        //     "2": 54676892,
+        //     "3": 47271773,
+        //     "4": 82204888,
+        //     "5": 50696038,
+        //     "6": 61498972,
+        //     "7": 55122646,
+        //     "8": 77822268,
+        //     "9": 47989177,
+        //     "10": 61339363,
+        //     "11": 47069596
+        // };
+        
+        // const globalMaxChromosomeLengths2 = {
+        //     "1": 562643,
+        //     "2": 230218,
+        //     "3": 813184,
+        //     "4": 316620,
+        //     "5": 1531933,
+        //     "6": 576874,
+        //     "7": 279643,
+        //     "8": 1090940,
+        //     "9": 439888,
+        //     "10": 745751,
+        //     "11": 666816,
+        //     "12": 1556556,
+        //     "13": 924431,
+        //     "14": 784333,
+        //     "15": 1091291,
+        //     "16": 948066
+        // };
+        
+        // const scale1 = calculateScale(globalMaxChromosomeLengths1);
+        // console.log("Scale 1: ", scale1);
+        
+        // const scale2 = calculateScale(globalMaxChromosomeLengths2);
+        // console.log("Scale 2: ", scale2);
 
 // Calcule la taille des chromosomes à partir des fichiers band
 // Format : genomeData[genomeName][index] = { name: chrName, length: chrLength };
