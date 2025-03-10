@@ -31,6 +31,7 @@ export function drawMiniChromosome(genome, svg) {
 
 export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, isFirstFile, scale) {
     console.log("Draw chromosomes"); 
+    console.log(refGenome, queryGenome);
 
     const svgGroup = d3.select('#zoomGroup');
     const width = +d3.select('#viz').attr('width');
@@ -74,7 +75,10 @@ export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, 
             }
             drawChromPathNoArm(currentX, yQueryPosition, queryWidth, radius, chrom, genomeData[queryGenome][chrom].name + "_query", queryGenome, svgGroup, scale);
 
-            chromPositions[genomeData[refGenome][chrom].name] = { refX: currentX, queryX: currentX, refY: yRefPosition, queryY: yQueryPosition };
+            //change le format de chromPositions pour integrer le numéro du chromosome
+            // ancien format = {chromName: {refX: currentX, queryX: currentX, refY: yRefPosition, queryY: yQueryPosition}}
+            // nouveau format = {chromNum: {refX: currentX, queryX: currentX, refY: yRefPosition, queryY: yQueryPosition}}
+            chromPositions[chrom] = { refX: currentX, queryX: currentX, refY: yRefPosition, queryY: yQueryPosition };
             currentX += chromWidth + spaceBetween; // Ajouter un espace entre les chromosomes
         } else {
             console.error(`Invalid chromosome width for ${genomeData[refGenome][chrom].name}: ${chromWidth}`);
@@ -253,29 +257,15 @@ export function drawCorrespondenceBands(data, chromPositions, isFirstFile, scale
 
     filteredData.forEach(d => {
         
-        // Récupère l'index dans genomeData sachant que genomeData[index].name === d.refChr
-        const genomeDataArray = Object.values(genomeData);
-        // console.log("genomeDataArray", genomeDataArray);
+        // Récupère l'index du chromosome name d.refChr dans le genomeData
+        // genomeData[refGenome] = {1: {name: "chr1", length: 249250621}, 2: {name: "chr2", length: 243199373}, ...}
+        let refChromNum = Object.values(genomeData[refGenome]).findIndex(item => item.name === d.refChr) +1;
 
-        const findChromosomeIndex = (genomeDataArray, chrName) => {
-            for (let i = 0; i < genomeDataArray.length; i++) {
-                const genome = genomeDataArray[i];
-                const index = Object.values(genome).findIndex(item => item.name === chrName);
-                if (index !== -1) {
-                    return index + 1; // +1 pour correspondre à l'index 1-based
-                }
-            }
-            return -1; // Si le chromosome n'est pas trouvé
-        };
-
-        const index = findChromosomeIndex(genomeDataArray, d.refChr);
-        // console.log("index", index, "d.refChr", d.refChr);
-
-
-        const refX = chromPositions[d.refChr]?.refX;
+        //recupère l'index du chromosome name d.queryChr dans le genomeData
+        let queryChromNum = Object.values(genomeData[queryGenome]).findIndex(item => item.name === d.queryChr) +1;
+        const refX = chromPositions[[refChromNum]]?.refX;
         // const queryX = chromPositions[d.queryChr]?.queryX;
-        const queryX = chromPositions[d.refChr]?.queryX;
-
+        const queryX = chromPositions[[queryChromNum]]?.queryX;
 
         if (refX !== undefined && queryX !== undefined) {
             const refStartX = refX + (d.refStart / scale);
@@ -284,9 +274,9 @@ export function drawCorrespondenceBands(data, chromPositions, isFirstFile, scale
             let queryEndX = queryX + (d.queryEnd / scale);
             const color = typeColors[d.type] || '#ccc'; // Utiliser la couleur définie ou gris clair par défaut
 
-            const refY = chromPositions[d.refChr]?.refY + 10; // Ajuster pour aligner sur le chromosome de référence
+            const refY = chromPositions[[refChromNum]]?.refY + 10; // Ajuster pour aligner sur le chromosome de référence
             // const queryY = chromPositions[d.queryChr]?.queryY; // Ajuster pour aligner sur le chromosome de requête
-            const queryY = chromPositions[d.refChr]?.queryY; // Ajuster pour aligner sur le chromosome de requête
+            const queryY = chromPositions[[queryChromNum]]?.queryY; // Ajuster pour aligner sur le chromosome de requête
 
             // Inverser les positions queryStart et queryEnd pour les types d'inversion
             if (d.type === 'INV' || d.type === 'INVDPAL' || d.type === 'INVTR' || d.type === 'INVTRAL') {
@@ -318,7 +308,8 @@ export function drawCorrespondenceBands(data, chromPositions, isFirstFile, scale
                 .attr('data-pos', bandPos) // Ajouter l'attribut de position inter ou intra
                 .attr('data-type', d.type) // Ajouter l'attribut de type de bande
                 .attr('data-ref', d.refChr) //ajoute l'attribut ref
-                .attr('data-ref-num', index) // ajoute l'attribut ref-num
+                .attr('data-ref-num', refChromNum) // ajoute l'attribut ref-num
+                .attr('data-query-num', queryChromNum) // ajoute l'attribut query
                 .attr('data-query', d.queryChr) // ajoute l'attribut query
                 .on('mouseover', function (event, d) {
                     d3.select(this).attr('opacity', 1); // Mettre en gras au survol
