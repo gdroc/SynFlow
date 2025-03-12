@@ -152,23 +152,21 @@ export function updateBandsVisibility() {
         const bandRef = band.attr('data-ref');
         const bandRefNum = band.attr('data-ref-num');
         const bandQuery = band.attr('data-query');
+        const bandQueryNum = band.attr('data-query-num');
         const bandLength = parseInt(band.attr('data-length'));
 
         //modif pour fix bug = bandRefNum au lieu de bandRef
-        const isVisibleChrom = visibleChromosomes.includes(bandRefNum) || visibleChromosomes.includes(bandQuery);
-        // console.log(`Band ${bandRef}-${bandQuery}: isVisibleChrom=${isVisibleChrom}`);
-
+        const isVisibleChrom = visibleChromosomes.includes(bandRefNum) && visibleChromosomes.includes(bandQueryNum);
         const isVisibleBandType = selectedTypes.includes(bandType);
         const isVisibleBandPos = (bandPosType === 'intra' && showIntra) || (bandPosType === 'inter' && showInter);
         const isVisibleBandLength = bandLength >= sliderMinValue && bandLength <= sliderMaxValue;
 
         if (isVisibleChrom && isVisibleBandType && isVisibleBandPos && isVisibleBandLength) {
-            band.attr('display', '');
+            band.attr('display', null);
         } else {
             band.attr('display', 'none');
         }
     });
-
     d3.selectAll('.chrom').each(function() {
         const chrom = d3.select(this);
         // const chromName = chrom.attr('id').split('_')[0];
