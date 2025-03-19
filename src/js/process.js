@@ -4,6 +4,7 @@ import {calculateGlobalMaxChromosomeLengths,
 import { drawChromosomes, drawStackedChromosomes, drawCorrespondenceBands, resetDrawGlobals, drawMiniChromosome } from './draw.js';
 import { generateLegend, createSlider, createLengthChart, updateBandsVisibility } from './filter.js';
 import { Spinner } from './spin.js';
+import { zoom } from './syri.js';
 
 export let refGenome; // Définir globalement
 export let queryGenome; // Définir globalement
@@ -95,7 +96,8 @@ function processChunks(lines, isFirstFile) {
             let chromPositions;
             if(stackMode){
                 const fileIndex = orderedFileObjects.indexOf(currentFile);
-                chromPositions = drawStackedChromosomes(refChromosomeLengths, queryChromosomeLengths, globalMaxChromosomeLengths, fileIndex, numGenomes, scale)
+                // chromPositions = drawStackedChromosomes(refChromosomeLengths, queryChromosomeLengths, globalMaxChromosomeLengths, fileIndex, numGenomes, scale)
+                chromPositions = drawStackedChromosomes(genomeData, globalMaxChromosomeLengths, fileIndex, numGenomes, scale);
             }else{
                 chromPositions = drawChromosomes(genomeData, globalMaxChromosomeLengths, refGenome, queryGenome, isFirstFile, scale);
 
@@ -133,14 +135,16 @@ function updateChromList(globalMaxChromosomeLengths) {
     chromListDiv.innerHTML = ''; // Clear the previous list
 
     // Mise à jour de la liste des chromosomes
-    const chromNames = Object.keys(globalMaxChromosomeLengths);
+    const chromNums = Object.keys(globalMaxChromosomeLengths);
     const chromPositions = {};
 
-    chromNames.forEach(chromName => {
-        const chromElement = document.getElementById(chromName + "_ref");
+    chromNums.forEach(chromNum => {
+        // const chromElement = document.getElementById(chromNum + "_ref");
+        //get path elements with attr chromnum
+        const chromElement = document.querySelector(`path[chromnum="${chromNum}"]`);
         if (chromElement) {
             const bbox = chromElement.getBBox();
-            chromPositions[chromName] = { refX: bbox.x, refY: bbox.y, width: bbox.width, height: bbox.height };
+            chromPositions[chromNum] = { refX: bbox.x, refY: bbox.y, width: bbox.width, height: bbox.height };
         }
     });
     
@@ -148,7 +152,7 @@ function updateChromList(globalMaxChromosomeLengths) {
     const svgElement = document.getElementById('viz');
     const svgGroup = d3.select('#zoomGroup');
 
-    chromNames.forEach(chromName => {
+    chromNums.forEach(chromNum => {
         const listItem = document.createElement('div');
         listItem.style.display = 'flex';
         listItem.style.alignItems = 'center';
@@ -156,7 +160,7 @@ function updateChromList(globalMaxChromosomeLengths) {
         // Create eye icon
         const eyeIcon = document.createElement('i');
         eyeIcon.setAttribute('class', 'fas fa-eye chrom-eye-icon');
-        eyeIcon.setAttribute('data-chrom', chromName);
+        eyeIcon.setAttribute('data-chrom', chromNum);
         eyeIcon.style.cursor = 'pointer';
         eyeIcon.style.marginRight = '10px';
 
@@ -177,8 +181,10 @@ function updateChromList(globalMaxChromosomeLengths) {
         arrow.style.marginRight = '10px';
 
         arrow.addEventListener('click', () => {
-            const chromPos = chromPositions[chromName];
+            const chromPos = chromPositions[chromNum];
+            console.log(chromPositions);
             if (chromPos) {
+
                 const { refX, refY, width, height } = chromPos;
 
                 // Récupérer la transformation actuelle appliquée au groupe de zoom
@@ -209,13 +215,32 @@ function updateChromList(globalMaxChromosomeLengths) {
         listItem.appendChild(arrow);
 
         const text = document.createElement('span');
-        text.textContent = chromName;
+        text.textContent = chromNum;
         listItem.appendChild(text);
         chromListDiv.appendChild(listItem);
     });
 }
 
 function allDone() {
+
+    // Après avoir chargé les données et dessiné le graphique, détecter les bornes
+    const zoomGroup = d3.select('#zoomGroup');
+
+    if (zoomGroup.empty()) {
+        console.error('zoomGroup not found');
+        return;
+    }
+
+    const graphBounds = zoomGroup.node().getBBox();
+    const width = graphBounds.width;
+    const height = graphBounds.height;
+
+    console.log("*************"+width, height);
+
+    // Mettre à jour les limites de translation du zoom
+    zoom.translateExtent([[0, 0], [width, height]]);
+    d3.select("#viz").call(zoom);
+
     // Determine min and max band sizes
     const allBandLengths = d3.selectAll('path.band').nodes().map(path => parseFloat(path.getAttribute('data-length')));
     const minBandSize = d3.min(allBandLengths);
@@ -485,7 +510,7 @@ function handleFileUpload(bandFiles) {
             
             // Ajuster le scale en fonction de l'ordre de grandeur
             const scale = orderOfMagnitude / 100;
-            console.log(scale);
+            // console.log(scale);
             return scale;
         }
         
@@ -547,9 +572,9 @@ async function calculateChromosomeDataFromBandFiles(orderedFileObjects, uniqueGe
         //refLengths = { "1": { name: "chr1", length: 70856583 }, "2": { name: "chr2", length: 54676892 }, ... }
         //queryLengths = { "1": { name: "chr1", length: 70856583 }, "2": { name: "chr2", length: 54676892 }, ... }
         //alignments = { "chr1": { "chr1": 1000, "chr2": 2000, ... }, "chr2": { "chr1": 3000, "chr2": 4000, ... }, ... }
-        console.log(refLengths);
-        console.log(queryLengths);
-        console.log(alignments);
+        // console.log(refLengths);
+        // console.log(queryLengths);
+        // console.log(alignments);
 
         //Crée la structure de données finale
         //pour chaque chromosome ref
@@ -561,7 +586,7 @@ async function calculateChromosomeDataFromBandFiles(orderedFileObjects, uniqueGe
             // console.log("binome de ", refChr, " est ", queryChr);
             //cherche l'index de queryChr dans queryLengths
             let queryIndex = Object.keys(queryLengths).find(key => queryLengths[key].name === queryChr);
-            console.log("index de ", queryChr, " est ", queryIndex);
+            // console.log("index de ", queryChr, " est ", queryIndex);
             
             //sauvegarde les données finales
             if (!genomeData[refGenome]) {

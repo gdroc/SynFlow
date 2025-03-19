@@ -59,7 +59,7 @@ export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, 
         const queryWidth = (genomeData[queryGenome][chrom].length || 0) / scale;
         const chromWidth = maxLengths[chrom] / scale;
 
-        console.log(chrom, refWidth, queryWidth, chromWidth);
+        // console.log(chrom, refWidth, queryWidth, chromWidth);
 
         if (!isNaN(chromWidth) && chromWidth > 0) {
             if (isFirstFile) {
@@ -86,11 +86,11 @@ export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, 
     }
 
     currentYOffset = yQueryPosition - 90; // Mettre à jour la position Y pour le fichier suivant
-    console.log(chromPositions);
+    // console.log(chromPositions);
     return chromPositions; // Retourner les positions des chromosomes
 }
 
-export function drawStackedChromosomes(refLengths, queryLengths, maxLengths, fileIndex, totalGenomes, scale) {
+export function drawStackedChromosomes(genomeData, maxLengths, fileIndex, totalGenomes, scale) {
     console.log("Draw stacked chromosomes"); 
     const svgGroup = d3.select('#zoomGroup');
     const margin = { top: 30, bottom: 30, left: 50, right: 50 };
@@ -110,8 +110,10 @@ export function drawStackedChromosomes(refLengths, queryLengths, maxLengths, fil
     let chromNum = 0;
     for (const chromName in maxLengths) {
         chromNum++;
-        const refWidth = (refLengths[chromName] || 0) / scale;
-        const queryWidth = (queryLengths[chromName] || 0) / scale;
+        const refLength = genomeData[refGenome][chromName].length;
+        const queryLength = genomeData[queryGenome][chromName].length;
+        const refWidth = (refLength || 0) / scale;
+        const queryWidth = (queryLength || 0) / scale;
         const chromWidth = maxLengths[chromName] / scale;
 
         if (!isNaN(chromWidth) && chromWidth > 0) {
