@@ -3,6 +3,12 @@ import { handleFileUpload} from './process.js';
 // import * as toolkit from '../../../toolkit/toolkit.js';
 
 console.log("syri");
+ // Définir le comportement de zoom
+export const zoom = d3.zoom()
+    .scaleExtent([0.1, 10]) // Définir les niveaux de zoom minimum et maximum
+    .on("zoom", (event) => {
+    d3.select('#zoomGroup').attr("transform", event.transform);
+});
 
 document.addEventListener('DOMContentLoaded', () => {
     createForm();
@@ -13,23 +19,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const visualizationContainer = document.getElementById('viz');
         visualizationContainer.innerHTML = ''; // Efface le contenu existant
 
-        // Définir le comportement de zoom
-        const zoom = d3.zoom()
-        .scaleExtent([0.1, 10]) // Définir les niveaux de zoom minimum et maximum
-        .on("zoom", (event) => {
-            d3.select('#zoomGroup').attr("transform", event.transform);
-        });
-
         d3.select("#viz").call(zoom);
 
         // Ajoutez un groupe à l'intérieur de l'élément SVG pour contenir les éléments zoomables
         d3.select("#viz").append("g").attr("id", "zoomGroup");
 
-
         ///////////////changement
-        // const chrlenFiles = document.getElementById('chrlen-files').files;
         const bandFiles = document.getElementById('band-files').files;
-
         handleFileUpload(bandFiles);
     });
 
