@@ -64,6 +64,12 @@ export function createForm() {
     toolkitContainer.id = "toolkitContainer";    
     document.body.appendChild(toolkitContainer);
 
+    //charge le css de toolkit
+    const toolkitCSS = document.createElement("link");
+    toolkitCSS.rel = "stylesheet";
+    toolkitCSS.href = "../../../toolkit/toolkit.css";
+    document.head.appendChild(toolkitCSS);
+
     // Event listener pour envoyer l'événement de calcul au serveur
     runCalculationButton.addEventListener('click', () => {
 

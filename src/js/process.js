@@ -96,7 +96,6 @@ function processChunks(lines, isFirstFile) {
             let chromPositions;
             if(stackMode){
                 const fileIndex = orderedFileObjects.indexOf(currentFile);
-                // chromPositions = drawStackedChromosomes(refChromosomeLengths, queryChromosomeLengths, globalMaxChromosomeLengths, fileIndex, numGenomes, scale)
                 chromPositions = drawStackedChromosomes(genomeData, globalMaxChromosomeLengths, fileIndex, numGenomes, scale);
             }else{
                 chromPositions = drawChromosomes(genomeData, globalMaxChromosomeLengths, refGenome, queryGenome, isFirstFile, scale);
