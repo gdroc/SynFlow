@@ -4,7 +4,7 @@ import {calculateGlobalMaxChromosomeLengths,
 import { drawChromosomes, drawStackedChromosomes, drawCorrespondenceBands, resetDrawGlobals, drawMiniChromosome } from './draw.js';
 import { generateLegend, createSlider, createLengthChart, updateBandsVisibility } from './filter.js';
 import { Spinner } from './spin.js';
-import { zoom } from './syri.js';
+import { zoom } from './index.js';
 
 export let refGenome; // Définir globalement
 export let queryGenome; // Définir globalement
