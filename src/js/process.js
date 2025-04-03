@@ -175,7 +175,7 @@ function updateChromList(globalMaxChromosomeLengths) {
         });
 
         const arrow = document.createElement('span');
-        arrow.textContent = '→'; // Flèche
+        arrow.setAttribute('class', 'fas fa-crosshairs'); // Icône crosshair
         arrow.style.cursor = 'pointer';
         arrow.style.marginRight = '10px';
 

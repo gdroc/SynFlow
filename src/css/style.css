@@ -6,6 +6,7 @@
 }
 
 .d3-tip {
+  z-index: 100;
   line-height: 1;
   padding: 12px;
   background: rgba(0, 0, 0, 0.8);
@@ -122,6 +123,10 @@
 }
 
 #chrom-list {
+  display: flex;
+  flex-wrap: wrap; /* Permet de passer à la ligne si nécessaire */
+  gap: 10px; /* Espacement entre les éléments */
+
   position: absolute;
   top: 10px;
   left: 10px;
@@ -138,6 +143,19 @@
   overflow-y: auto; /* Ajoute une barre de défilement si nécessaire */
   z-index: 10; /* Assure que la liste est au-dessus du dessin */
 }
+
+
+#chrom-list div {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Centrer le contenu */
+  padding: 5px; /* Espacement interne */
+  border: 1px solid #ccc; /* Contour des éléments */
+  border-radius: 5px; /* Coins arrondis */
+  background-color: #f9f9f9; /* Couleur de fond */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Ombre pour un effet de profondeur */
+}
+
 #toggle-button {
   background-color: rgba(
     255,
