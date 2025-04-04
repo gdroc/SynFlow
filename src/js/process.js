@@ -288,7 +288,7 @@ function allDone() {
             chromListDiv.style.display = 'none';
             toggleButton.innerHTML = '&#x25B6;'; // Flèche droite
         } else {
-            chromListDiv.style.display = 'block';
+            chromListDiv.style.display = 'flex'; // Réappliquer flex pour garder l'affichage en ligne
             toggleButton.innerHTML = '&#x25C0;'; // Flèche gauche
         }
         isListVisible = !isListVisible;
