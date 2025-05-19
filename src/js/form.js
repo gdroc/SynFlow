@@ -25,6 +25,32 @@ export function createForm() {
     bandInput.setAttribute('name', 'band-files');
     bandInput.setAttribute('multiple', true);
     bandInput.setAttribute('accept', '.out');
+    bandInput.style.display = 'none'; // Cache l'input file par défaut
+
+    // Créer un bouton personnalisé
+    const customButton = document.createElement('button');
+    customButton.type = 'button';
+    customButton.textContent = 'Select Files';
+    customButton.style.marginBottom = '10px';
+    
+    // Div pour afficher les fichiers sélectionnés
+    const fileLabel = document.createElement('span');
+    fileLabel.textContent = 'No files chosen';
+    fileLabel.style.marginLeft = '10px';
+    
+    // Event listener pour le bouton personnalisé
+    customButton.addEventListener('click', () => {
+        bandInput.click();
+    });
+    
+    // Mettre à jour le label quand des fichiers sont sélectionnés
+    bandInput.addEventListener('change', () => {
+        if (bandInput.files.length > 0) {
+            fileLabel.textContent = `${bandInput.files.length} file(s) selected`;
+        } else {
+            fileLabel.textContent = 'No files chosen';
+        }
+    });
 
     const bandFileList = document.createElement('div');
     bandFileList.setAttribute('id', 'band-file-list');
@@ -33,6 +59,8 @@ export function createForm() {
     bandContainer.appendChild(bandLabel);
     bandContainer.appendChild(document.createElement('br'));
     bandContainer.appendChild(bandInput);
+    bandContainer.appendChild(customButton);
+    bandContainer.appendChild(fileLabel);
     bandContainer.appendChild(bandFileList);
 
     // Append containers to input container
