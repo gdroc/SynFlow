@@ -62,6 +62,28 @@ export function createForm() {
     //crée le container pour le module toolkit
     const toolkitContainer = document.createElement("div");
     toolkitContainer.id = "toolkitContainer";    
+    toolkitContainer.style.position = "relative"; // Ajout de la position relative
+
+    // Ajout du bouton de fermeture
+    const closeButton = document.createElement("div");
+    closeButton.innerHTML = "&#10006;"; // Symbole croix (✖)
+    closeButton.style.cssText = `
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 5px;
+        cursor: pointer;
+        font-size: 20px;
+        color: #666;
+    `;
+    closeButton.addEventListener("click", () => {
+        toolkitContainer.style.display = "none";
+    });
+    
+    toolkitContainer.appendChild(closeButton);
+    closeButton.style.display = "none"; // Masquer le bouton par défaut
+
+
     document.body.appendChild(toolkitContainer);
 
     //charge le css de toolkit
@@ -72,6 +94,9 @@ export function createForm() {
 
     // Event listener pour envoyer l'événement de calcul au serveur
     runCalculationButton.addEventListener('click', () => {
+
+        toolkitContainer.style.display = "block"; // Afficher le container
+        closeButton.style.display = "block"; // Afficher le bouton de fermeture
 
         // Option pour générer le selecteur de service ou appeler un service spécifique
         const generateSelect = false;
