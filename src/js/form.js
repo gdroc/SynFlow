@@ -1,5 +1,3 @@
-import { drawMiniChromosome } from "./draw.js";
-import { handleFileUpload } from "./process.js";
 import * as toolkit from '../../../toolkit/toolkit.js';
 
 export function createForm() {
@@ -8,6 +6,7 @@ export function createForm() {
 
     // Container for the file inputs and legend
     const inputContainer = document.createElement('div');
+    inputContainer.setAttribute('id', 'input-container');
     inputContainer.style.display = 'flex';
     inputContainer.style.justifyContent = 'space-between';
     inputContainer.style.alignItems = 'flex-start';
@@ -193,44 +192,6 @@ export function createForm() {
         })
     });
 
-    // Container for legend
-    const legendContainer = document.createElement('div');
-    legendContainer.setAttribute('id', 'legend-container');
-    legendContainer.style.marginLeft = '20px';
-    legendContainer.style.borderLeft = '1px solid #ccc';
-    legendContainer.style.paddingLeft = '20px';
-
-    const legendTitle = document.createElement('div');
-    legendTitle.setAttribute('id', 'legend-title');
-
-    const title = document.createElement('span');
-    title.textContent = "Legend";
-    legendTitle.appendChild(title);
-    legendTitle.appendChild(document.createElement('br'));
-    legendTitle.appendChild(document.createElement('br'));
-
-    legendContainer.appendChild(legendTitle);
-
-    const legendContent = document.createElement('div');
-    legendContent.setAttribute('id', 'legend-content');
-    legendContent.setAttribute('style', 'display:flex;');
-
-    // Container for genome names and order
-    const genomeList = document.createElement('div');
-    genomeList.setAttribute('id', 'genome-list');
-    genomeList.setAttribute('style', 'margin-bottom:20px; margin-right:30px;');
-
-    const legendDiv = document.createElement('div');
-    legendDiv.setAttribute('id', 'legend');
-    
-    legendContent.appendChild(genomeList);
-    legendContent.appendChild(legendDiv);
-
-    legendContainer.appendChild(legendContent);
-
-    // Append legend container to input container
-    inputContainer.appendChild(legendContainer);
-
     // Submit button
     const submitButton = document.createElement('button');
     submitButton.setAttribute('type', 'button');
@@ -284,54 +245,6 @@ export function createForm() {
 
 }
 
-export function reorderFileList(fileListElement, orderedFileNames, fileType) {
-    console.log(fileListElement);
-    console.log(orderedFileNames);
-    console.log(fileType);
-
-    // Marquer l'élément comme en train de se réorganiser
-    fileListElement.classList.add('reordering');
-
-    // Attendre que les transitions CSS prennent effet
-    setTimeout(() => {
-        fileListElement.innerHTML = ''; // Clear the previous file list
-
-        orderedFileNames.forEach((fileName, index) => {
-            const listItem = document.createElement('div');
-            listItem.style.display = 'flex';
-            listItem.style.alignItems = 'center';
-
-            const genome = fileName.replace(`.${fileType}`, '');
-
-            if (fileType === 'chrlen') {
-                // Créer un SVG pour le mini chromosome
-                const miniChromosomeSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-                miniChromosomeSvg.setAttribute("width", "50");
-                miniChromosomeSvg.setAttribute("height", "20");
-                miniChromosomeSvg.style.marginRight = "10px";
-
-                drawMiniChromosome(genome, d3.select(miniChromosomeSvg));
-                // genomeColors[genome] = generateColor(index);
-
-                listItem.appendChild(miniChromosomeSvg);
-            }
-
-            const fileNameSpan = document.createElement('span');
-            fileNameSpan.textContent = fileName;
-
-            listItem.appendChild(fileNameSpan);
-            fileListElement.appendChild(listItem);
-        });
-
-        // Forcer le reflow pour les animations
-        void fileListElement.offsetWidth;
-
-        // Marquer l'élément comme réorganisé pour les transitions
-        fileListElement.classList.remove('reordering');
-        fileListElement.classList.add('reordered');
-    }, 10); // Ajoutez un léger délai pour garantir que la transition se déclenche
-}
-
 
 
 function updateFileList(inputElement, fileListElement) {
@@ -346,16 +259,6 @@ function updateFileList(inputElement, fileListElement) {
 
 
 
-export function orderFilesByGenomes(files, genomes) {
-    const orderedFiles = [];
-    for (let i = 0; i < genomes.length - 1; i++) {
-        const fileName = `${genomes[i]}_${genomes[i + 1]}.out`;
-        if (files.includes(fileName)) {
-            orderedFiles.push(fileName);
-        }
-    }
-    return orderedFiles;
-}
 
 function readChromosomeLengths(file) {
     return new Promise((resolve, reject) => {
@@ -400,45 +303,6 @@ export function loadAllChromosomeLengths(files) {
 //     }
 //     return globalMaxLengths;
 // }
-
-export function calculateGlobalMaxChromosomeLengths(genomeData) {
-    const globalMaxLengths = {};
-
-    for (const genome in genomeData) {
-        const chromosomes = genomeData[genome];
-        for (const index in chromosomes) {
-            const chrData = chromosomes[index];
-            if (!globalMaxLengths[index]) {
-                globalMaxLengths[index] = chrData.length;
-            } else {
-                if (chrData.length > globalMaxLengths[index]) {
-                    globalMaxLengths[index] = chrData.length;
-                }
-            }
-        }
-    }
-
-    return globalMaxLengths;
-}
-
-export function parseSyriData(data) {
-    const lines = data.split('\n');
-    const parsedData = lines.map(line => {
-        const parts = line.split('\t');
-        return {
-            refChr: parts[0],
-            refStart: +parts[1],
-            refEnd: +parts[2],
-            refSeq: parts[3],
-            querySeq: parts[4],
-            queryChr: parts[5],
-            queryStart: +parts[6],
-            queryEnd: +parts[7],
-            type: parts[10]
-        };
-    });
-    return parsedData.filter(d => d.refChr && d.queryChr && d.queryChr !== '-' && d.refChr !== '-'); // Filtrer les lignes invalides
-}
 
 async function loadTestData() {
     // Define paths to your test files

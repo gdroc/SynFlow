@@ -2,6 +2,47 @@
 let sliderMinValue = 0;
 let sliderMaxValue = Infinity;
 
+export function createLegendContainer() {
+    // Container for legend
+    const legendContainer = document.createElement('div');
+    legendContainer.setAttribute('id', 'legend-container');
+    legendContainer.style.marginLeft = '20px';
+    legendContainer.style.borderLeft = '1px solid #ccc';
+    legendContainer.style.paddingLeft = '20px';
+
+    const legendTitle = document.createElement('div');
+    legendTitle.setAttribute('id', 'legend-title');
+
+    const title = document.createElement('span');
+    title.textContent = "Legend";
+    legendTitle.appendChild(title);
+    legendTitle.appendChild(document.createElement('br'));
+    legendTitle.appendChild(document.createElement('br'));
+
+    legendContainer.appendChild(legendTitle);
+
+    const legendContent = document.createElement('div');
+    legendContent.setAttribute('id', 'legend-content');
+    legendContent.setAttribute('style', 'display:flex;');
+
+    // Container for genome names and order
+    const genomeList = document.createElement('div');
+    genomeList.setAttribute('id', 'genome-list');
+    genomeList.setAttribute('style', 'margin-bottom:20px; margin-right:30px;');
+
+    const legendDiv = document.createElement('div');
+    legendDiv.setAttribute('id', 'legend');
+    
+    legendContent.appendChild(genomeList);
+    legendContent.appendChild(legendDiv);
+
+    legendContainer.appendChild(legendContent);
+
+    // Append legend container to input container
+    const inputContainer = document.getElementById('input-container');
+    inputContainer.appendChild(legendContainer);
+}
+
 export function generateLegend() {
     const legendDiv = document.getElementById('legend');
     legendDiv.innerHTML = ''; // Clear previous legend
@@ -181,7 +222,6 @@ export function updateBandsVisibility() {
     });
 }
 
-
 export function createSlider(minBandSize, maxBandSize) {
     console.log('create slider from ' + minBandSize + ' to ' + maxBandSize);
 
@@ -219,8 +259,6 @@ export function createSlider(minBandSize, maxBandSize) {
         },
     });
 }
-
-
 
 export function createLengthChart(bandLengths) {
     const barChartContainer = d3.select('#bar-chart-container');

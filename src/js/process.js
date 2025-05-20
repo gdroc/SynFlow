@@ -1,10 +1,7 @@
-import {calculateGlobalMaxChromosomeLengths, 
-	parseSyriData, orderFilesByGenomes,
-	reorderFileList } from './form.js';
 import { drawChromosomes, drawStackedChromosomes, drawCorrespondenceBands, resetDrawGlobals, drawMiniChromosome } from './draw.js';
-import { generateLegend, createSlider, createLengthChart, updateBandsVisibility } from './filter.js';
+import { generateLegend, createSlider, createLengthChart, updateBandsVisibility } from './legend.js';
 import { Spinner } from './spin.js';
-import { zoom } from './syri.js';
+import { zoom } from './main.js';
 
 export let refGenome; // Définir globalement
 export let queryGenome; // Définir globalement
@@ -711,3 +708,104 @@ function downloadSvg() {
 }
 
 export { generateColor, readFileInChunks, handleFileUpload };
+
+
+
+function reorderFileList(fileListElement, orderedFileNames, fileType) {
+    console.log(fileListElement);
+    console.log(orderedFileNames);
+    console.log(fileType);
+
+    // Marquer l'élément comme en train de se réorganiser
+    fileListElement.classList.add('reordering');
+
+    // Attendre que les transitions CSS prennent effet
+    setTimeout(() => {
+        fileListElement.innerHTML = ''; // Clear the previous file list
+
+        orderedFileNames.forEach((fileName, index) => {
+            const listItem = document.createElement('div');
+            listItem.style.display = 'flex';
+            listItem.style.alignItems = 'center';
+
+            const genome = fileName.replace(`.${fileType}`, '');
+
+            if (fileType === 'chrlen') {
+                // Créer un SVG pour le mini chromosome
+                const miniChromosomeSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                miniChromosomeSvg.setAttribute("width", "50");
+                miniChromosomeSvg.setAttribute("height", "20");
+                miniChromosomeSvg.style.marginRight = "10px";
+
+                drawMiniChromosome(genome, d3.select(miniChromosomeSvg));
+                // genomeColors[genome] = generateColor(index);
+
+                listItem.appendChild(miniChromosomeSvg);
+            }
+
+            const fileNameSpan = document.createElement('span');
+            fileNameSpan.textContent = fileName;
+
+            listItem.appendChild(fileNameSpan);
+            fileListElement.appendChild(listItem);
+        });
+
+        // Forcer le reflow pour les animations
+        void fileListElement.offsetWidth;
+
+        // Marquer l'élément comme réorganisé pour les transitions
+        fileListElement.classList.remove('reordering');
+        fileListElement.classList.add('reordered');
+    }, 10); // Ajoutez un léger délai pour garantir que la transition se déclenche
+}
+
+
+function orderFilesByGenomes(files, genomes) {
+    const orderedFiles = [];
+    for (let i = 0; i < genomes.length - 1; i++) {
+        const fileName = `${genomes[i]}_${genomes[i + 1]}.out`;
+        if (files.includes(fileName)) {
+            orderedFiles.push(fileName);
+        }
+    }
+    return orderedFiles;
+}
+
+function calculateGlobalMaxChromosomeLengths(genomeData) {
+    const globalMaxLengths = {};
+
+    for (const genome in genomeData) {
+        const chromosomes = genomeData[genome];
+        for (const index in chromosomes) {
+            const chrData = chromosomes[index];
+            if (!globalMaxLengths[index]) {
+                globalMaxLengths[index] = chrData.length;
+            } else {
+                if (chrData.length > globalMaxLengths[index]) {
+                    globalMaxLengths[index] = chrData.length;
+                }
+            }
+        }
+    }
+
+    return globalMaxLengths;
+}
+
+function parseSyriData(data) {
+    const lines = data.split('\n');
+    const parsedData = lines.map(line => {
+        const parts = line.split('\t');
+        return {
+            refChr: parts[0],
+            refStart: +parts[1],
+            refEnd: +parts[2],
+            refSeq: parts[3],
+            querySeq: parts[4],
+            queryChr: parts[5],
+            queryStart: +parts[6],
+            queryEnd: +parts[7],
+            type: parts[10]
+        };
+    });
+    return parsedData.filter(d => d.refChr && d.queryChr && d.queryChr !== '-' && d.refChr !== '-'); // Filtrer les lignes invalides
+}
