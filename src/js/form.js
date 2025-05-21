@@ -75,13 +75,58 @@ export function createForm() {
     // Event listener for the load test button
     loadTestButton.addEventListener('click', loadTestData);
 
-    // Bouton pour lancer le calcul
-    const runCalculationButton = document.createElement('button');
-    runCalculationButton.setAttribute('type', 'button');
-    runCalculationButton.setAttribute('id', 'runCalculation');
-    runCalculationButton.textContent = 'Lancer le calcul';
-    runCalculationButton.style.marginLeft = '10px';
+    // Submit button
+    const submitButton = document.createElement('button');
+    submitButton.setAttribute('type', 'button');
+    submitButton.setAttribute('style', 'margin-bottom:20px');
+	submitButton.setAttribute('id', 'submit');
+    submitButton.textContent = 'Draw';
 
+    
+
+    // Event listeners for file inputs
+    // chrLenInput.addEventListener('change', (event) => {
+    //     updateFileList(chrLenInput, genomeList);
+    // });
+
+    bandInput.addEventListener('change', (event) => {
+        updateFileList(bandInput, bandFileList);
+    });
+
+    // Add stack mode checkbox
+    const stackModeLabel = document.createElement('label');
+    stackModeLabel.setAttribute('for', 'stack-mode');
+    stackModeLabel.textContent = 'Stack chromosomes vertically';
+
+    const stackModeCheckbox = document.createElement('input');
+    stackModeCheckbox.setAttribute('type', 'checkbox');
+    stackModeCheckbox.setAttribute('id', 'stack-mode');
+    stackModeCheckbox.setAttribute('name', 'stack-mode');
+    stackModeCheckbox.setAttribute('style', 'margin-left: 10px;');
+
+    // Ajouter un écouteur d'événements à la case à cocher
+    stackModeCheckbox.addEventListener('change', () => {
+        submitButton.click(); // Simuler un clic sur le bouton "Draw"
+    });
+
+    // Append elements to form
+
+    form.appendChild(inputContainer);
+    form.appendChild(stackModeLabel);
+    form.appendChild(stackModeCheckbox);
+    form.appendChild(document.createElement('br'));
+
+    form.appendChild(submitButton);
+    form.appendChild(loadTestButton);
+    // form.appendChild(consoleTitle);  
+    // form.appendChild(consoleDiv);
+
+    const formContainer = document.getElementById('form-container');
+	formContainer.appendChild(form);
+
+}
+
+export function createToolkitContainer() {
     //////////////////:
     // TOOLKIT
     ///////////////////
@@ -118,6 +163,13 @@ export function createForm() {
     toolkitCSS.rel = "stylesheet";
     toolkitCSS.href = "../../../toolkit/toolkit.css";
     document.head.appendChild(toolkitCSS);
+
+    // Bouton pour lancer le calcul
+    const runCalculationButton = document.createElement('button');
+    runCalculationButton.setAttribute('type', 'button');
+    runCalculationButton.setAttribute('id', 'runCalculation');
+    runCalculationButton.textContent = 'Lancer le calcul';
+    runCalculationButton.style.marginLeft = '10px';
 
     // Event listener pour envoyer l'événement de calcul au serveur
     runCalculationButton.addEventListener('click', () => {
@@ -191,59 +243,11 @@ export function createForm() {
             });
         })
     });
-
-    // Submit button
-    const submitButton = document.createElement('button');
-    submitButton.setAttribute('type', 'button');
-    submitButton.setAttribute('style', 'margin-bottom:20px');
-	submitButton.setAttribute('id', 'submit');
-    submitButton.textContent = 'Draw';
-
-    
-
-    // Event listeners for file inputs
-    // chrLenInput.addEventListener('change', (event) => {
-    //     updateFileList(chrLenInput, genomeList);
-    // });
-
-    bandInput.addEventListener('change', (event) => {
-        updateFileList(bandInput, bandFileList);
-    });
-
-    // Add stack mode checkbox
-    const stackModeLabel = document.createElement('label');
-    stackModeLabel.setAttribute('for', 'stack-mode');
-    stackModeLabel.textContent = 'Stack chromosomes vertically';
-
-    const stackModeCheckbox = document.createElement('input');
-    stackModeCheckbox.setAttribute('type', 'checkbox');
-    stackModeCheckbox.setAttribute('id', 'stack-mode');
-    stackModeCheckbox.setAttribute('name', 'stack-mode');
-    stackModeCheckbox.setAttribute('style', 'margin-left: 10px;');
-
-    // Ajouter un écouteur d'événements à la case à cocher
-    stackModeCheckbox.addEventListener('change', () => {
-        submitButton.click(); // Simuler un clic sur le bouton "Draw"
-    });
-
-    // Append elements to form
-
-    form.appendChild(inputContainer);
-    form.appendChild(stackModeLabel);
-    form.appendChild(stackModeCheckbox);
-    form.appendChild(document.createElement('br'));
-
-    form.appendChild(submitButton);
-    form.appendChild(loadTestButton);
-    form.appendChild(runCalculationButton); 
-    // form.appendChild(consoleTitle);  
-    // form.appendChild(consoleDiv);
-    form.appendChild(toolkitContainer);
-
     const formContainer = document.getElementById('form-container');
-	formContainer.appendChild(form);
-
+    formContainer.appendChild(runCalculationButton); 
+    formContainer.appendChild(toolkitContainer);
 }
+
 
 
 
