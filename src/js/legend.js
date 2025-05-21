@@ -6,20 +6,6 @@ export function createLegendContainer() {
     // Container for legend
     const legendContainer = document.createElement('div');
     legendContainer.setAttribute('id', 'legend-container');
-    legendContainer.style.marginLeft = '20px';
-    legendContainer.style.borderLeft = '1px solid #ccc';
-    legendContainer.style.paddingLeft = '20px';
-
-    const legendTitle = document.createElement('div');
-    legendTitle.setAttribute('id', 'legend-title');
-
-    const title = document.createElement('span');
-    title.textContent = "Legend";
-    legendTitle.appendChild(title);
-    legendTitle.appendChild(document.createElement('br'));
-    legendTitle.appendChild(document.createElement('br'));
-
-    legendContainer.appendChild(legendTitle);
 
     const legendContent = document.createElement('div');
     legendContent.setAttribute('id', 'legend-content');
@@ -38,9 +24,10 @@ export function createLegendContainer() {
 
     legendContainer.appendChild(legendContent);
 
-    // Append legend container to input container
-    const inputContainer = document.getElementById('input-container');
-    inputContainer.appendChild(legendContainer);
+    // // Append legend container to input container
+    // const inputContainer = document.getElementById('input-container');
+    // inputContainer.appendChild(legendContainer);
+    return legendContainer;
 }
 
 export function generateLegend() {

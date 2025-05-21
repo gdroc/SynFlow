@@ -1,8 +1,134 @@
 import * as toolkit from '../../../toolkit/toolkit.js';
+import { createLegendContainer } from './legend.js';
+import { zoom } from './main.js';
+import { handleFileUpload } from './process.js';
 
 export function createForm() {
     const form = document.createElement('form');
     form.setAttribute('id', 'file-upload-form');
+
+    // Container principal avec CSS Grid
+    const gridContainer = document.createElement('div');
+    gridContainer.style.cssText = `
+        display: grid;
+        grid-template-columns: 200px 1fr 450px;
+        gap: 20px;
+        padding: 20px;
+        background-color: #f5f5f5;
+        border-radius: 8px;
+    `;
+
+    // Colonne 1 : Menu de sélection
+    const menuColumn = document.createElement('div');
+    menuColumn.style.cssText = `
+        padding: 15px;
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    `;
+
+    const menuItems = [
+        { id: 'existing', icon: 'fas fa-folder-open', text: 'Existing Files' },
+        { id: 'upload', icon: 'fas fa-upload', text: 'Upload Files' },
+        { id: 'calculate', icon: 'fas fa-cogs', text: 'Run Calculation' }
+    ];
+
+    menuItems.forEach(item => {
+        const menuItem = document.createElement('div');
+        menuItem.style.cssText = `
+            padding: 15px;
+            margin: 5px 0;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        `;
+        menuItem.innerHTML = `<i class="${item.icon}"></i> ${item.text}`;
+        menuItem.setAttribute('data-option', item.id);
+        
+        menuItem.addEventListener('click', () => {
+            // Retirer la classe active de tous les items
+            menuColumn.querySelectorAll('div').forEach(div => {
+                div.style.backgroundColor = 'transparent';
+                div.style.color = '#000';
+            });
+            // Ajouter la classe active à l'item sélectionné
+            menuItem.style.backgroundColor = 'black';
+            menuItem.style.color = 'white';
+            
+            // Afficher le formulaire correspondant
+            showForm(item.id);
+        });
+        
+        menuColumn.appendChild(menuItem);
+    });
+
+    // Colonne 2 : Zone de contenu dynamique
+    const contentColumn = document.createElement('div');
+    contentColumn.style.cssText = `
+        padding: 15px;
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    `;
+
+    // Colonne 3 : Légende
+    const legendColumn = document.createElement('div');
+    legendColumn.style.cssText = `
+        padding: 15px;
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    `;
+    legendColumn.innerHTML = `<h3><i class="fas fa-info-circle"></i> Legend</h3>`;
+    legendColumn.appendChild(createLegendContainer());
+
+    // Fonction pour afficher le bon formulaire
+    function showForm(option) {
+        contentColumn.innerHTML = '';
+        switch(option) {
+            case 'existing':
+                contentColumn.appendChild(createExistingFilesForm());
+                break;
+            case 'upload':
+                contentColumn.appendChild(createUploadSection());
+                break;
+            case 'calculate':
+                contentColumn.appendChild(createToolkitContainer());
+                break;
+        }
+    }
+
+    // Ajout des colonnes au container
+    gridContainer.appendChild(menuColumn);
+    gridContainer.appendChild(contentColumn);
+    gridContainer.appendChild(legendColumn);
+
+    form.appendChild(gridContainer);
+    const formContainer = document.getElementById('form-container');
+    formContainer.appendChild(form);
+
+    // Afficher le formulaire "existing" par défaut
+    showForm('existing');
+}
+
+// Fonctions helpers pour créer les différents formulaires
+function createExistingFilesForm() {
+    const div = document.createElement('div');
+    div.innerHTML = `
+        <h3>Select Existing Files</h3>
+        <select id="existing-files" style="width: 100%">
+            <option value="">Choose a file...</option>
+        </select>
+    `;
+    return div;
+}
+
+// Fonction helper pour créer la section upload (votre code existant)
+function createUploadSection() {
+    const uploadSection = document.createElement('div');
+
+    // const form = document.createElement('form');
+    uploadSection.setAttribute('id', 'file-upload-form');
 
     // Container for the file inputs and legend
     const inputContainer = document.createElement('div');
@@ -82,7 +208,20 @@ export function createForm() {
 	submitButton.setAttribute('id', 'submit');
     submitButton.textContent = 'Draw';
 
-    
+    submitButton.addEventListener('click', () => {
+
+        const visualizationContainer = document.getElementById('viz');
+        visualizationContainer.innerHTML = ''; // Efface le contenu existant
+
+        d3.select("#viz").call(zoom);
+
+        // Ajoutez un groupe à l'intérieur de l'élément SVG pour contenir les éléments zoomables
+        d3.select("#viz").append("g").attr("id", "zoomGroup");
+
+        ///////////////changement
+        const bandFiles = document.getElementById('band-files').files;
+        handleFileUpload(bandFiles);
+    });
 
     // Event listeners for file inputs
     // chrLenInput.addEventListener('change', (event) => {
@@ -111,19 +250,17 @@ export function createForm() {
 
     // Append elements to form
 
-    form.appendChild(inputContainer);
-    form.appendChild(stackModeLabel);
-    form.appendChild(stackModeCheckbox);
-    form.appendChild(document.createElement('br'));
+    uploadSection.appendChild(inputContainer);
+    uploadSection.appendChild(stackModeLabel);
+    uploadSection.appendChild(stackModeCheckbox);
+    uploadSection.appendChild(document.createElement('br'));
 
-    form.appendChild(submitButton);
-    form.appendChild(loadTestButton);
+    uploadSection.appendChild(submitButton);
+    uploadSection.appendChild(loadTestButton);
     // form.appendChild(consoleTitle);  
     // form.appendChild(consoleDiv);
 
-    const formContainer = document.getElementById('form-container');
-	formContainer.appendChild(form);
-
+    return uploadSection;
 }
 
 export function createToolkitContainer() {
@@ -164,15 +301,11 @@ export function createToolkitContainer() {
     toolkitCSS.href = "../../../toolkit/toolkit.css";
     document.head.appendChild(toolkitCSS);
 
-    // Bouton pour lancer le calcul
-    const runCalculationButton = document.createElement('button');
-    runCalculationButton.setAttribute('type', 'button');
-    runCalculationButton.setAttribute('id', 'runCalculation');
-    runCalculationButton.textContent = 'Lancer le calcul';
-    runCalculationButton.style.marginLeft = '10px';
+    // // Bouton pour lancer le calcul
+    // const runCalculationButton = document.getElementById('runCalculation');
 
-    // Event listener pour envoyer l'événement de calcul au serveur
-    runCalculationButton.addEventListener('click', () => {
+    // // Event listener pour envoyer l'événement de calcul au serveur
+    // runCalculationButton.addEventListener('click', () => {
 
         toolkitContainer.style.display = "block"; // Afficher le container
         closeButton.style.display = "block"; // Afficher le bouton de fermeture
@@ -242,10 +375,10 @@ export function createToolkitContainer() {
                 }
             });
         })
-    });
-    const formContainer = document.getElementById('form-container');
-    formContainer.appendChild(runCalculationButton); 
-    formContainer.appendChild(toolkitContainer);
+    // });
+    // const formContainer = document.getElementById('form-container');
+    // formContainer.appendChild(toolkitContainer);
+    return toolkitContainer;
 }
 
 
@@ -295,43 +428,14 @@ export function loadAllChromosomeLengths(files) {
     return Promise.all(lengthPromises);
 }
 
-// export function calculateGlobalMaxChromosomeLengths(genomeLengths) {
-//     const globalMaxLengths = {};
-//     for (const genome in genomeLengths) {
-//         const lengths = genomeLengths[genome];
-//         for (const chr in lengths) {
-//             if (!globalMaxLengths[chr] || lengths[chr] > globalMaxLengths[chr]) {
-//                 globalMaxLengths[chr] = lengths[chr];
-//             }
-//         }
-//     }
-//     return globalMaxLengths;
-// }
-
 async function loadTestData() {
     // Define paths to your test files
-    // const testChrLenFiles = [
-    //     'public/data/C5_126_2.chrlen',
-    //     'public/data/C21_464.chrlen',
-    //     'public/data/C23_A03.chrlen',
-    //     'public/data/C45_410.chrlen',
-    //     'public/data/DH_200_94.chrlen'
-    // ];
-
     const testBandFiles = [
         'public/data/C21_464_C23_A03.out',
         'public/data/C23_A03_C45_410.out',
         'public/data/C45_410_C5_126_2.out',
         'public/data/DH_200_94_C21_464.out'
     ];
-
-    // Fetch file contents and create File objects
-    // const chrLenFiles = await Promise.all(testChrLenFiles.map(async path => {
-    //     const response = await fetch(path);
-    //     const text = await response.text();
-    //     const fileName = path.split('/').pop();
-    //     return new File([text], fileName, { type: 'text/plain' });
-    // }));
 
     const bandFiles = await Promise.all(testBandFiles.map(async path => {
         const response = await fetch(path);
@@ -341,21 +445,17 @@ async function loadTestData() {
     }));
 
     // Creating DataTransfer objects to simulate file upload
-    // const chrLenDataTransfer = new DataTransfer();
     const bandDataTransfer = new DataTransfer();
 
     // Add files to the DataTransfer objects
-    // chrLenFiles.forEach(file => chrLenDataTransfer.items.add(file));
     bandFiles.forEach(file => bandDataTransfer.items.add(file));
 
     // Set the files to the input fields
-    // const chrLenInput = document.getElementById('chrlen-files');
     const bandInput = document.getElementById('band-files');
 
     // chrLenInput.files = chrLenDataTransfer.files;
     bandInput.files = bandDataTransfer.files;
 
     // Update the file lists
-    // updateFileList(chrLenInput, document.getElementById('chrlen-file-list'));
     updateFileList(bandInput, document.getElementById('band-file-list'));
 }
