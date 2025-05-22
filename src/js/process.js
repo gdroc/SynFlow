@@ -1,5 +1,5 @@
 import { drawChromosomes, drawStackedChromosomes, drawCorrespondenceBands, resetDrawGlobals, drawMiniChromosome } from './draw.js';
-import { generateBandTypeFilters, createSlider, createLengthChart, updateBandsVisibility } from './legend.js';
+import { generateBandTypeFilters, createSlider, createLengthChart, updateBandsVisibility, showControlPanel } from './legend.js';
 import { Spinner } from './spin.js';
 import { zoom } from './main.js';
 
@@ -246,6 +246,9 @@ function allDone() {
     createSlider(minBandSize, maxBandSize);
     // Create the bar chart to display band size distribution
     createLengthChart(allBandLengths);
+
+    //Affiche la légende
+    showControlPanel();
 
     // Remove existing chromlist container
     const vizContainer = document.getElementById('viz-container')

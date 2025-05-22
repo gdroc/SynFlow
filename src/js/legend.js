@@ -6,12 +6,72 @@ export function createControlPanel() {
         margin-top: 20px;
         background-color: white;
         border-radius: 8px;
+        box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    `;
+    
+    // Créer la barre de titre
+    const headerBar = document.createElement('div');
+    headerBar.style.cssText = `
+        padding: 10px 15px;
+        background-color: #f5f5f5;
+        border-radius: 8px 8px 0 0;
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    `;
+    
+    // Ajout du titre
+    const title = document.createElement('h3');
+    title.textContent = 'Control Panel';
+    title.style.margin = '0';
+    headerBar.appendChild(title);
+
+    // Ajout du bouton de masquage
+    const hideButton = document.createElement('button');
+    hideButton.innerHTML = '<i class="fas fa-chevron-up"></i>';
+    hideButton.style.cssText = `
+        padding: 5px 10px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        color: #666;
+    `;
+
+    headerBar.appendChild(hideButton);
+
+    // Créer le conteneur pour le contenu
+    const panelContent = document.createElement('div');
+    panelContent.setAttribute('id', 'control-panel-content');
+    panelContent.style.cssText = `
+        background-color: white;
+        border-radius: 0 0 8px 8px;
+        transition: max-height 0.3s ease-out;
+        overflow: hidden;
+        max-height: 0px;  // Initialement caché
+    `;
+
+    // Conteneur de la grille
+    const gridContainer = document.createElement('div');
+    gridContainer.style.cssText = `
         padding: 20px;
         background-color: #f5f5f5;
         display: grid;
-        grid-template-columns: 1fr 2fr 1fr;
+        grid-template-columns: 400px 500px 300px;
         gap: 20px;
     `;
+
+    // Event listener pour le bouton de masquage
+    hideButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        if(panelContent.style.maxHeight === '0px' || !panelContent.style.maxHeight) {
+            panelContent.style.maxHeight = panelContent.scrollHeight + 'px';
+            hideButton.innerHTML = '<i class="fas fa-chevron-up"></i>';
+        } else {
+            panelContent.style.maxHeight = '0px';
+            hideButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
+        }
+    });
 
     // Création des sections
     const legendSection = document.createElement('div');
@@ -44,12 +104,29 @@ export function createControlPanel() {
     paramsSection.innerHTML = '<h3><i class="fas fa-cog"></i> Parameters</h3>';
     paramsSection.appendChild(createParametersContent());
 
-    // Ajout des sections au panel
-    controlPanel.appendChild(legendSection);
-    controlPanel.appendChild(filtersSection);
-    controlPanel.appendChild(paramsSection);
-
+     // Ajout des sections à la grille
+    gridContainer.appendChild(legendSection);
+    gridContainer.appendChild(filtersSection);
+    gridContainer.appendChild(paramsSection);
+    // Ajout de la grille au contenu
+    panelContent.appendChild(gridContainer);
+    // Assemblage final
+    controlPanel.appendChild(headerBar);
+    controlPanel.appendChild(panelContent);
     return controlPanel;
+}
+
+// Ajouter une nouvelle fonction pour rendre visible le panel
+export function showControlPanel() {
+    const panelContent = document.getElementById('control-panel-content');
+    if (panelContent) {
+        panelContent.style.maxHeight = panelContent.scrollHeight + 'px';
+        // Mettre à jour l'icône du bouton
+        const hideButton = document.querySelector('#control-panel button');
+        if (hideButton) {
+            hideButton.innerHTML = '<i class="fas fa-chevron-up"></i>';
+        }
+    }
 }
 
 // Fonctions helpers pour créer le contenu des onglets
