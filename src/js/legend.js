@@ -1,3 +1,115 @@
+//Fonction pour les contrôles et paramètres
+export function createControlPanel() {
+    const controlPanel = document.createElement('div');
+    controlPanel.setAttribute('id', 'control-panel');
+    controlPanel.style.cssText = `
+        margin-top: 20px;
+        background-color: white;
+        border-radius: 8px;
+        padding: 20px;
+        background-color: #f5f5f5;
+        display: grid;
+        grid-template-columns: 1fr 2fr 1fr;
+        gap: 20px;
+    `;
+
+    // Création des sections
+    const legendSection = document.createElement('div');
+    legendSection.style.cssText = `
+        padding: 15px;
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    `;
+    legendSection.innerHTML = '<h3><i class="fas fa-info-circle"></i> Legend</h3>';
+    legendSection.appendChild(createLegendContainer());
+
+    const filtersSection = document.createElement('div');
+    filtersSection.style.cssText = `
+        padding: 15px;
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    `;
+    filtersSection.innerHTML = '<h3><i class="fas fa-filter"></i> Filters</h3>';
+    filtersSection.appendChild(createFiltersContent());
+
+    const paramsSection = document.createElement('div');
+    paramsSection.style.cssText = `
+        padding: 15px;
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    `;
+    paramsSection.innerHTML = '<h3><i class="fas fa-cog"></i> Parameters</h3>';
+    paramsSection.appendChild(createParametersContent());
+
+    // Ajout des sections au panel
+    controlPanel.appendChild(legendSection);
+    controlPanel.appendChild(filtersSection);
+    controlPanel.appendChild(paramsSection);
+
+    return controlPanel;
+}
+
+// Fonctions helpers pour créer le contenu des onglets
+function createFiltersContent() {
+    const filters = document.createElement('div');
+    filters.innerHTML = `
+        <div class="filter-section">
+            <h4>Band Type Filters</h4>
+            <div style="margin: 10px 0;">
+                <!-- Les filtres de type de bandes seront ajoutés ici dynamiquement -->
+            </div>
+            
+            <h4>Chromosome Filters</h4>
+            <div style="margin: 10px 0;">
+                <!-- Les filtres de chromosomes seront ajoutés ici -->
+            </div>
+        </div>
+    `;
+    return filters;
+}
+
+function createParametersContent() {
+    const params = document.createElement('div');
+    params.innerHTML = `
+        <div class="params-section">
+            <h4>Display Options</h4>
+            <div style="margin: 10px 0;">
+                <label>
+                    <input type="checkbox" id="stack-mode" />
+                    Stack chromosomes vertically
+                </label>
+            </div>
+            <div id="file-upload" style="margin: 10px 0;"></div>
+            <!-- Ajoutez d'autres paramètres ici -->
+        </div>
+    `;
+    return params;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //globale
 let sliderMinValue = 0;
 let sliderMaxValue = Infinity;
@@ -30,9 +142,9 @@ export function createLegendContainer() {
     return legendContainer;
 }
 
-export function generateLegend() {
-    const legendDiv = document.getElementById('legend');
-    legendDiv.innerHTML = ''; // Clear previous legend
+export function generateBandTypeFilters() {
+    const filterDiv = document.querySelector('.filter-section'); 
+    filterDiv.innerHTML = ''; // Clear previous legend
 
     const colors = [
         { type: 'Syntenic region', color: '#d3d3d3', attr: 'SYN' },
@@ -105,7 +217,7 @@ export function generateLegend() {
         legendItem.appendChild(eyeIcon);
         legendItem.appendChild(miniBandSvg);
         legendItem.appendChild(label);
-        legendDiv.appendChild(legendItem);
+        filterDiv.appendChild(legendItem);
     });
 
     // Checkbox for filtering bands
@@ -149,11 +261,11 @@ export function generateLegend() {
         updateBandsVisibility();
     });
 
-    legendDiv.appendChild(filterInterCheckbox);
-    legendDiv.appendChild(filterInterLabel);
-    legendDiv.appendChild(document.createElement('br'));
-    legendDiv.appendChild(filterIntraCheckbox);
-    legendDiv.appendChild(filterIntraLabel);
+    filterDiv.appendChild(filterInterCheckbox);
+    filterDiv.appendChild(filterInterLabel);
+    filterDiv.appendChild(document.createElement('br'));
+    filterDiv.appendChild(filterIntraCheckbox);
+    filterDiv.appendChild(filterIntraLabel);
 }
 
 
@@ -212,25 +324,29 @@ export function updateBandsVisibility() {
 export function createSlider(minBandSize, maxBandSize) {
     console.log('create slider from ' + minBandSize + ' to ' + maxBandSize);
 
-    const rangeNode = document.getElementById('range-slider-example');
-    rangeNode.innerHTML = ''; // Supprime le contenu existant avant de réécrire
+    const sliderContainer = document.createElement('div');
+    sliderContainer.setAttribute('id', 'slider-container');
+    
+    const sliderTitle = document.createElement('h4');
+    sliderTitle.textContent = 'Band Length Filter';
+    
+    const sliderElement = document.createElement('div');
+    sliderElement.setAttribute('id', 'slider');
 
-    // Supprime l'ancien titre s'il existe
-    const existingTitle = document.getElementById('slider-title');
-    if (existingTitle) {
-        existingTitle.parentNode.removeChild(existingTitle);
+    const chartContainer = document.createElement('div');
+    chartContainer.setAttribute('id', 'chart-container');
+
+    sliderContainer.appendChild(sliderTitle);
+    sliderContainer.appendChild(sliderElement);
+    sliderContainer.appendChild(chartContainer);
+
+    // Trouver la section des filtres et ajouter le slider
+    const filterSection = document.querySelector('.filter-section');
+    if (filterSection) {
+        filterSection.appendChild(sliderContainer);
     }
 
-    const title = document.createElement('span');
-    title.id = 'slider-title'; // Ajout d'un ID pour le titre
-    title.textContent = "Filter band length";
-    title.appendChild(document.createElement('br'));
-    title.appendChild(document.createElement('br'));
-
-    let parentDiv = rangeNode.parentNode;
-    parentDiv.insertBefore(title, rangeNode);
-
-    rangeSlider(rangeNode, {
+    rangeSlider(sliderElement, {
         min: minBandSize - 10000,
         max: maxBandSize + 10000,
         step: 10000,
@@ -248,7 +364,7 @@ export function createSlider(minBandSize, maxBandSize) {
 }
 
 export function createLengthChart(bandLengths) {
-    const barChartContainer = d3.select('#bar-chart-container');
+    const barChartContainer = d3.select('#chart-container');
     barChartContainer.selectAll('*').remove(); // Efface tout le contenu existant
 
     barChartContainer.style('width', '100%');

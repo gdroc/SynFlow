@@ -1,7 +1,5 @@
-import { createForm, createToolkitContainer } from './form.js';
-import { createLegendContainer } from './legend.js';
-import { handleFileUpload} from './process.js';
-// import * as toolkit from '../../../toolkit/toolkit.js';
+import { createForm } from './form.js';
+import { createControlPanel } from './legend.js';
 
 console.log("syri");
  // Définir le comportement de zoom
@@ -12,7 +10,9 @@ export const zoom = d3.zoom()
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    createForm();
+    const mainContainer = document.getElementById('main-container');
+    mainContainer.appendChild(createForm());
+    mainContainer.appendChild(createControlPanel());
     
 });
 

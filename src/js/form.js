@@ -11,7 +11,7 @@ export function createForm() {
     const gridContainer = document.createElement('div');
     gridContainer.style.cssText = `
         display: grid;
-        grid-template-columns: 200px 1fr 450px;
+        grid-template-columns: 200px 1fr;
         gap: 20px;
         padding: 20px;
         background-color: #f5f5f5;
@@ -71,16 +71,16 @@ export function createForm() {
         box-shadow: 0 0 5px rgba(0,0,0,0.1);
     `;
 
-    // Colonne 3 : Légende
-    const legendColumn = document.createElement('div');
-    legendColumn.style.cssText = `
-        padding: 15px;
-        background-color: white;
-        border-radius: 5px;
-        box-shadow: 0 0 5px rgba(0,0,0,0.1);
-    `;
-    legendColumn.innerHTML = `<h3><i class="fas fa-info-circle"></i> Legend</h3>`;
-    legendColumn.appendChild(createLegendContainer());
+    // // Colonne 3 : Légende
+    // const legendColumn = document.createElement('div');
+    // legendColumn.style.cssText = `
+    //     padding: 15px;
+    //     background-color: white;
+    //     border-radius: 5px;
+    //     box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    // `;
+    // legendColumn.innerHTML = `<h3><i class="fas fa-info-circle"></i> Legend</h3>`;
+    // legendColumn.appendChild(createLegendContainer());
 
     // Fonction pour afficher le bon formulaire
     function showForm(option) {
@@ -101,14 +101,15 @@ export function createForm() {
     // Ajout des colonnes au container
     gridContainer.appendChild(menuColumn);
     gridContainer.appendChild(contentColumn);
-    gridContainer.appendChild(legendColumn);
+    // gridContainer.appendChild(legendColumn);
 
     form.appendChild(gridContainer);
-    const formContainer = document.getElementById('form-container');
-    formContainer.appendChild(form);
+    // const formContainer = document.getElementById('form-container');
+    // formContainer.appendChild(form);
 
     // Afficher le formulaire "existing" par défaut
     showForm('existing');
+    return form;
 }
 
 // Fonctions helpers pour créer les différents formulaires

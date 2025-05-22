@@ -1,5 +1,5 @@
 import { drawChromosomes, drawStackedChromosomes, drawCorrespondenceBands, resetDrawGlobals, drawMiniChromosome } from './draw.js';
-import { generateLegend, createSlider, createLengthChart, updateBandsVisibility } from './legend.js';
+import { generateBandTypeFilters, createSlider, createLengthChart, updateBandsVisibility } from './legend.js';
 import { Spinner } from './spin.js';
 import { zoom } from './main.js';
 
@@ -295,7 +295,7 @@ function allDone() {
     updateChromList(globalMaxChromosomeLengths);
     
     // Add download buttons
-    const formContainer = document.getElementById('file-upload-form');
+    const formContainer = document.getElementById('file-upload');
 
     // Remove existing download button if it exists
     const existingDownloadButton = document.getElementById('download-svg');
@@ -431,7 +431,7 @@ function handleFileUpload(bandFiles) {
     }
 
     // Générer et afficher la légende
-    generateLegend();
+    generateBandTypeFilters();
 
     // Réordonner les listes de fichiers
     const genomeList = document.getElementById('genome-list');
