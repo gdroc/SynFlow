@@ -7,6 +7,58 @@ export function createForm() {
     const form = document.createElement('form');
     form.setAttribute('id', 'file-upload-form');
 
+    // Créer un conteneur pour le titre qui reste toujours visible
+    const headerBar = document.createElement('div');
+    headerBar.style.cssText = `
+        padding: 10px 15px;
+        background-color: #f5f5f5;
+        border-radius: 8px 8px 0 0;
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    `;
+    
+    // Ajout du titre
+    const title = document.createElement('h3');
+    title.textContent = 'Input Selection';
+    title.style.margin = '0';
+    headerBar.appendChild(title);
+
+    // Ajout du bouton de masquage dans la barre de titre
+    const hideFormButton = document.createElement('button');
+    hideFormButton.innerHTML = '<i class="fas fa-chevron-up"></i>';
+    hideFormButton.style.cssText = `
+        padding: 5px 10px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        color: #666;
+    `;
+
+    headerBar.appendChild(hideFormButton);
+
+    // Créer un conteneur pour le contenu
+    const formContent = document.createElement('div');
+    formContent.setAttribute('id', 'form-content');
+    formContent.style.cssText = `
+        background-color: white;
+        border-radius: 0 0 8px 8px;
+        transition: max-height 0.3s ease-out;
+    `;
+
+    hideFormButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        if(formContent.style.display === 'none') {
+            formContent.style.display = 'block';
+            hideFormButton.innerHTML = '<i class="fas fa-chevron-up"></i>';
+
+        }else {
+            formContent.style.display = 'none';
+            hideFormButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
+        }
+    });
+
     // Container principal avec CSS Grid
     const gridContainer = document.createElement('div');
     gridContainer.style.cssText = `
@@ -71,17 +123,6 @@ export function createForm() {
         box-shadow: 0 0 5px rgba(0,0,0,0.1);
     `;
 
-    // // Colonne 3 : Légende
-    // const legendColumn = document.createElement('div');
-    // legendColumn.style.cssText = `
-    //     padding: 15px;
-    //     background-color: white;
-    //     border-radius: 5px;
-    //     box-shadow: 0 0 5px rgba(0,0,0,0.1);
-    // `;
-    // legendColumn.innerHTML = `<h3><i class="fas fa-info-circle"></i> Legend</h3>`;
-    // legendColumn.appendChild(createLegendContainer());
-
     // Fonction pour afficher le bon formulaire
     function showForm(option) {
         contentColumn.innerHTML = '';
@@ -101,11 +142,11 @@ export function createForm() {
     // Ajout des colonnes au container
     gridContainer.appendChild(menuColumn);
     gridContainer.appendChild(contentColumn);
-    // gridContainer.appendChild(legendColumn);
 
-    form.appendChild(gridContainer);
-    // const formContainer = document.getElementById('form-container');
-    // formContainer.appendChild(form);
+    // Ajouter le bouton et le contenu au formulaire    
+    form.appendChild(headerBar);
+    form.appendChild(formContent);
+    formContent.appendChild(gridContainer);  // Ne garder que cette ligne
 
     // Afficher le formulaire "existing" par défaut
     showForm('existing');
