@@ -17,26 +17,20 @@ export function createForm() {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        cursor: pointer;
     `;
     
     // Ajout du titre
-    const title = document.createElement('h3');
+    const title = document.createElement('h4');
     title.textContent = 'Input Selection';
     title.style.margin = '0';
     headerBar.appendChild(title);
 
-    // Ajout du bouton de masquage dans la barre de titre
-    const hideFormButton = document.createElement('button');
-    hideFormButton.innerHTML = '<i class="fas fa-chevron-up"></i>';
-    hideFormButton.style.cssText = `
-        padding: 5px 10px;
-        border: none;
-        background: none;
-        cursor: pointer;
-        color: #666;
-    `;
-
-    headerBar.appendChild(hideFormButton);
+    // Ajout de l'icône de fermeture
+    const chevronIcon = document.createElement('i');
+    chevronIcon.className = 'fas fa-chevron-up';
+    chevronIcon.style.color = '#666';
+    headerBar.appendChild(chevronIcon);
 
     // Créer un conteneur pour le contenu
     const formContent = document.createElement('div');
@@ -45,17 +39,19 @@ export function createForm() {
         background-color: white;
         border-radius: 0 0 8px 8px;
         transition: max-height 0.3s ease-out;
+        overflow: hidden;
+        max-height: 1000px; // Valeur initiale suffisamment grande
     `;
 
-    hideFormButton.addEventListener('click', (event) => {
+    // Event listener sur headerBar
+    headerBar.addEventListener('click', (event) => {
         event.preventDefault();
-        if(formContent.style.display === 'none') {
-            formContent.style.display = 'block';
-            hideFormButton.innerHTML = '<i class="fas fa-chevron-up"></i>';
-
-        }else {
-            formContent.style.display = 'none';
-            hideFormButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
+        if(formContent.style.maxHeight === '0px' || !formContent.style.maxHeight) {
+            formContent.style.maxHeight = formContent.scrollHeight + 'px';
+            chevronIcon.className = 'fas fa-chevron-up';
+        } else {
+            formContent.style.maxHeight = '0px';
+            chevronIcon.className = 'fas fa-chevron-down';
         }
     });
 
@@ -149,6 +145,11 @@ export function createForm() {
     formContent.appendChild(gridContainer);  // Ne garder que cette ligne
 
     // Afficher le formulaire "existing" par défaut
+    // Ajouter la classe active à l'item sélectionné
+    //selectionne la dive "existing" par défaut
+    const selectedItem = menuColumn.querySelector(`div[data-option="existing"]`);
+    selectedItem.style.backgroundColor = 'black';
+    selectedItem.style.color = 'white';
     showForm('existing');
     return form;
 }
@@ -157,7 +158,7 @@ export function createForm() {
 function createExistingFilesForm() {
     const div = document.createElement('div');
     div.innerHTML = `
-        <h3>Select Existing Files</h3>
+        <h5>Select Existing Files</h5>
         <select id="existing-files" style="width: 100%">
             <option value="">Choose a file...</option>
         </select>
@@ -274,27 +275,27 @@ function createUploadSection() {
         updateFileList(bandInput, bandFileList);
     });
 
-    // Add stack mode checkbox
-    const stackModeLabel = document.createElement('label');
-    stackModeLabel.setAttribute('for', 'stack-mode');
-    stackModeLabel.textContent = 'Stack chromosomes vertically';
+    // // Add stack mode checkbox
+    // const stackModeLabel = document.createElement('label');
+    // stackModeLabel.setAttribute('for', 'stack-mode');
+    // stackModeLabel.textContent = 'Stack chromosomes vertically';
 
-    const stackModeCheckbox = document.createElement('input');
-    stackModeCheckbox.setAttribute('type', 'checkbox');
-    stackModeCheckbox.setAttribute('id', 'stack-mode');
-    stackModeCheckbox.setAttribute('name', 'stack-mode');
-    stackModeCheckbox.setAttribute('style', 'margin-left: 10px;');
+    // const stackModeCheckbox = document.createElement('input');
+    // stackModeCheckbox.setAttribute('type', 'checkbox');
+    // stackModeCheckbox.setAttribute('id', 'stack-mode');
+    // stackModeCheckbox.setAttribute('name', 'stack-mode');
+    // stackModeCheckbox.setAttribute('style', 'margin-left: 10px;');
 
-    // Ajouter un écouteur d'événements à la case à cocher
-    stackModeCheckbox.addEventListener('change', () => {
-        submitButton.click(); // Simuler un clic sur le bouton "Draw"
-    });
+    // // Ajouter un écouteur d'événements à la case à cocher
+    // stackModeCheckbox.addEventListener('change', () => {
+    //     submitButton.click(); // Simuler un clic sur le bouton "Draw"
+    // });
 
     // Append elements to form
 
     uploadSection.appendChild(inputContainer);
-    uploadSection.appendChild(stackModeLabel);
-    uploadSection.appendChild(stackModeCheckbox);
+    // uploadSection.appendChild(stackModeLabel);
+    // uploadSection.appendChild(stackModeCheckbox);
     uploadSection.appendChild(document.createElement('br'));
 
     uploadSection.appendChild(submitButton);

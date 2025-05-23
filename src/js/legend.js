@@ -19,26 +19,20 @@ export function createControlPanel() {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        cursor: pointer;
     `;
     
     // Ajout du titre
-    const title = document.createElement('h3');
+    const title = document.createElement('h4');
     title.textContent = 'Control Panel';
     title.style.margin = '0';
     headerBar.appendChild(title);
 
-    // Ajout du bouton de masquage
-    const hideButton = document.createElement('button');
-    hideButton.innerHTML = '<i class="fas fa-chevron-up"></i>';
-    hideButton.style.cssText = `
-        padding: 5px 10px;
-        border: none;
-        background: none;
-        cursor: pointer;
-        color: #666;
-    `;
-
-    headerBar.appendChild(hideButton);
+    // Ajout de l'icône de fermeture
+    const chevronIcon = document.createElement('i');
+    chevronIcon.className = 'fas fa-chevron-up';
+    chevronIcon.style.color = '#666';
+    headerBar.appendChild(chevronIcon);
 
     // Créer le conteneur pour le contenu
     const panelContent = document.createElement('div');
@@ -61,15 +55,15 @@ export function createControlPanel() {
         gap: 20px;
     `;
 
-    // Event listener pour le bouton de masquage
-    hideButton.addEventListener('click', (event) => {
+    // Event listener sur headerBar
+    headerBar.addEventListener('click', (event) => {
         event.preventDefault();
         if(panelContent.style.maxHeight === '0px' || !panelContent.style.maxHeight) {
             panelContent.style.maxHeight = panelContent.scrollHeight + 'px';
-            hideButton.innerHTML = '<i class="fas fa-chevron-up"></i>';
+            chevronIcon.className = 'fas fa-chevron-up';
         } else {
             panelContent.style.maxHeight = '0px';
-            hideButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
+            chevronIcon.className = 'fas fa-chevron-down';
         }
     });
 
@@ -81,7 +75,7 @@ export function createControlPanel() {
         border-radius: 5px;
         box-shadow: 0 0 5px rgba(0,0,0,0.1);
     `;
-    legendSection.innerHTML = '<h3><i class="fas fa-info-circle"></i> Legend</h3>';
+    legendSection.innerHTML = '<h5><i class="fas fa-info-circle"></i> Legend</h5>';
     legendSection.appendChild(createLegendContainer());
 
     const filtersSection = document.createElement('div');
@@ -91,7 +85,7 @@ export function createControlPanel() {
         border-radius: 5px;
         box-shadow: 0 0 5px rgba(0,0,0,0.1);
     `;
-    filtersSection.innerHTML = '<h3><i class="fas fa-filter"></i> Filters</h3>';
+    filtersSection.innerHTML = '<h5><i class="fas fa-filter"></i> Filters</h5>';
     filtersSection.appendChild(createFiltersContent());
 
     const paramsSection = document.createElement('div');
@@ -101,7 +95,7 @@ export function createControlPanel() {
         border-radius: 5px;
         box-shadow: 0 0 5px rgba(0,0,0,0.1);
     `;
-    paramsSection.innerHTML = '<h3><i class="fas fa-cog"></i> Parameters</h3>';
+    paramsSection.innerHTML = '<h5><i class="fas fa-cog"></i> Parameters</h5>';
     paramsSection.appendChild(createParametersContent());
 
      // Ajout des sections à la grille
@@ -134,12 +128,9 @@ function createFiltersContent() {
     const filters = document.createElement('div');
     filters.innerHTML = `
         <div class="filter-section">
-            <h4>Band Type Filters</h4>
             <div style="margin: 10px 0;">
                 <!-- Les filtres de type de bandes seront ajoutés ici dynamiquement -->
             </div>
-            
-            <h4>Chromosome Filters</h4>
             <div style="margin: 10px 0;">
                 <!-- Les filtres de chromosomes seront ajoutés ici -->
             </div>
@@ -152,7 +143,6 @@ function createParametersContent() {
     const params = document.createElement('div');
     params.innerHTML = `
         <div class="params-section">
-            <h4>Display Options</h4>
             <div style="margin: 10px 0;">
                 <label>
                     <input type="checkbox" id="stack-mode" />
