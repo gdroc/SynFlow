@@ -168,3 +168,18 @@
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1); /* Ombre pour un effet de profondeur */
   z-index: 20; /* Assure que le bouton est au-dessus du dessin */
 }
+
+
+[draggable] {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+#genome-list > div:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}

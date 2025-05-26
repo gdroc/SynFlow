@@ -712,36 +712,59 @@ function downloadSvg() {
 
 export { generateColor, readFileInChunks, handleFileUpload };
 
-
-
 function reorderFileList(fileListElement, orderedFileNames, fileType) {
     console.log(fileListElement);
     console.log(orderedFileNames);
     console.log(fileType);
 
-    // Marquer l'élément comme en train de se réorganiser
     fileListElement.classList.add('reordering');
 
-    // Attendre que les transitions CSS prennent effet
     setTimeout(() => {
-        fileListElement.innerHTML = ''; // Clear the previous file list
+        fileListElement.innerHTML = '';
 
         orderedFileNames.forEach((fileName, index) => {
             const listItem = document.createElement('div');
             listItem.style.display = 'flex';
             listItem.style.alignItems = 'center';
+            listItem.style.cursor = 'grab';
+            listItem.setAttribute('draggable', 'true');
+            listItem.dataset.fileName = fileName;
+
+            // Ajouter les événements de drag and drop
+            listItem.addEventListener('dragstart', (e) => {
+                e.target.classList.add('dragging');
+                e.dataTransfer.setData('text/plain', fileName);
+            });
+
+            listItem.addEventListener('dragend', (e) => {
+                e.target.classList.remove('dragging');
+            });
+
+            listItem.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const draggingItem = fileListElement.querySelector('.dragging');
+                const siblings = [...fileListElement.querySelectorAll('[draggable]:not(.dragging)')];
+                const nextSibling = siblings.find(sibling => {
+                    const rect = sibling.getBoundingClientRect();
+                    return e.clientY < rect.top + rect.height / 2;
+                });
+
+                if (nextSibling) {
+                    fileListElement.insertBefore(draggingItem, nextSibling);
+                } else {
+                    fileListElement.appendChild(draggingItem);
+                }
+            });
 
             const genome = fileName.replace(`.${fileType}`, '');
 
             if (fileType === 'chrlen') {
-                // Créer un SVG pour le mini chromosome
                 const miniChromosomeSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
                 miniChromosomeSvg.setAttribute("width", "50");
                 miniChromosomeSvg.setAttribute("height", "20");
                 miniChromosomeSvg.style.marginRight = "10px";
-
+                
                 drawMiniChromosome(genome, d3.select(miniChromosomeSvg));
-                // genomeColors[genome] = generateColor(index);
 
                 listItem.appendChild(miniChromosomeSvg);
             }
@@ -753,14 +776,78 @@ function reorderFileList(fileListElement, orderedFileNames, fileType) {
             fileListElement.appendChild(listItem);
         });
 
-        // Forcer le reflow pour les animations
         void fileListElement.offsetWidth;
 
-        // Marquer l'élément comme réorganisé pour les transitions
         fileListElement.classList.remove('reordering');
         fileListElement.classList.add('reordered');
-    }, 10); // Ajoutez un léger délai pour garantir que la transition se déclenche
+
+        // Ajouter un événement pour détecter les changements d'ordre
+        fileListElement.addEventListener('dragend', () => {
+            const newOrder = [...fileListElement.querySelectorAll('[draggable]')].map(item => 
+                item.dataset.fileName.replace(`.${fileType}`, '')
+            );
+            console.log('Nouvel ordre:', newOrder);
+            // Mettre à jour uniqueGenomes avec le nouvel ordre
+            uniqueGenomes = newOrder;
+            // Réorganiser les fichiers de bandes en conséquence
+            const bandFileList = document.getElementById('band-file-list');
+            const newBandFiles = orderFilesByGenomes(
+                [...bandFileList.querySelectorAll('[draggable]')].map(item => item.dataset.fileName),
+                newOrder
+            );
+            reorderFileList(bandFileList, newBandFiles, 'out');
+        });
+    }, 10);
 }
+
+
+// function reorderFileList(fileListElement, orderedFileNames, fileType) {
+//     console.log(fileListElement);
+//     console.log(orderedFileNames);
+//     console.log(fileType);
+
+//     // Marquer l'élément comme en train de se réorganiser
+//     fileListElement.classList.add('reordering');
+
+//     // Attendre que les transitions CSS prennent effet
+//     setTimeout(() => {
+//         fileListElement.innerHTML = ''; // Clear the previous file list
+
+//         orderedFileNames.forEach((fileName, index) => {
+//             const listItem = document.createElement('div');
+//             listItem.style.display = 'flex';
+//             listItem.style.alignItems = 'center';
+
+//             const genome = fileName.replace(`.${fileType}`, '');
+
+//             if (fileType === 'chrlen') {
+//                 // Créer un SVG pour le mini chromosome
+//                 const miniChromosomeSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+//                 miniChromosomeSvg.setAttribute("width", "50");
+//                 miniChromosomeSvg.setAttribute("height", "20");
+//                 miniChromosomeSvg.style.marginRight = "10px";
+
+//                 drawMiniChromosome(genome, d3.select(miniChromosomeSvg));
+//                 // genomeColors[genome] = generateColor(index);
+
+//                 listItem.appendChild(miniChromosomeSvg);
+//             }
+
+//             const fileNameSpan = document.createElement('span');
+//             fileNameSpan.textContent = fileName;
+
+//             listItem.appendChild(fileNameSpan);
+//             fileListElement.appendChild(listItem);
+//         });
+
+//         // Forcer le reflow pour les animations
+//         void fileListElement.offsetWidth;
+
+//         // Marquer l'élément comme réorganisé pour les transitions
+//         fileListElement.classList.remove('reordering');
+//         fileListElement.classList.add('reordered');
+//     }, 10); // Ajoutez un léger délai pour garantir que la transition se déclenche
+// }
 
 
 function orderFilesByGenomes(files, genomes) {
