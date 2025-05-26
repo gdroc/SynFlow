@@ -169,6 +169,7 @@
   z-index: 20; /* Assure que le bouton est au-dessus du dessin */
 }
 
+/* drag and drop mini chromosomes */
 
 [draggable] {
     user-select: none;
@@ -183,3 +184,85 @@
 #genome-list > div:hover {
     background-color: rgba(0, 0, 0, 0.05);
 }
+
+/* Infos */
+.data-container {
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.summary-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+}
+
+.type-badges-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.type-badge {
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 16px;
+    color: white;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.type-badge[data-active="false"] {
+    opacity: 0.4;
+    filter: grayscale(70%);
+}
+
+.type-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.type-label {
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+.type-count {
+    background-color: rgba(255,255,255,0.3);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+.table-responsive {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.table tr {
+    transition: all 0.3s ease;
+}
+
+.table tr:hover {
+    filter: brightness(90%);
+}
+
+.table td {
+    border: none;
+}
+
+.thead-light th {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+    z-index: 1;
+    border-bottom: 2px solid #dee2e6;
+}
+

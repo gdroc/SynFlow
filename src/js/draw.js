@@ -342,38 +342,185 @@ function getLinesInRange(parsedData, refChr, refStart, refEnd) {
     return parsedData.filter(d => d.refChr === refChr && d.refStart >= refStart && d.refEnd <= refEnd);
 }
 
+// function convertLinesToTableHtml(lines) {
+//     if (lines.length === 0) return "<p>Aucune donnée disponible</p>";
+
+//     // Calculer le nombre de chaque type dans les lignes filtrées
+//     const typeCounts = {};
+//     lines.forEach(d => {
+//         if (typeCounts[d.type]) {
+//             typeCounts[d.type]++;
+//         } else {
+//                 typeCounts[d.type] = 1;
+//         }
+//     });
+//     const typeCountsHtml = Object.keys(typeCounts).map(type => {
+//         return `<strong>${type}:</strong>${typeCounts[type]}<br>`;
+//     }).join('');
+    
+//     const headers = Object.keys(lines[0]);
+//     const headerHtml = headers.map(header => `<th>${header}</th>`).join('');
+//     const rowsHtml = lines.map(line => {
+//         const rowHtml = headers.map(header => `<td class="table-cell">${line[header]}</td>`).join('');
+//         return `<tr>${rowHtml}</tr>`;
+//     }).join('');
+
+//     return `
+//         ${typeCountsHtml}
+//         <table class="table table-striped">
+//             <thead>
+//                 <tr>${headerHtml}</tr>
+//             </thead>
+//             <tbody>
+//                 ${rowsHtml}
+//             </tbody>
+//         </table>
+//     `;
+// }
+
 function convertLinesToTableHtml(lines) {
     if (lines.length === 0) return "<p>Aucune donnée disponible</p>";
 
-    // Calculer le nombre de chaque type dans les lignes filtrées
+    const summary = createSummarySection(lines);
+    const table = createDetailedTable(lines);
+
+    // Retourner le HTML avec une structure améliorée
+    const html = `
+        <div class="data-container">
+            <div class="summary-section">
+                <h4>Résumé des correspondances</h4>
+                <p>Cliquez sur les badges pour filtrer le tableau</p>
+                ${summary}
+            </div>
+            <div class="detailed-table">
+                <h4>Détails des correspondances</h4>
+                ${table}
+            </div>
+        </div>
+    `;
+
+    // Initialiser le filtrage après l'insertion dans le DOM
+    setTimeout(() => {
+        initializeTableFiltering();
+    }, 0);
+
+    return html;
+}
+
+const typeColors = {
+    // Synténies (nuances de gris)
+    'SYN': '#d3d3d3',
+    'SYNAL': '#b9b9b9',
+    'CPL': '#a0a0a0',
+    
+    // Inversions (nuances d'orange)
+    'INV': '#ffa500',
+    'INVAL': '#ff9100',
+    'INVDP': '#ff7f00',
+    'INVDPAL': '#ff6a00',
+    'INVTR': '#ff5500',
+    'INVTRAL': '#ff4000',
+    
+    // Translocations (nuances de vert)
+    'TRANS': '#2e8b57',
+    'TRANSAL': '#228b22',
+    
+    // Duplications (nuances de bleu)
+    'DUP': '#4169e1',
+    'DUPAL': '#1e90ff',
+    
+    // HDR (violet)
+    'HDR': '#9370db',
+    
+    // Autres modifications (nuances de rouge)
+    'INS': '#dc143c',
+    'DEL': '#b22222'
+};
+
+function createSummarySection(lines) {
     const typeCounts = {};
     lines.forEach(d => {
-        if (typeCounts[d.type]) {
-            typeCounts[d.type]++;
-        } else {
-                typeCounts[d.type] = 1;
-        }
+        typeCounts[d.type] = (typeCounts[d.type] || 0) + 1;
     });
-    const typeCountsHtml = Object.keys(typeCounts).map(type => {
-        return `<strong>${type}:</strong>${typeCounts[type]}<br>`;
-    }).join('');
-    
-    const headers = Object.keys(lines[0]);
-    const headerHtml = headers.map(header => `<th>${header}</th>`).join('');
-    const rowsHtml = lines.map(line => {
-        const rowHtml = headers.map(header => `<td class="table-cell">${line[header]}</td>`).join('');
-        return `<tr>${rowHtml}</tr>`;
+
+    const typeCountsHtml = Object.entries(typeCounts).map(([type, count]) => {
+        const backgroundColor = typeColors[type] || '#ccc';
+        return `
+            <div class="type-badge" data-type="${type}" data-active="true" style="background-color: ${backgroundColor}">
+                <span class="type-label">${type}</span>
+                <span class="type-count">${count}</span>
+            </div>
+        `;
     }).join('');
 
     return `
-        ${typeCountsHtml}
-        <table class="table table-striped">
-            <thead>
-                <tr>${headerHtml}</tr>
-            </thead>
-            <tbody>
-                ${rowsHtml}
-            </tbody>
-        </table>
+        <div class="type-badges-container">
+            ${typeCountsHtml}
+        </div>
     `;
+}
+
+function createDetailedTable(lines) {
+    const headers = [
+        { key: 'refChr', label: 'Ref chr' },
+        { key: 'refStart', label: 'Ref start' },
+        { key: 'refEnd', label: 'Ref end' },
+        { key: 'queryChr', label: 'Query chr' },
+        { key: 'queryStart', label: 'Query start' },
+        { key: 'queryEnd', label: 'Query end' },
+        { key: 'type', label: 'Type' }
+    ];
+
+    const headerHtml = headers
+        .map(header => `<th>${header.label}</th>`)
+        .join('');
+
+    const rowsHtml = lines.map(line => {
+        const backgroundColor = typeColors[line.type] || '#ccc';
+        const rowHtml = headers
+            .map(header => `<td class="table-cell">${line[header.key]}</td>`)
+            .join('');
+        return `
+            <tr style="background-color: ${backgroundColor}30; border-left: 4px solid ${backgroundColor}">
+                ${rowHtml}
+            </tr>
+        `;
+    }).join('');
+
+    return `
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="thead-light">
+                    <tr>${headerHtml}</tr>
+                </thead>
+                <tbody>
+                    ${rowsHtml}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+function initializeTableFiltering() {
+    const badges = document.querySelectorAll('.type-badge');
+    const tableRows = document.querySelectorAll('tbody tr');
+    
+    badges.forEach(badge => {
+        badge.addEventListener('click', () => {
+            // Basculer l'état actif du badge
+            const isActive = badge.dataset.active === 'true';
+            badge.dataset.active = !isActive;
+            
+            // Récupérer tous les types actifs
+            const activeTypes = [...badges]
+                .filter(b => b.dataset.active === 'true')
+                .map(b => b.dataset.type);
+            
+            // Filtrer les lignes du tableau
+            tableRows.forEach(row => {
+                const rowType = row.querySelector('td:last-child').textContent;
+                row.style.display = activeTypes.includes(rowType) ? '' : 'none';
+            });
+        });
+    });
 }
