@@ -244,6 +244,8 @@
 .table-responsive {
     max-height: 400px;
     overflow-y: auto;
+    /* Ajouter un background pour éviter la transparence */
+    background-color: white;
 }
 
 .table tr {
@@ -266,3 +268,19 @@
     border-bottom: 2px solid #dee2e6;
 }
 
+/* Ajout d'un pseudo-élément pour le fond */
+.thead-light th::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #f8f9fa;
+    z-index: -1;
+}
+
+/* Ajout d'une ombre pour la séparation visuelle */
+.thead-light {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}

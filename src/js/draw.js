@@ -388,12 +388,12 @@ function convertLinesToTableHtml(lines) {
     const html = `
         <div class="data-container">
             <div class="summary-section">
-                <h4>Résumé des correspondances</h4>
-                <p>Cliquez sur les badges pour filtrer le tableau</p>
+                <h4>Summary</h4>
+                <p>Click on the badges to filter the table</p>
                 ${summary}
             </div>
             <div class="detailed-table">
-                <h4>Détails des correspondances</h4>
+                <h4>Details</h4>
                 ${table}
             </div>
         </div>
@@ -408,31 +408,31 @@ function convertLinesToTableHtml(lines) {
 }
 
 const typeColors = {
-    // Synténies (nuances de gris)
+    // Synténies (gris)
     'SYN': '#d3d3d3',
-    'SYNAL': '#b9b9b9',
+    'SYNAL': '#d3d3d3',
     'CPL': '#a0a0a0',
     
-    // Inversions (nuances d'orange)
+    // Inversions et combinaisons (nuances d'orange)
     'INV': '#ffa500',
-    'INVAL': '#ff9100',
-    'INVDP': '#ff7f00',
-    'INVDPAL': '#ff6a00',
-    'INVTR': '#ff5500',
-    'INVTRAL': '#ff4000',
-    
-    // Translocations (nuances de vert)
+    'INVAL': '#ffa500',
+    'INVDP': 'linear-gradient(90deg, #ffa500, #4169e1)', // orange vers bleu
+    'INVDPAL': 'linear-gradient(90deg, #ffa500, #4169e1)', 
+    'INVTR': 'linear-gradient(90deg, #ffa500, #2e8b57)', // orange vers vert
+    'INVTRAL': 'linear-gradient(90deg, #ffa500, #2e8b57)',
+
+    // Translocations (vert)
     'TRANS': '#2e8b57',
-    'TRANSAL': '#228b22',
+    'TRANSAL': '#2e8b57',
     
-    // Duplications (nuances de bleu)
+    // Duplications (bleu)
     'DUP': '#4169e1',
-    'DUPAL': '#1e90ff',
+    'DUPAL': '#4169e1',
     
     // HDR (violet)
     'HDR': '#9370db',
     
-    // Autres modifications (nuances de rouge)
+    // Autres modifications (rouge)
     'INS': '#dc143c',
     'DEL': '#b22222'
 };
@@ -443,21 +443,36 @@ function createSummarySection(lines) {
         typeCounts[d.type] = (typeCounts[d.type] || 0) + 1;
     });
 
-    const typeCountsHtml = Object.entries(typeCounts).map(([type, count]) => {
-        const backgroundColor = typeColors[type] || '#ccc';
-        return `
-            <div class="type-badge" data-type="${type}" data-active="true" style="background-color: ${backgroundColor}">
-                <span class="type-label">${type}</span>
-                <span class="type-count">${count}</span>
-            </div>
-        `;
-    }).join('');
+    // Utiliser l'ordre de typeColors
+    const typeCountsHtml = Object.keys(typeColors)
+        .filter(type => typeCounts[type]) // Ne garde que les types présents dans les données
+        .map(type => {
+            const count = typeCounts[type];
+            const background = typeColors[type] || '#ccc';
+            const style = background.includes('gradient') 
+                ? `background: ${background}` 
+                : `background-color: ${background}`;
+                
+            return `
+                <div class="type-badge" data-type="${type}" data-active="true" style="${style}">
+                    <span class="type-label">${type}</span>
+                    <span class="type-count">${count}</span>
+                </div>
+            `;
+        }).join('');
 
     return `
         <div class="type-badges-container">
             ${typeCountsHtml}
         </div>
     `;
+}
+
+function hexToRgba(hex, alpha = 1) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 function createDetailedTable(lines) {
@@ -476,12 +491,26 @@ function createDetailedTable(lines) {
         .join('');
 
     const rowsHtml = lines.map(line => {
-        const backgroundColor = typeColors[line.type] || '#ccc';
+        const background = typeColors[line.type] || '#ccc';
+        const hasGradient = background.includes('gradient');
+        
+        let style;
+        if (hasGradient) {
+            // Extraire les deux couleurs du gradient
+            const colors = background.match(/#[0-9a-f]{6}/g);
+            const color1 = hexToRgba(colors[0], 0.3);
+            const color2 = hexToRgba(colors[1], 0.3);
+            style = `background: linear-gradient(90deg, ${color1}, ${color2})`;
+        } else {
+            style = `background-color: ${background}30`;
+        }
+            
         const rowHtml = headers
             .map(header => `<td class="table-cell">${line[header.key]}</td>`)
             .join('');
+            
         return `
-            <tr style="background-color: ${backgroundColor}30; border-left: 4px solid ${backgroundColor}">
+            <tr style="${style}">
                 ${rowHtml}
             </tr>
         `;
