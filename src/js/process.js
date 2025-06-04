@@ -171,44 +171,49 @@ function updateChromList(globalMaxChromosomeLengths) {
             updateBandsVisibility();
         });
 
-        const arrow = document.createElement('span');
-        arrow.setAttribute('class', 'fas fa-crosshairs'); // Icône crosshair
-        arrow.style.cursor = 'pointer';
-        arrow.style.marginRight = '10px';
+        const goto = document.createElement('span');
+        goto.setAttribute('class', 'fas fa-crosshairs');
+        goto.style.cursor = 'pointer';
+        goto.style.marginRight = '10px';
 
-        arrow.addEventListener('click', () => {
+        goto.addEventListener('click', () => {
             const chromPos = chromPositions[chromNum];
-            console.log(chromPositions);
             if (chromPos) {
-
                 const { refX, refY, width, height } = chromPos;
+                const margin = 10;
 
-                // Récupérer la transformation actuelle appliquée au groupe de zoom
-                const transform = d3.zoomTransform(svgGroup.node());
-                const transformedX = transform.applyX(refX);
-                const transformedY = transform.applyY(refY);
+                // Calculer le facteur de zoom pour que le chromosome occupe ~80% de la largeur du SVG
+                const svg = d3.select('#viz');
+                const svgWidth = +svg.attr('width');
+                const svgHeight = +svg.attr('height');
+                const targetWidth = width + 2 * margin;
+                const targetHeight = height + 2 * margin;
+                const scale = Math.min(svgWidth / targetWidth, svgHeight / targetHeight, 10); // 10 = zoom max
 
-                const adjustedWidth = width * transform.k +200;
-                const adjustedHeight = height * transform.k;
-                const adjustedX = transformedX / transform.k -100;
-                const adjustedY = transformedY / transform.k + 100;
+                // Calculer la translation pour centrer le chromosome
+                const centerX = refX + width / 2;
+                const centerY = refY + height / 2;
+                // Calculer la translation pour aligner le chromosome en haut de la vue
+                const translateX = svgWidth / 2 - scale * centerX;
+                // Place le haut du chromosome à une petite marge du haut du SVG
+                const translateY = margin - 2 * scale * refY;
 
-                console.log(chromPos);
-                console.log(adjustedX, adjustedY, adjustedWidth, adjustedHeight);
+                console.log("translateX:", translateX, "translateY:", translateY, "scale:", scale);
 
-                // Définir la nouvelle vue avec GSAP
-                gsap.to(svgElement, {
-                    duration: 2,
-                    attr: {
-                        viewBox: `${adjustedX} ${adjustedY} ${adjustedWidth} ${adjustedHeight}`
-                    },
-                    ease: "power1.inOut"
-                });
+                // Animer le zoom D3 (transition douce)
+                svg.transition()
+                    .duration(1200)
+                    .call(
+                        zoom.transform,
+                        d3.zoomIdentity
+                            .translate(translateX, translateY)
+                            .scale(scale)
+                    );
             }
         });
 
         listItem.appendChild(eyeIcon);
-        listItem.appendChild(arrow);
+        listItem.appendChild(goto);
 
         const text = document.createElement('span');
         text.textContent = chromNum;

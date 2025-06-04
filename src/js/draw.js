@@ -46,7 +46,10 @@ export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, 
     const totalWidth = (totalLength / scale) + spaceBetween * (Object.keys(maxLengths).length) + margin.left + margin.right;
 
     // d3.select('#viz').attr('width', totalWidth);
-
+    d3.select('#viz')
+    .attr('viewBox', `0 0 ${totalWidth} ${height}`)
+    .attr('width', totalWidth);
+    
     const radius = 5; // Exemple de radius pour les extrémités des chromosomes, moitié de la hauteur
 
     let currentX = margin.left; // Position de départ en X
