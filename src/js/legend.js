@@ -98,7 +98,7 @@ export function createControlPanel() {
     paramsSection.innerHTML = '<h5><i class="fas fa-cog"></i> Parameters</h5>';
     paramsSection.appendChild(createParametersContent());
 
-     // Ajout des sections à la grille
+    // Ajout des sections à la grille
     gridContainer.appendChild(legendSection);
     gridContainer.appendChild(filtersSection);
     gridContainer.appendChild(paramsSection);
@@ -107,6 +107,14 @@ export function createControlPanel() {
     // Assemblage final
     controlPanel.appendChild(headerBar);
     controlPanel.appendChild(panelContent);
+
+    // // Ajouter un écouteur d'événements à la case à cocher
+    // const stackModeCheckbox = document.getElementById('stack-mode');
+    // const submitButton = document.querySelector('#submit-button');
+    // stackModeCheckbox.addEventListener('change', () => {
+    //     submitButton.click(); // Simuler un clic sur le bouton "Draw"
+    // });
+
     return controlPanel;
 }
 
@@ -140,19 +148,39 @@ function createFiltersContent() {
 }
 
 function createParametersContent() {
-    const params = document.createElement('div');
-    params.innerHTML = `
-        <div class="params-section">
-            <div style="margin: 10px 0;">
-                <label>
-                    <input type="checkbox" id="stack-mode" />
-                    Stack chromosomes vertically
-                </label>
-            </div>
-            <div id="file-upload" style="margin: 10px 0;"></div>
-            <!-- Ajoutez d'autres paramètres ici -->
-        </div>
-    `;
+ const params = document.createElement('div');
+    params.className = 'params-section';
+
+    // Container pour la checkbox
+    const stackDiv = document.createElement('div');
+    stackDiv.style.margin = '10px 0';
+
+    // Label + checkbox
+    const label = document.createElement('label');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = 'stack-mode';
+
+    label.appendChild(checkbox);
+    label.appendChild(document.createTextNode(' Stack chromosomes vertically'));
+    stackDiv.appendChild(label);
+
+    // Event listener directement ici si besoin :
+    checkbox.addEventListener('change', () => {
+         const submitButton = document.querySelector('#submit');
+        console.log('submitButton', submitButton);
+        if (submitButton) submitButton.click();
+    });
+
+    // Zone d'upload
+    const uploadDiv = document.createElement('div');
+    uploadDiv.id = 'file-upload';
+    uploadDiv.style.margin = '10px 0';
+
+    // Ajout au conteneur principal
+    params.appendChild(stackDiv);
+    params.appendChild(uploadDiv);
+
     return params;
 }
 
@@ -350,7 +378,7 @@ export function updateBandsVisibility() {
         .filter(icon => icon.classList.contains('fa-eye'))
         .map(icon => icon.getAttribute('data-chrom'));
     
-    console.log('visibleChromosomes', visibleChromosomes);
+    // console.log('visibleChromosomes', visibleChromosomes);
 
     d3.selectAll('path.band').each(function() {
         const band = d3.select(this);
