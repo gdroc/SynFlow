@@ -49,7 +49,7 @@ export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, 
     d3.select('#viz')
     .attr('viewBox', `0 0 ${totalWidth} ${height}`)
     .attr('width', totalWidth);
-    
+
     const radius = 5; // Exemple de radius pour les extrémités des chromosomes, moitié de la hauteur
 
     let currentX = margin.left; // Position de départ en X
@@ -101,49 +101,103 @@ export function drawStackedChromosomes(genomeData, maxLengths, fileIndex, totalG
     const totalSpaceBetween = totalGenomes * 100;
     const maxLength = Math.max(...Object.values(maxLengths));
     const totalWidth = (maxLength / scale) + margin.left + margin.right;
-    // d3.select('#viz').attr('width', totalWidth);
 
-    const radius = 5; // Exemple de radius pour les extrémités des chromosomes, moitié de la hauteur
+    const radius = 5;
 
-    let currentX = margin.left; // Position de départ en X
-    let currentY = margin.top + (fileIndex+1) * spaceBetween; //position de départ en Y
+    let currentX = margin.left;
+    let currentY = margin.top + (fileIndex + 1) * spaceBetween;
 
     const chromPositions = {};
 
-    let chromNum = 0;
-    for (const chromName in maxLengths) {
-        chromNum++;
-        const refLength = genomeData[refGenome][chromName].length;
-        const queryLength = genomeData[queryGenome][chromName].length;
+    for (const chrom in maxLengths) {
+        const refLength = genomeData[refGenome][chrom]?.length;
+        const queryLength = genomeData[queryGenome][chrom]?.length;
         const refWidth = (refLength || 0) / scale;
         const queryWidth = (queryLength || 0) / scale;
-        const chromWidth = maxLengths[chromName] / scale;
+        const chromWidth = maxLengths[chrom] / scale;
 
         if (!isNaN(chromWidth) && chromWidth > 0) {
-            if (fileIndex == 0) { // si c'est le premier fichier on dessine la ref, sinon elle est dejà dessinée
-                //chr ref
-                drawChromPathNoArm(currentX, currentY, refWidth, radius,chromNum, chromName + "_ref", refGenome, svgGroup, scale);
-                // Ajouter les noms des chromosomes
+            if (fileIndex === 0) {
+                // Dessin chromosome référence
+                drawChromPathNoArm(currentX, currentY, refWidth, radius, chrom, genomeData[refGenome][chrom].name + "_ref", refGenome, svgGroup, scale);
+                // Label du chromosome (nom réel)
                 svgGroup.append('text')
                     .attr('x', currentX + chromWidth / 2)
-                    .attr('y', currentY - 10) // Position au-dessus des chromosomes de référence
+                    .attr('y', currentY - 10)
                     .attr('text-anchor', 'middle')
-                    .text(chromName);
+                    .text(genomeData[refGenome][chrom].name);
             }
-            //chr query
-            drawChromPathNoArm(currentX, currentY+spaceBetween , queryWidth, radius, chromNum, chromName + "_query", queryGenome, svgGroup, scale);
+            // Dessin chromosome query
+            drawChromPathNoArm(currentX, currentY + spaceBetween, queryWidth, radius, chrom, genomeData[queryGenome][chrom].name + "_query", queryGenome, svgGroup, scale);
 
-            chromPositions[chromName] = { refX: currentX, queryX: currentX, refY: currentY, queryY: currentY+spaceBetween };
+            // Stockage des positions avec le numéro du chromosome comme clé
+            chromPositions[chrom] = {
+                refX: currentX,
+                queryX: currentX,
+                refY: currentY,
+                queryY: currentY + spaceBetween
+            };
+
             currentY += totalSpaceBetween;
-
         } else {
-            console.error(`Invalid chromosome width for ${chromName}: ${chromWidth}`);
+            console.error(`Invalid chromosome width for ${chrom}: ${chromWidth}`);
         }
     }
 
-    currentY += totalSpaceBetween; // Mettre à jour la position Y pour le fichier suivant
-    return chromPositions; // Retourner les positions des chromosomes
+    return chromPositions;
 }
+
+// export function drawStackedChromosomes(genomeData, maxLengths, fileIndex, totalGenomes, scale) {
+//     console.log("Draw stacked chromosomes"); 
+//     const svgGroup = d3.select('#zoomGroup');
+//     const margin = { top: 30, bottom: 30, left: 50, right: 50 };
+//     const spaceBetween = 100;
+//     const totalSpaceBetween = totalGenomes * 100;
+//     const maxLength = Math.max(...Object.values(maxLengths));
+//     const totalWidth = (maxLength / scale) + margin.left + margin.right;
+//     // d3.select('#viz').attr('width', totalWidth);
+
+//     const radius = 5; // Exemple de radius pour les extrémités des chromosomes, moitié de la hauteur
+
+//     let currentX = margin.left; // Position de départ en X
+//     let currentY = margin.top + (fileIndex+1) * spaceBetween; //position de départ en Y
+
+//     const chromPositions = {};
+
+//     let chromNum = 0;
+//     for (const chromName in maxLengths) {
+//         chromNum++;
+//         const refLength = genomeData[refGenome][chromName].length;
+//         const queryLength = genomeData[queryGenome][chromName].length;
+//         const refWidth = (refLength || 0) / scale;
+//         const queryWidth = (queryLength || 0) / scale;
+//         const chromWidth = maxLengths[chromName] / scale;
+
+//         if (!isNaN(chromWidth) && chromWidth > 0) {
+//             if (fileIndex == 0) { // si c'est le premier fichier on dessine la ref, sinon elle est dejà dessinée
+//                 //chr ref
+//                 drawChromPathNoArm(currentX, currentY, refWidth, radius,chromNum, chromName + "_ref", refGenome, svgGroup, scale);
+//                 // Ajouter les noms des chromosomes
+//                 svgGroup.append('text')
+//                     .attr('x', currentX + chromWidth / 2)
+//                     .attr('y', currentY - 10) // Position au-dessus des chromosomes de référence
+//                     .attr('text-anchor', 'middle')
+//                     .text(chromName);
+//             }
+//             //chr query
+//             drawChromPathNoArm(currentX, currentY+spaceBetween , queryWidth, radius, chromNum, chromName + "_query", queryGenome, svgGroup, scale);
+
+//             chromPositions[chromName] = { refX: currentX, queryX: currentX, refY: currentY, queryY: currentY+spaceBetween };
+//             currentY += totalSpaceBetween;
+
+//         } else {
+//             console.error(`Invalid chromosome width for ${chromName}: ${chromWidth}`);
+//         }
+//     }
+
+//     currentY += totalSpaceBetween; // Mettre à jour la position Y pour le fichier suivant
+//     return chromPositions; // Retourner les positions des chromosomes
+// }
 
 
 
