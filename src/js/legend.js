@@ -419,6 +419,12 @@ export function updateBandsVisibility() {
 export function createSlider(minBandSize, maxBandSize) {
     console.log('create slider from ' + minBandSize + ' to ' + maxBandSize);
 
+    //efface s'il existe déjà un slider
+    const existingSliderContainer = document.getElementById('slider-container');
+    if (existingSliderContainer) {
+        existingSliderContainer.remove();
+    }
+    
     const sliderContainer = document.createElement('div');
     sliderContainer.setAttribute('id', 'slider-container');
     

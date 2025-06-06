@@ -175,7 +175,38 @@ function updateChromList(globalMaxChromosomeLengths) {
 
         // Ajout du comportement de zoom sur le chromosome
         goto.addEventListener('click', () => {
-            // ... ton code existant pour le zoom ...
+            const chromPos = chromPositions[chromNum];
+            if (chromPos) {
+                const margin = 50;
+                const svg = d3.select('#viz');
+                const svgWidth = +svg.attr('width');
+                const svgHeight = +svg.attr('height');
+
+                // Calculer le facteur de zoom et la translation
+                const scale = Math.min(
+                    svgWidth / (chromPos.width + 2 * margin),
+                    svgHeight / (chromPos.height + 2 * margin),
+                    10 // zoom max
+                );
+
+                // Position du centre du chromosome
+                const centerX = chromPos.refX + chromPos.width / 2;
+                const centerY = chromPos.refY - margin; // Pour aligner en haut avec une marge
+
+                // Translation pour centrer le chromosome
+                const translateX = svgWidth / 2 - scale * centerX;
+                const translateY = margin - scale * chromPos.refY - 1000;
+
+                // Animer le zoom
+                svg.transition()
+                    .duration(1200)
+                    .call(
+                        zoom.transform,
+                        d3.zoomIdentity
+                            .translate(translateX, translateY)
+                            .scale(scale)
+                    );
+            }
         });
 
         // Drag and drop events sur l'item
@@ -192,8 +223,12 @@ function updateChromList(globalMaxChromosomeLengths) {
         listItem.appendChild(eyeIcon);
         listItem.appendChild(goto);
         
+        // const text = document.createElement('span');
+        // text.textContent = chromNum;
         const text = document.createElement('span');
-        text.textContent = chromNum;
+        const chromName = genomeData[refGenome][chromNum].name;
+        text.textContent = chromName;
+
         listItem.appendChild(text);
         
         chromListDiv.appendChild(listItem);
@@ -225,8 +260,42 @@ function updateChromList(globalMaxChromosomeLengths) {
             .map(item => item.dataset.chromNum);
         console.log('Nouvel ordre des chromosomes:', newOrder);
         // TODO: Mettre à jour l'affichage avec le nouvel ordre
+        updateChromosomesOrder(newOrder);
+
     });
 }
+
+// Redraw avec le nouvel ordre des chromosomes
+function updateChromosomesOrder(newOrder) {
+    // Réorganiser globalMaxChromosomeLengths selon le nouvel ordre
+    const reorderedLengths = {};
+    newOrder.forEach((chromNum, index) => {
+        reorderedLengths[index + 1] = globalMaxChromosomeLengths[chromNum];
+    });
+    globalMaxChromosomeLengths = reorderedLengths;
+
+    // Réorganiser genomeData pour chaque génome
+    for (const genome in genomeData) {
+        const reorderedGenomeData = {};
+        newOrder.forEach((chromNum, index) => {
+            reorderedGenomeData[index + 1] = genomeData[genome][chromNum];
+        });
+        genomeData[genome] = reorderedGenomeData;
+    }
+
+    // Reset les variables globales nécessaires
+    resetDrawGlobals();
+    
+    // Réinitialiser les variables spécifiques au dessin
+    d3.select('#zoomGroup').selectAll('*').remove();
+    currentFile = orderedFileObjects[0];
+    refGenome = uniqueGenomes[0];
+    queryGenome = uniqueGenomes[1];
+
+    // Relancer le traitement depuis le début
+    readFileInChunks(currentFile, true);
+}
+
 
 function allDone() {
 
