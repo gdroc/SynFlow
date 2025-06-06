@@ -126,32 +126,28 @@ function processNextFile() {
 // Mise à jour de la liste des chromosomes à filtrer
 // event listener pour afficher / cacher les chromosomes 
 function updateChromList(globalMaxChromosomeLengths) {
-    console.log(globalMaxChromosomeLengths);
     const chromListDiv = document.getElementById('chrom-list');
-    chromListDiv.innerHTML = ''; // Clear the previous list
+    chromListDiv.innerHTML = '';
 
-    // Mise à jour de la liste des chromosomes
     const chromNums = Object.keys(globalMaxChromosomeLengths);
     const chromPositions = {};
 
+    // Récupérer les positions des chromosomes
     chromNums.forEach(chromNum => {
-        // const chromElement = document.getElementById(chromNum + "_ref");
-        //get path elements with attr chromnum
         const chromElement = document.querySelector(`path[chromnum="${chromNum}"]`);
         if (chromElement) {
             const bbox = chromElement.getBBox();
             chromPositions[chromNum] = { refX: bbox.x, refY: bbox.y, width: bbox.width, height: bbox.height };
         }
     });
-    
-
-    const svgElement = document.getElementById('viz');
-    const svgGroup = d3.select('#zoomGroup');
 
     chromNums.forEach(chromNum => {
         const listItem = document.createElement('div');
         listItem.style.display = 'flex';
         listItem.style.alignItems = 'center';
+        listItem.style.cursor = 'grab';
+        listItem.setAttribute('draggable', 'true');
+        listItem.dataset.chromNum = chromNum;
 
         // Create eye icon
         const eyeIcon = document.createElement('i');
@@ -171,54 +167,64 @@ function updateChromList(globalMaxChromosomeLengths) {
             updateBandsVisibility();
         });
 
+        // Goto icon
         const goto = document.createElement('span');
         goto.setAttribute('class', 'fas fa-crosshairs');
         goto.style.cursor = 'pointer';
         goto.style.marginRight = '10px';
 
+        // Ajout du comportement de zoom sur le chromosome
         goto.addEventListener('click', () => {
-            const chromPos = chromPositions[chromNum];
-            if (chromPos) {
-                const { refX, refY, width, height } = chromPos;
-                const margin = 10;
-
-                // Calculer le facteur de zoom pour que le chromosome occupe ~80% de la largeur du SVG
-                const svg = d3.select('#viz');
-                const svgWidth = +svg.attr('width');
-                const svgHeight = +svg.attr('height');
-                const targetWidth = width + 2 * margin;
-                const targetHeight = height + 2 * margin;
-                const scale = Math.min(svgWidth / targetWidth, svgHeight / targetHeight, 10); // 10 = zoom max
-
-                // Calculer la translation pour centrer le chromosome
-                const centerX = refX + width / 2;
-                const centerY = refY + height / 2;
-                // Calculer la translation pour aligner le chromosome en haut de la vue
-                const translateX = svgWidth / 2 - scale * centerX;
-                // Place le haut du chromosome à une petite marge du haut du SVG
-                const translateY = margin - 2 * scale * refY;
-
-                console.log("translateX:", translateX, "translateY:", translateY, "scale:", scale);
-
-                // Animer le zoom D3 (transition douce)
-                svg.transition()
-                    .duration(1200)
-                    .call(
-                        zoom.transform,
-                        d3.zoomIdentity
-                            .translate(translateX, translateY)
-                            .scale(scale)
-                    );
-            }
+            // ... ton code existant pour le zoom ...
         });
 
+        // Drag and drop events sur l'item
+        listItem.addEventListener('dragstart', (e) => {
+            e.target.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', chromNum);
+        });
+
+        listItem.addEventListener('dragend', (e) => {
+            e.target.classList.remove('dragging');
+        });
+
+        // Ajouter les éléments à l'item
         listItem.appendChild(eyeIcon);
         listItem.appendChild(goto);
-
+        
         const text = document.createElement('span');
         text.textContent = chromNum;
         listItem.appendChild(text);
+        
         chromListDiv.appendChild(listItem);
+    });
+
+    // Drag and drop events sur le conteneur
+    chromListDiv.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        const draggingItem = chromListDiv.querySelector('.dragging');
+        if (!draggingItem) return;
+        
+        const siblings = [...chromListDiv.querySelectorAll('[draggable]:not(.dragging)')];
+        const nextSibling = siblings.find(sibling => {
+            const rect = sibling.getBoundingClientRect();
+            // Comparer avec la position X au lieu de Y pour un déplacement horizontal
+            const middle = rect.left + rect.width / 2;
+            return e.clientX < middle;
+        });
+
+        if (nextSibling) {
+            chromListDiv.insertBefore(draggingItem, nextSibling);
+        } else {
+            chromListDiv.appendChild(draggingItem);
+        }
+    });
+
+    chromListDiv.addEventListener('dragend', () => {
+        const newOrder = [...chromListDiv.querySelectorAll('[draggable]')]
+            .map(item => item.dataset.chromNum);
+        console.log('Nouvel ordre des chromosomes:', newOrder);
+        // TODO: Mettre à jour l'affichage avec le nouvel ordre
     });
 }
 
