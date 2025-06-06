@@ -355,7 +355,8 @@ export function createToolkitContainer() {
 
         // Option pour générer le selecteur de service ou appeler un service spécifique
         const generateSelect = false;
-        const serviceName = 'synflow-galaxy';
+        // const serviceName = 'synflow-galaxy';
+        const serviceName = 'synflow';
 
         //init toolkit
         toolkit.initToolkit(generateSelect, serviceName);
@@ -364,17 +365,17 @@ export function createToolkitContainer() {
         document.addEventListener('ToolkitResultEvent', (event) => {
             const data = event.detail;
             console.log('Data received in other script:', data);
-     
-            //recupère le chemin vers syri.out
-            console.log(data);   
 
+            //C'etait pour galaxy, c'est géré dans toolkit maintenant
             //data to path
             // data type = /opt/projects/gemo.southgreen.fr/prod/tmp/toolkit_run/toolkit_AmC0Yl-V3-bZ4f9OAAFq/ref_querry.txt
             //path type = https://gemo.southgreen.fr/tmp/toolkit_run/toolkit_AmC0Yl-V3-bZ4f9OAAFq/ref_querry.txt
-            const toolkitID = data.split('/')[7];
-            const fileName = data.split('/')[8];
-            const path = `https://gemo.southgreen.fr/tmp/toolkit_run/${toolkitID}/${fileName}`;
-            console.log(path);
+            // const toolkitID = data.split('/')[7];
+            // const fileName = data.split('/')[8];
+            // const path = `https://gemo.southgreen.fr/tmp/toolkit_run/${toolkitID}/${fileName}`;
+            // console.log(path);
+
+            const path = data;
 
             //affiche un bouton dans la console pour charger les fichiers dans le formulaire
             const loadOutputButton = document.createElement('button');
@@ -390,6 +391,10 @@ export function createToolkitContainer() {
                 //prevent default
                 event.preventDefault();
                 try {
+
+                    // Sélectionne et affiche l'onglet 'upload'
+                    const menuColumn = document.querySelector('[data-option="upload"]');
+                    if (menuColumn) menuColumn.click();
 
                     const response = await fetch(path);
                     const text = await response.text();
