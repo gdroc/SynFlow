@@ -198,6 +198,7 @@ function createUploadSection() {
     // Créer un bouton personnalisé
     const customButton = document.createElement('button');
     customButton.type = 'button';
+    customButton.classList.add('btn-simple');
     customButton.textContent = 'Select Files';
     customButton.style.marginBottom = '10px';
     
@@ -237,9 +238,9 @@ function createUploadSection() {
     // Button to load test dataset
     const loadTestButton = document.createElement('button');
     loadTestButton.setAttribute('type', 'button');
+    loadTestButton.classList.add('btn-simple');
     loadTestButton.setAttribute('id', 'load-test');
     loadTestButton.textContent = 'Load Test Data';
-    loadTestButton.style.marginLeft = '10px';
 
     // Event listener for the load test button
     loadTestButton.addEventListener('click', loadTestData);
@@ -247,8 +248,10 @@ function createUploadSection() {
     // Submit button
     const submitButton = document.createElement('button');
     submitButton.setAttribute('type', 'button');
+    submitButton.classList.add('btn-magic');
     submitButton.setAttribute('style', 'margin-bottom:20px');
 	submitButton.setAttribute('id', 'submit');
+    submitButton.style.marginLeft = '10px';
     submitButton.textContent = 'Draw';
 
     submitButton.addEventListener('click', () => {
@@ -266,42 +269,14 @@ function createUploadSection() {
         handleFileUpload(bandFiles);
     });
 
-    // Event listeners for file inputs
-    // chrLenInput.addEventListener('change', (event) => {
-    //     updateFileList(chrLenInput, genomeList);
-    // });
-
     bandInput.addEventListener('change', (event) => {
         updateFileList(bandInput, bandFileList);
     });
 
-    // // Add stack mode checkbox
-    // const stackModeLabel = document.createElement('label');
-    // stackModeLabel.setAttribute('for', 'stack-mode');
-    // stackModeLabel.textContent = 'Stack chromosomes vertically';
-
-    // const stackModeCheckbox = document.createElement('input');
-    // stackModeCheckbox.setAttribute('type', 'checkbox');
-    // stackModeCheckbox.setAttribute('id', 'stack-mode');
-    // stackModeCheckbox.setAttribute('name', 'stack-mode');
-    // stackModeCheckbox.setAttribute('style', 'margin-left: 10px;');
-
-    // // Ajouter un écouteur d'événements à la case à cocher
-    // stackModeCheckbox.addEventListener('change', () => {
-    //     submitButton.click(); // Simuler un clic sur le bouton "Draw"
-    // });
-
-    // Append elements to form
-
     uploadSection.appendChild(inputContainer);
-    // uploadSection.appendChild(stackModeLabel);
-    // uploadSection.appendChild(stackModeCheckbox);
     uploadSection.appendChild(document.createElement('br'));
-
-    uploadSection.appendChild(submitButton);
     uploadSection.appendChild(loadTestButton);
-    // form.appendChild(consoleTitle);  
-    // form.appendChild(consoleDiv);
+    uploadSection.appendChild(submitButton);
 
     return uploadSection;
 }
