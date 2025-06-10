@@ -20,14 +20,14 @@ export let scale = 100000; // diviseur pour la taille des chromosomes
 
 //spinner
 const opts = {
-    lines: 20, length: 120, width: 50, radius: 1, scale: 0.3,
+    lines: 20, length: 120, width: 50, radius: 1, scale: 0.8,
     corners: 1, speed: 1, rotate: 0, animation: 'spinner-line-shrink',
-    direction: 1, color: 'grey', fadeColor: 'transparent', top: '20%',
+    direction: 1, color: 'grey', fadeColor: 'transparent', top: '50%',
     left: '50%', shadow: '0 0 1px transparent', zIndex: 2000000000,
-    className: 'spinner', position: 'absolute'
+    className: 'spinner', position: 'fixed'
 };
 var target = document.getElementById('spinner');
-var spinner = new Spinner(opts);
+export var spinner = new Spinner(opts);
 
 function resetGlobals() {
     refGenome = null;

@@ -1,5 +1,6 @@
 import { createForm } from './form.js';
 import { createControlPanel } from './legend.js';
+import { spinner } from './process.js';
 
 console.log("syri");
  // Définir le comportement de zoom
@@ -10,6 +11,8 @@ export const zoom = d3.zoom()
 });
 
 document.addEventListener('DOMContentLoaded', () => {
+
+    spinner.spin(document.getElementById('spinner'));
     const mainContainer = document.getElementById('main-container');
     mainContainer.appendChild(createForm());
     mainContainer.appendChild(createControlPanel());
