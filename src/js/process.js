@@ -2,6 +2,7 @@ import { drawChromosomes, drawStackedChromosomes, drawCorrespondenceBands, reset
 import { generateBandTypeFilters, createSlider, createLengthChart, updateBandsVisibility, showControlPanel } from './legend.js';
 import { Spinner } from './spin.js';
 import { zoom } from './main.js';
+import { hideForm } from './form.js';
 
 export let refGenome; // Définir globalement
 export let queryGenome; // Définir globalement
@@ -328,7 +329,9 @@ function allDone() {
     createLengthChart(allBandLengths);
 
     //Affiche la légende
-    showControlPanel();
+    showControlPanel();   
+    //cache le formulaire
+    hideForm();
 
     // Remove existing chromlist container
     const vizContainer = document.getElementById('viz-container')

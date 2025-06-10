@@ -154,6 +154,17 @@ export function createForm() {
     return form;
 }
 
+//fonction hide form
+export function hideForm() {
+    const formContent = document.getElementById('form-content');
+    if (formContent) {
+        formContent.style.maxHeight = '0px';
+        const chevronIcon = document.querySelector('#file-upload-form i');
+        chevronIcon.className = 'fas fa-chevron-down';
+
+    }
+}
+
 // Fonctions helpers pour créer les différents formulaires
 function createExistingFilesForm() {
     const div = document.createElement('div');
@@ -169,9 +180,56 @@ function createExistingFilesForm() {
 // Fonction helper pour créer la section upload (votre code existant)
 function createUploadSection() {
     const uploadSection = document.createElement('div');
-
-    // const form = document.createElement('form');
     uploadSection.setAttribute('id', 'file-upload-form');
+    uploadSection.style.display = 'flex';
+    uploadSection.style.gap = '20px';
+
+    // Container pour le formulaire (partie gauche)
+    const formContainer = document.createElement('div');
+    formContainer.style.flex = '1';
+
+    // Container pour l'aide (partie droite)
+    const helpContainer = document.createElement('div');
+    helpContainer.style.flex = '0 0 600px'; // Largeur fixe de 400px
+    helpContainer.style.padding = '15px';
+    helpContainer.style.backgroundColor = '#f8f9fa';
+    helpContainer.style.borderRadius = '5px';
+    helpContainer.style.border = '1px solid #dee2e6';
+    helpContainer.style.maxHeight = '600px'; // Hauteur maximale
+    helpContainer.style.overflowY = 'auto'; // Scroll si le contenu dépasse
+
+    // Contenu de l'aide
+    helpContainer.innerHTML = `
+        <h5>File Requirements</h5>
+        <div style="margin-top: 15px;">
+            <h6>Syri Output Files (.out)</h6>
+            <ul style="padding-left: 20px;">
+                <li>Files must be in Syri output format</li>
+                <li>The file names should follow the pattern: genome1_genome2.out</li>
+                <li>Files can be chained for multiple genome comparisons:</li>
+            </ul>
+            
+            <div style="margin: 15px 0; padding: 10px; background-color: #fff; border-radius: 4px;">
+                <strong>Example of file chain:</strong>
+                <ul style="padding-left: 20px;">
+                    <li>A_thaliana_C_rubella.out</li>
+                    <li>C_rubella_B_rapa.out</li>
+                    <li>B_rapa_O_sativa.out</li>
+                </ul>
+                <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
+                    This will create a visualization chain: A_thaliana → C_rubella → B_rapa → O_sativa
+                </p>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <h6>File Format Example:</h6>
+                <pre style="background-color: #eee; padding: 10px; border-radius: 4px; font-size: 12px;">
+    #type  source  chr_source  start_source  end_source  target  chr_target  start_target  end_target  comments
+    SYN    A_tha   1          1000          2000        C_rub   1          1200          2200        ID=1
+    INV    A_tha   2          3000          4000        C_rub   2          5000          6000        ID=2</pre>
+            </div>
+        </div>
+    `;
 
     // Container for the file inputs and legend
     const inputContainer = document.createElement('div');
@@ -183,9 +241,8 @@ function createUploadSection() {
     // Container for band files
     const bandContainer = document.createElement('div');
 
-    const bandLabel = document.createElement('label');
-    bandLabel.setAttribute('for', 'band-files');
-    bandLabel.textContent = 'Upload Band Files:';
+    const bandH5 = document.createElement('h5');
+    bandH5.textContent = 'Upload Syri output files';
 
     const bandInput = document.createElement('input');
     bandInput.setAttribute('type', 'file');
@@ -225,7 +282,7 @@ function createUploadSection() {
     bandFileList.setAttribute('id', 'band-file-list');
     bandFileList.classList.add('file-list');
 
-    bandContainer.appendChild(bandLabel);
+    bandContainer.appendChild(bandH5);
     bandContainer.appendChild(document.createElement('br'));
     bandContainer.appendChild(bandInput);
     bandContainer.appendChild(customButton);
@@ -273,10 +330,20 @@ function createUploadSection() {
         updateFileList(bandInput, bandFileList);
     });
 
-    uploadSection.appendChild(inputContainer);
+
+     // Boutons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.marginTop = '20px';
+    buttonContainer.appendChild(loadTestButton);
+    buttonContainer.appendChild(submitButton);
+
+    // Assemblage final
+    formContainer.appendChild(inputContainer);
+    formContainer.appendChild(buttonContainer);
+    
     uploadSection.appendChild(document.createElement('br'));
-    uploadSection.appendChild(loadTestButton);
-    uploadSection.appendChild(submitButton);
+    uploadSection.appendChild(formContainer);
+    uploadSection.appendChild(helpContainer);
 
     return uploadSection;
 }
