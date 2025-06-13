@@ -1,6 +1,6 @@
 import * as toolkit from '../../../toolkit/toolkit.js';
 import { createLegendContainer } from './legend.js';
-import { zoom } from './main.js';
+import { zoom } from './draw.js';
 import { handleFileUpload } from './process.js';
 
 export function createForm() {
@@ -37,7 +37,6 @@ export function createForm() {
     formContent.setAttribute('id', 'form-content');
     formContent.style.cssText = `
         background-color: white;
-        border-radius: 0 0 8px 8px;
         transition: max-height 0.3s ease-out;
         overflow: hidden;
         max-height: 1000px; // Valeur initiale suffisamment grande
@@ -63,7 +62,7 @@ export function createForm() {
         gap: 20px;
         padding: 20px;
         background-color: #f5f5f5;
-        border-radius: 8px;
+        border-radius: 0 0 8px 8px;
     `;
 
     // Colonne 1 : Menu de sélection

@@ -5,6 +5,123 @@ export let currentYOffset = 0; // Définir globalement
 export function resetDrawGlobals() {
     currentYOffset = 0;
 }
+export let zoom; // Déclarer zoom ici pour l'utiliser dans d'autres fonctions
+
+export function createGraphSection() {
+    // Création du conteneur principal
+    const graphSection = document.createElement('div');
+    graphSection.setAttribute('id', 'graph-section');
+    graphSection.style.cssText = `
+        margin-top: 20px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    `;
+    
+    
+    // Créer la barre d'en-tête
+    const headerBar = document.createElement('div');
+    headerBar.style.cssText = `
+        padding: 10px 15px;
+        background-color: #f5f5f5;
+        border-radius: 8px 8px 0 0;
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+    `;
+    
+    // Ajout du titre
+    const title = document.createElement('h4');
+    title.textContent = 'Graph Visualization';
+    title.style.margin = '0';
+    headerBar.appendChild(title);
+
+    // Ajout de l'icône de fermeture
+    const chevronIcon = document.createElement('i');
+    chevronIcon.className = 'fas fa-chevron-up';
+    chevronIcon.style.color = '#666';
+    headerBar.appendChild(chevronIcon);
+
+    // Créer le conteneur pour le contenu
+    const graphContent = document.createElement('div');
+    graphContent.setAttribute('id', 'graph-content');
+    graphContent.style.cssText = `
+        background-color: #f5f5f5;
+        border-radius: 0 0 8px 8px;
+        transition: max-height 0.3s ease-out;
+        overflow: hidden;
+        max-height: 1000px;
+        padding: 20px;
+    `;
+
+    // Créer le conteneur pour la visualisation
+    const vizContainer = document.createElement('div');
+    vizContainer.setAttribute('id', 'viz-container');
+    vizContainer.className = 'svg-container';
+    vizContainer.style.cssText = `
+        background-color: white;
+        width: 100%;
+        height: 600px;
+        position: relative;
+        overflow: hidden;
+    `;
+
+    // Créer l'élément SVG dès le début
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute('id', 'viz');
+    svg.setAttribute('viewBox', '0 0 1000 600'); // Vue initiale
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height', '100%');
+    
+    // Créer le groupe pour le zoom
+    const zoomGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    zoomGroup.setAttribute('id', 'zoomGroup');
+
+    zoom = d3.zoom()
+        .scaleExtent([0.1, 10]) // Définir les niveaux de zoom minimum et maximum
+        .on("zoom", (event) => {
+            // console.log("Zoom event triggered");
+            // console.log(event.transform);
+            d3.select('#zoomGroup').attr("transform", event.transform);
+    });
+    
+    // Assembler les éléments SVG
+    svg.appendChild(zoomGroup);
+    vizContainer.appendChild(svg);
+
+    // Créer le conteneur pour le spinner
+    const spinnerContainer = document.createElement('div');
+    spinnerContainer.setAttribute('id', 'spinner');
+    spinnerContainer.style.cssText = `
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    `;
+
+    // Ajouter les conteneurs au contenu
+    graphContent.appendChild(vizContainer);
+    graphContent.appendChild(spinnerContainer);
+
+    // Event listener pour le pliage/dépliage
+    headerBar.addEventListener('click', () => {
+        if(graphContent.style.maxHeight === '0px') {
+            graphContent.style.maxHeight = graphContent.scrollHeight + 'px';
+            chevronIcon.className = 'fas fa-chevron-up';
+        } else {
+            graphContent.style.maxHeight = '0px';
+            chevronIcon.className = 'fas fa-chevron-down';
+        }
+    });
+
+    // Assemblage final
+    graphSection.appendChild(headerBar);
+    graphSection.appendChild(graphContent);
+
+    return graphSection;
+}
 
 export function drawMiniChromosome(genome, svg) {
     const width = 40;

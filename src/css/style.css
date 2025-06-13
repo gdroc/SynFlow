@@ -1,6 +1,6 @@
 .svg-container {
   width: 100%;
-  margin-top: 20px;
+  /* margin-top: 20px; */
   overflow-x: hidden; /* Activer le défilement horizontal */
   border: 1px solid #ccc; /* Bordure pour visualiser le conteneur */
 }

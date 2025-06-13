@@ -518,5 +518,5 @@ export function createLengthChart(bandLengths) {
     svg.append('g')
         .attr('transform', `translate(0,${height - margin.top - margin.bottom})`)
         .call(d3.axisBottom(x)
-            .tickFormat(d => `${(d / 1000000).toFixed(1)}Mb`)); // Conversion en Mb
+        .tickFormat(d => `${(d / 1000000).toFixed(1)}Mb`)); // Conversion en Mb
 }

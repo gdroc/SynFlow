@@ -1,7 +1,7 @@
 import { drawChromosomes, drawStackedChromosomes, drawCorrespondenceBands, resetDrawGlobals, drawMiniChromosome } from './draw.js';
 import { generateBandTypeFilters, createSlider, createLengthChart, updateBandsVisibility, showControlPanel } from './legend.js';
 import { Spinner } from './spin.js';
-import { zoom } from './main.js';
+import { zoom } from './draw.js';
 import { hideForm } from './form.js';
 
 export let refGenome; // Définir globalement
@@ -175,23 +175,25 @@ function updateChromList(globalMaxChromosomeLengths) {
         goto.style.marginRight = '10px';
 
         // Ajout du comportement de zoom sur le chromosome
-        goto.addEventListener('click', () => {
-            const chromPos = chromPositions[chromNum];
-            if (chromPos) {
-                const margin = 50;
-                const svg = d3.select('#viz');
-                const svgWidth = +svg.attr('width');
-                const svgHeight = +svg.attr('height');
+goto.addEventListener('click', () => {
+    const chromPos = chromPositions[chromNum];
+    console.log("Chromosome position:", chromPos);
 
-                // Calculer le facteur de zoom et la translation
-                const scale = Math.min(
-                    svgWidth / (chromPos.width + 2 * margin),
-                    svgHeight / (chromPos.height + 2 * margin),
-                    10 // zoom max
-                );
+    if (chromPos) {
+        const margin = 100;
+        const svg = d3.select('#viz');
+        const svgNode = svg.node();
+        const svgRect = svgNode.getBoundingClientRect();
+        const svgWidth = svgRect.width;
+        const svgHeight = svgRect.height;
+
+        console.log("SVG width", svgWidth);
+
+                const scale = svgWidth / (chromPos.width + margin) * 5;                
+                console.log("Scale: ", scale);
 
                 // Position du centre du chromosome
-                const centerX = chromPos.refX + chromPos.width / 2;
+                const centerX = chromPos.refX;
                 const centerY = chromPos.refY - margin; // Pour aligner en haut avec une marge
 
                 // Translation pour centrer le chromosome
@@ -207,8 +209,8 @@ function updateChromList(globalMaxChromosomeLengths) {
                             .translate(translateX, translateY)
                             .scale(scale)
                     );
-            }
-        });
+    }
+});
 
         // Drag and drop events sur l'item
         listItem.addEventListener('dragstart', (e) => {
