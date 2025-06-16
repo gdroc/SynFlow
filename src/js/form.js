@@ -146,10 +146,10 @@ export function createForm() {
     // Afficher le formulaire "existing" par défaut
     // Ajouter la classe active à l'item sélectionné
     //selectionne la dive "existing" par défaut
-    const selectedItem = menuColumn.querySelector(`div[data-option="existing"]`);
+    const selectedItem = menuColumn.querySelector(`div[data-option="upload"]`);
     selectedItem.style.backgroundColor = 'black';
     selectedItem.style.color = 'white';
-    showForm('existing');
+    showForm('upload');
     return form;
 }
 

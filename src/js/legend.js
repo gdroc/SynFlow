@@ -51,7 +51,7 @@ export function createControlPanel() {
         padding: 20px;
         background-color: #f5f5f5;
         display: grid;
-        grid-template-columns: 400px 500px 300px;
+        grid-template-columns: 300px 600px 300px;
         gap: 20px;
     `;
 
@@ -148,7 +148,8 @@ function createFiltersContent() {
 }
 
 function createParametersContent() {
- const params = document.createElement('div');
+    const params = document.createElement('div');
+    params.style = 'margin-top: 20px;';
     params.className = 'params-section';
 
     // Container pour la checkbox
@@ -213,6 +214,7 @@ export function createLegendContainer() {
     // Container for legend
     const legendContainer = document.createElement('div');
     legendContainer.setAttribute('id', 'legend-container');
+    legendContainer.setAttribute('style', 'margin-top:20px;');
 
     const legendContent = document.createElement('div');
     legendContent.setAttribute('id', 'legend-content');
@@ -240,6 +242,19 @@ export function createLegendContainer() {
 export function generateBandTypeFilters() {
     const filterDiv = document.querySelector('.filter-section'); 
     filterDiv.innerHTML = ''; // Clear previous legend
+    filterDiv.style = 'margin-top: 20px;';
+
+    // Créer un conteneur pour les deux colonnes
+    const columnsContainer = document.createElement('div');
+    columnsContainer.style.cssText = `
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        margin-bottom: 15px;
+    `;
+
+    // Première colonne pour les types de bandes
+    const typeColumn = document.createElement('div');
+    // typeColumn.innerHTML = '<h5 style="margin-bottom: 10px;">Types de bandes</h5>';
 
     const colors = [
         { type: 'Syntenic region', color: '#d3d3d3', attr: 'SYN' },
@@ -250,9 +265,12 @@ export function generateBandTypeFilters() {
 
     colors.forEach(entry => {
         const legendItem = document.createElement('div');
-        legendItem.style.display = 'flex';
-        legendItem.style.alignItems = 'center';
-        legendItem.style.marginBottom = '5px';
+        legendItem.style.cssText = `
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            border-radius: 4px;
+        `;
 
         // Create eye icon
         const eyeIcon = document.createElement('i');
@@ -312,8 +330,27 @@ export function generateBandTypeFilters() {
         legendItem.appendChild(eyeIcon);
         legendItem.appendChild(miniBandSvg);
         legendItem.appendChild(label);
-        filterDiv.appendChild(legendItem);
+        typeColumn.appendChild(legendItem);
     });
+
+    // Deuxième colonne pour les filtres inter/intra
+    const positionColumn = document.createElement('div');
+    // positionColumn.innerHTML = '<h5 style="margin-bottom: 10px;">Position des bandes</h5>';
+
+    // Créer le conteneur pour les filtres inter/intra
+    const positionFilters = document.createElement('div');
+    positionFilters.style.cssText = `
+        display: flex;
+        flex-direction: column;
+    `;
+
+    // Inter chromosomal
+    const interDiv = document.createElement('div');
+    interDiv.style.cssText = `
+        display: flex;
+        align-items: center;
+        border-radius: 4px;
+    `;
 
     // Checkbox for filtering bands
     const filterInterLabel = document.createElement('label');
@@ -336,6 +373,18 @@ export function generateBandTypeFilters() {
         updateBandsVisibility();
     });
 
+    interDiv.appendChild(filterInterCheckbox);
+    interDiv.appendChild(filterInterLabel);
+
+
+    // Intra chromosomal
+    const intraDiv = document.createElement('div');
+    intraDiv.style.cssText = `
+        display: flex;
+        align-items: center;
+        border-radius: 4px;
+    `;
+
     const filterIntraLabel = document.createElement('label');
     filterIntraLabel.setAttribute('for', 'intrachromosomal-filter');
     filterIntraLabel.textContent = 'Intrachromosomal bands';
@@ -356,11 +405,20 @@ export function generateBandTypeFilters() {
         updateBandsVisibility();
     });
 
-    filterDiv.appendChild(filterInterCheckbox);
-    filterDiv.appendChild(filterInterLabel);
-    filterDiv.appendChild(document.createElement('br'));
-    filterDiv.appendChild(filterIntraCheckbox);
-    filterDiv.appendChild(filterIntraLabel);
+    intraDiv.appendChild(filterIntraCheckbox);
+    intraDiv.appendChild(filterIntraLabel);
+
+    // Assemblage des éléments
+    positionFilters.appendChild(interDiv);
+    positionFilters.appendChild(intraDiv);
+    positionColumn.appendChild(positionFilters);
+
+    // Ajouter les colonnes au conteneur
+    columnsContainer.appendChild(typeColumn);
+    columnsContainer.appendChild(positionColumn);
+    
+    // Ajouter le conteneur à la section des filtres
+    filterDiv.appendChild(columnsContainer);
 }
 
 
@@ -428,9 +486,10 @@ export function createSlider(minBandSize, maxBandSize) {
     const sliderContainer = document.createElement('div');
     sliderContainer.setAttribute('id', 'slider-container');
     
-    const sliderTitle = document.createElement('h4');
+    const sliderTitle = document.createElement('h5');
     sliderTitle.textContent = 'Band Length Filter';
-    
+    sliderTitle.style.margin = '20px 5px';
+
     const sliderElement = document.createElement('div');
     sliderElement.setAttribute('id', 'slider');
 

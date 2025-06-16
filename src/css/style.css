@@ -322,10 +322,9 @@
     border-radius: 8px;
     background: linear-gradient(
         90deg,
-        rgba(255, 220, 220, 0.8),
-        rgba(220, 255, 220, 0.8),
-        rgba(220, 220, 255, 0.8),
-        rgba(255, 220, 220, 0.8)
+        rgb(255, 200, 200),
+        rgb(200, 255, 220),
+        rgba(200, 200, 255)
     );
     background-size: 300% 100%;
     animation: moveGradient 3s ease infinite;
