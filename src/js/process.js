@@ -154,6 +154,7 @@ function updateChromList(globalMaxChromosomeLengths) {
         const eyeIcon = document.createElement('i');
         eyeIcon.setAttribute('class', 'fas fa-eye chrom-eye-icon');
         eyeIcon.setAttribute('data-chrom', chromNum);
+        eyeIcon.setAttribute('data-feature', 'toggle-visibility');
         eyeIcon.style.cursor = 'pointer';
         eyeIcon.style.marginRight = '10px';
 
@@ -171,34 +172,48 @@ function updateChromList(globalMaxChromosomeLengths) {
         // Goto icon
         const goto = document.createElement('span');
         goto.setAttribute('class', 'fas fa-crosshairs');
+        goto.setAttribute('data-feature', 'goto-chromosome');
         goto.style.cursor = 'pointer';
         goto.style.marginRight = '10px';
 
-        // Ajout du comportement de zoom sur le chromosome
-goto.addEventListener('click', () => {
-    const chromPos = chromPositions[chromNum];
-    console.log("Chromosome position:", chromPos);
+    //     // Ajout du comportement de zoom sur le chromosome
+        goto.addEventListener('click', () => {
+            const chromPos = chromPositions[chromNum];
+            console.log("Chromosome position:", chromPos);
 
-    if (chromPos) {
-        const margin = 100;
-        const svg = d3.select('#viz');
-        const svgNode = svg.node();
-        const svgRect = svgNode.getBoundingClientRect();
-        const svgWidth = svgRect.width;
-        const svgHeight = svgRect.height;
+            if (chromPos) {
+                const margin = 100;
+                const svg = d3.select('#viz');
+                const svgNode = svg.node();
+                const svgRect = svgNode.getBoundingClientRect();
+                const svgWidth = svgRect.width;
+                const svgHeight = svgRect.height;
 
-        console.log("SVG width", svgWidth);
+                console.log("SVG width", svgWidth);
 
-                const scale = svgWidth / (chromPos.width + margin) * 5;                
-                console.log("Scale: ", scale);
+                // const scale = svgWidth / (chromPos.width + margin) * 5;                
+                // console.log("Scale: ", scale);
 
-                // Position du centre du chromosome
-                const centerX = chromPos.refX;
-                const centerY = chromPos.refY - margin; // Pour aligner en haut avec une marge
+                // // Position du centre du chromosome
+                // const centerX = chromPos.refX;
+                // const centerY = chromPos.refY - margin; // Pour aligner en haut avec une marge
 
-                // Translation pour centrer le chromosome
-                const translateX = svgWidth / 2 - scale * centerX;
-                const translateY = margin - scale * chromPos.refY - 1000;
+                // // Translation pour centrer le chromosome
+                // const translateX = svgWidth / 2 - scale * centerX;
+                // const translateY = margin - scale * chromPos.refY - 1000;
+
+                    // Calculer l'échelle pour que le chromosome occupe la largeur disponible moins les marges
+                const availableWidth = svgWidth - (2 * margin);
+                // const scale = availableWidth / chromPos.width;
+                // console.log("Scale: ", scale);
+                const scale = 10;
+                
+                // Calculer la translation pour centrer le chromosome
+                const translateX = margin - (scale * chromPos.refX);
+                const translateY = margin - (scale * chromPos.refY);
+
+                // console.log("Center X: ", centerX, "Center Y: ", centerY);
+                console.log("Translate X: ", translateX, "Translate Y: ", translateY);
 
                 // Animer le zoom
                 svg.transition()
@@ -208,9 +223,19 @@ goto.addEventListener('click', () => {
                         d3.zoomIdentity
                             .translate(translateX, translateY)
                             .scale(scale)
-                    );
-    }
-});
+                );
+            }
+        });
+
+
+
+
+
+
+
+
+
+
 
         // Drag and drop events sur l'item
         listItem.addEventListener('dragstart', (e) => {
