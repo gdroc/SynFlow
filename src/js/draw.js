@@ -402,14 +402,14 @@ export function drawCorrespondenceBands(data, chromPositions, isFirstFile, scale
     const typeColors = {
         'SYN': '#d3d3d3', // gris clair
         'INV': '#ffa500', // orange
-        'INVTR': '#ffa500', // orange
+        'INVTR': '#008000', // vert
         'TRANS': '#008000', // vert
         'DUP': '#0000ff', // bleu
     };
 
     // Filtrer les types ne se terminant pas par "AL"
     // console.log(data.length);
-    const allowedTypes = ['SYN', 'INV', 'TRANS', 'DUP']; // Types à afficher
+    const allowedTypes = ['SYN', 'INV', 'INVTR', 'TRANS', 'DUP']; // Types à afficher
     const filteredData = data.filter(d => allowedTypes.includes(d.type)); // Filtrer les lignes invalides et les types non désirés
     // console.log(filteredData.length);
     // console.log(filteredData);
