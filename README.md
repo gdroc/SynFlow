@@ -14,11 +14,10 @@ SynFlow is a web application that allows you to visualize the alignment of genom
 
 ## Usage
 
-1. Upload the chromosome length files and band files using the form.
+1. Upload the input files using the form.
 
 | File Name      | File Description                                          |
 |----------------|-----------------------------------------------------------|
-| `*.chrlen`     | Table containing chromosome lengths                       |
 | `*syri.out`    | Pairwise structural annotation information between genomes|
 
 2. Select the "Stack chromosomes vertically" checkbox if you want to stack the chromosomes.
@@ -33,7 +32,10 @@ This project is licensed under the terms of the GNU General Public License v3.0.
 
 ## Authors
 
-- **Marilyne Summo** - *Initial work* - [GitHub Profile](https://github.com/SouthGreenPlatform)
+- **Marilyne Summo**
+- **Gaëtan Droc**
+- **Gautier Sarah**
+- [Southgreen Platform](https://github.com/SouthGreenPlatform)
 
 See also the list of [contributors](https://github.com/SouthGreenPlatform/SynFlow/contributors) who participated in this project.
 
