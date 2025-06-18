@@ -454,7 +454,8 @@ function extractGenomeNames(chrlenFileNames) {
 }
 
 // Trouver les génomes uniques à partir des fichiers de bandes
-function findUniqueGenomes(bandFileNames) {
+export function findUniqueGenomes(bandFileNames) {
+    console.log("Finding unique genomes from :", bandFileNames);
     const fileCount = bandFileNames.length;
     const uniqueNamesToFind = fileCount + 1;
     numGenomes = uniqueNamesToFind;
@@ -473,6 +474,7 @@ function findUniqueGenomes(bandFileNames) {
     possibleNames = Array.from(possibleNames);
 
     function findCombination(currentCombination, depth) {
+        console.log("Current combination:", currentCombination, "Depth:", depth);
         if (depth === uniqueNamesToFind) {
             const genomeSet = new Set(currentCombination);
             if (genomeSet.size === uniqueNamesToFind) {
@@ -823,6 +825,10 @@ function downloadSvg() {
 export { generateColor, readFileInChunks, handleFileUpload };
 
 function reorderFileList(fileListElement, orderedFileNames, fileType) {
+    // Ne rien faire si la liste n'existe pas
+    //exemple: chargement depuis l'onglet existing files
+    if (!fileListElement) return;
+
     console.log(fileListElement);
     console.log(orderedFileNames);
     console.log(fileType);
@@ -1008,4 +1014,52 @@ function parseSyriData(data) {
         };
     });
     return parsedData.filter(d => d.refChr && d.queryChr && d.queryChr !== '-' && d.refChr !== '-'); // Filtrer les lignes invalides
+}
+
+export function extractAllGenomes(bandFileNames) {
+    const fragmentCounts = {};
+
+    // Génère tous les fragments possibles pour chaque nom de fichier
+    bandFileNames.forEach(file => {
+        const baseName = file.replace('.out', '');
+        const parts = baseName.split('_');
+        for (let i = 1; i < parts.length; i++) {
+            const left = parts.slice(0, i).join('_');
+            const right = parts.slice(i).join('_');
+            fragmentCounts[left] = (fragmentCounts[left] || 0) + 1;
+            fragmentCounts[right] = (fragmentCounts[right] || 0) + 1;
+        }
+    });
+
+    // Calcul du nombre de génomes attendu
+    const fileCount = bandFileNames.length;
+    let n = 2;
+    while (n * (n - 1) < fileCount) n++;
+    const expectedCount = 2 * (n - 1);
+
+    // On prend les fragments qui apparaissent exactement expectedCount fois
+    let genomes = Object.keys(fragmentCounts).filter(
+        frag => fragmentCounts[frag] === expectedCount
+    );
+
+    // On complète avec les parties simples (ex: B1) qui apparaissent seules à gauche ou à droite d'un nom de fichier
+    const singles = new Set();
+    bandFileNames.forEach(file => {
+        const baseName = file.replace('.out', '');
+        const parts = baseName.split('_');
+        if (parts.length === 2) {
+            singles.add(parts[0]);
+            singles.add(parts[1]);
+        }
+    });
+    singles.forEach(s => {
+        if (!genomes.includes(s)) genomes.push(s);
+    });
+
+    // On retire les fragments qui sont strictement inclus dans un autre génome détecté ET qui ne sont pas dans singles
+    genomes = genomes.filter(g =>
+        singles.has(g) || !genomes.some(other => other !== g && other.includes(g))
+    );
+
+    return genomes;
 }

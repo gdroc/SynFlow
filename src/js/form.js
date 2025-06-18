@@ -1,7 +1,7 @@
 import * as toolkit from '../../../toolkit/toolkit.js';
 import { createLegendContainer } from './legend.js';
 import { zoom } from './draw.js';
-import { handleFileUpload } from './process.js';
+import { handleFileUpload, extractAllGenomes } from './process.js';
 
 export function createForm() {
     const form = document.createElement('form');
@@ -167,14 +167,203 @@ export function hideForm() {
 // Fonctions helpers pour créer les différents formulaires
 function createExistingFilesForm() {
     const div = document.createElement('div');
-    div.innerHTML = `
-        <h5>Select Existing Files</h5>
-        <select id="existing-files" style="width: 100%">
-            <option value="">Choose a file...</option>
-        </select>
-    `;
-    return div;
+    const title = document.createElement('h5');
+    title.textContent = 'Select Study';
+    title.style.marginBottom = '10px';
+    div.appendChild(title);
+
+    const remoteFolders = {
+        "jeu_test": [
+        "A1_B1_C.out",
+        "A1_B1_D2.out",
+        "A1_B1_B1.out",
+        "A1_B1_C3.out",
+        "A1_B1_D4.out",
+        "C_A1_B1.out",
+        "C_D2.out",
+        "C_B1.out",
+        "C_C3.out",
+        "C_D4.out",
+        "D2_A1_B1.out",
+        "D2_C.out",
+        "D2_B1.out",
+        "D2_C3.out",
+        "D2_D4.out",
+        "B1_A1_B1.out",
+        "B1_C.out",
+        "B1_D2.out",
+        "B1_C3.out",
+        "B1_D4.out",
+        "C3_A1_B1.out",
+        "C3_C.out",
+        "C3_D2.out",
+        "C3_B1.out",
+        "C3_D4.out",
+        "D4_A1_B1.out",
+        "D4_C.out",
+        "D4_D2.out",
+        "D4_B1.out",
+        "D4_C3.out"
+    ],
+        "dataset1": [
+            "A_B.out", "A_C.out", "A_D.out",
+            "B_A.out", "B_C.out", "B_D.out",
+            "C_A.out", "C_B.out", "C_D.out",
+            "D_A.out", "D_B.out", "D_C.out"
+        ],
+        "dataset2": [
+            "A_B.out", "B_C.out", "C_D.out" // Chaîne incomplète pour tester les cas manquants
+        ]
+    };
+
+    // Fonction pour simuler un "fetch" distant
+    function fetchRemoteFileList(dataset = "dataset1") {
+        // Retourne une promesse pour simuler un appel réseau
+        return Promise.resolve(remoteFolders[dataset]);
+    }
+
+    // Sélecteur de dossier (dataset)
+    const folderSelect = document.createElement('select');
+    folderSelect.setAttribute('id', 'remote-folder-select');
+    folderSelect.style.width = '100%';
+    folderSelect.style.marginBottom = '10px';
+    Object.keys(remoteFolders).forEach(folder => {
+        const option = document.createElement('option');
+        option.value = folder;
+        option.textContent = folder;
+        folderSelect.appendChild(option);
+    });
+    div.appendChild(folderSelect);
+
+    // Sélecteur multiple de fichiers
+    const select = document.createElement('select');
+    select.setAttribute('id', 'existing-files');
+    select.setAttribute('multiple', true);
+    select.style.width = '100%';
+    select.style.height = '180px';
+    div.appendChild(select);
+
+    // Conteneur pour afficher la chaîne sélectionnée
+    const chainDiv = document.createElement('div');
+    chainDiv.setAttribute('id', 'selected-chain');
+    chainDiv.style.marginTop = '15px';
+    chainDiv.style.fontSize = '0.95em';
+    chainDiv.style.color = '#333';
+    div.appendChild(chainDiv);
+
+    // Fonction pour charger les fichiers du dossier sélectionné
+    function loadFiles(folder) {
+
+        select.innerHTML = '';
+        fetchRemoteFileList(folder).then(files => {
+
+            const genomes = extractAllGenomes(files);
+            // Affiche la liste des génomes pour que l'utilisateur construise sa chaîne
+            console.log('Genomes disponibles :', genomes);
+
+            genomes.forEach(genome => {
+                const option = document.createElement('option');
+                option.value = genome;
+                option.textContent = genome;
+                select.appendChild(option);
+            });
+        });
+        chainDiv.innerHTML = '';
+    }
+
+    // Initialisation avec le premier dossier
+    loadFiles(folderSelect.value);
+
+    // Changement de dossier = recharge la liste de fichiers
+    folderSelect.addEventListener('change', (e) => {
+        loadFiles(e.target.value);
+    });
+
+    // Met à jour la chaîne affichée quand la sélection change
+    select.addEventListener('change', () => {
+        const selected = Array.from(select.selectedOptions).map(opt => opt.textContent);
+        if (selected.length > 0) {
+            chainDiv.innerHTML = `<b>Chaîne sélectionnée :</b> <br>${selected.join(' &rarr; ')}`;
+        } else {
+            chainDiv.innerHTML = '';
+        }
+    });
+
+    // Bouton pour charger les fichiers sélectionnés
+    const loadButton = document.createElement('button');
+    loadButton.setAttribute('type', 'button');
+    loadButton.classList.add('btn-magic');
+    loadButton.textContent = 'Draw';
+    loadButton.style.marginTop = '10px';
+    div.appendChild(loadButton);
+    loadButton.addEventListener('click', async () => {
+        // Récupère la chaîne de génomes sélectionnée
+        const selectedGenomes = Array.from(select.selectedOptions).map(opt => opt.value);
+
+        if (selectedGenomes.length < 2) {
+            chainDiv.innerHTML = '<span style="color:red;">Sélectionnez au moins 2 génomes pour créer une chaîne.</span>';
+            return;
+        }
+
+        // Récupère la liste des fichiers disponibles dans le dossier sélectionné
+        const folder = folderSelect.value;
+        const allFiles = await fetchRemoteFileList(folder);
+
+        // Construit la liste des fichiers nécessaires pour la chaîne
+        const neededFiles = [];
+        let missingFiles = [];
+        for (let i = 0; i < selectedGenomes.length - 1; i++) {
+            const fileName = `${selectedGenomes[i]}_${selectedGenomes[i+1]}.out`;
+            if (allFiles.includes(fileName)) {
+                neededFiles.push(fileName);
+            } else {
+                missingFiles.push(fileName);
+            }
+        }
+
+        // Affiche un message si des fichiers sont manquants
+        if (missingFiles.length > 0) {
+            chainDiv.innerHTML = `<span style="color:red;">Fichiers manquants :<br>${missingFiles.join('<br>')}</span>`;
+            return;
+        }
+
+        // Télécharge les fichiers nécessaires et crée des objets File
+        const files = await Promise.all(neededFiles.map(async file => {
+            // Ici, simule le fetch depuis un "dossier distant" (à adapter si tu as un vrai serveur)
+            // Remplace cette ligne par le vrai chemin si besoin
+            const response = await fetch(`public/data/${file}`);
+            const text = await response.text();
+            return new File([text], file, { type: 'text/plain' });
+        }));
+
+        // Simule un input file multiple pour handleFileUpload
+        const dataTransfer = new DataTransfer();
+        files.forEach(file => dataTransfer.items.add(file));
+
+        // Appelle ta fonction de visualisation
+        handleFileUpload(dataTransfer.files);
+    });
+
+        return div;
 }
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Fonction helper pour créer la section upload (votre code existant)
 function createUploadSection() {
