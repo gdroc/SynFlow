@@ -392,28 +392,85 @@ function drawSNPDensityHeatmap(snpDensity, refLengths, chromPositions, binSize =
     }
 }
 
-export function drawCorrespondenceBands(data, chromPositions, isFirstFile, scale) {
+export function drawCorrespondenceBands(data, chromPositions, isFirstFile, scale, mergeThreshold = 500000) {
     console.log("Draw correspondence bands");
+    console.log(mergeThreshold);
     const svgGroup = d3.select('#zoomGroup');
 
-    // console.log(chromPositions);
+    // Types à merger
+    const mergeTypes = ['INVTR'];
+    // Types à dessiner normalement
+    const normalTypes = ['SYN', 'INV', 'TRANS', 'DUP'];
 
-    // Définir les couleurs pour chaque type
-    const typeColors = {
-        'SYN': '#d3d3d3', // gris clair
-        'INV': '#ffa500', // orange
-        'INVTR': '#008000', // vert
-        'TRANS': '#008000', // vert
-        'DUP': '#0000ff', // bleu
-    };
+    // Sépare les bandes à merger et les autres
+    const bandsToMerge = data.filter(d => mergeTypes.includes(d.type));
+    const bandsNormal = data.filter(d => normalTypes.includes(d.type));
 
-    // Filtrer les types ne se terminant pas par "AL"
-    // console.log(data.length);
-    const allowedTypes = ['SYN', 'INV', 'INVTR', 'TRANS', 'DUP']; // Types à afficher
-    const filteredData = data.filter(d => allowedTypes.includes(d.type)); // Filtrer les lignes invalides et les types non désirés
-    // console.log(filteredData.length);
-    // console.log(filteredData);
-    // Configuration du tooltip
+    // Fusionne les bandes à merger
+    const mergedBands = mergeBands(bandsToMerge, mergeThreshold);
+
+    // Concatène tout pour le dessin
+    const allBands = bandsNormal.concat(mergedBands);
+
+    
+
+    allBands.forEach(d => {
+        drawOneBand(svgGroup, d, chromPositions, refGenome, queryGenome);
+    });
+}
+
+function mergeBands(bands, threshold) {
+    console.log("Merging bands with threshold:", threshold);
+    if (!bands || bands.length === 0 || threshold <= 0) return bands;
+
+    const merged = [];
+    let current = null;
+
+    for (const band of bands) {
+        if (!current) {
+            current = { ...band };
+            continue;
+        }
+
+        const distRef = band.refStart - current.refEnd;
+        const distQuery = current.queryStart - band.queryEnd;
+
+        if (
+            band.refChr === current.refChr &&
+            band.queryChr === current.queryChr &&
+            band.type === current.type &&
+            distRef <= threshold &&
+            distQuery <= threshold
+        ) {
+            // On fusionne en étendant current
+            current.refStart = Math.min(current.refStart, current.refEnd, band.refStart, band.refEnd);
+            current.refEnd = Math.max(current.refStart, current.refEnd, band.refStart, band.refEnd);
+            current.queryStart = Math.min(current.queryStart, current.queryEnd, band.queryStart, band.queryEnd);
+            current.queryEnd = Math.max(current.queryStart, current.queryEnd, band.queryStart, band.queryEnd);
+        } else {
+            // On ne peut pas fusionner : on sauvegarde current et on passe à band
+            merged.push(current);
+            current = { ...band };
+        }
+    }
+
+    // Ne pas oublier la dernière bande
+    if (current) {
+        merged.push(current);
+    }
+
+    console.log(`Merged ${bands.length} bands into ${merged.length} bands`);
+    return merged;
+}
+
+function drawOneBand(svgGroup, d, chromPositions, refGenome, queryGenome) {
+
+    let refChromNum = Object.values(genomeData[refGenome]).findIndex(item => item.name === d.refChr) + 1;
+    let queryChromNum = Object.values(genomeData[queryGenome]).findIndex(item => item.name === d.queryChr) + 1;
+    const refX = chromPositions[[refChromNum]]?.refX;
+    const queryX = chromPositions[[queryChromNum]]?.queryX;
+
+    // Tooltip
     const tip = d3.tip()
         .attr('class', 'd3-tip')
         .offset([-10, 0])
@@ -431,84 +488,81 @@ export function drawCorrespondenceBands(data, chromPositions, isFirstFile, scale
 
     svgGroup.call(tip);
 
-    filteredData.forEach(d => {
-        
-        // Récupère l'index du chromosome name d.refChr dans le genomeData
-        // genomeData[refGenome] = {1: {name: "chr1", length: 249250621}, 2: {name: "chr2", length: 243199373}, ...}
-        let refChromNum = Object.values(genomeData[refGenome]).findIndex(item => item.name === d.refChr) +1;
+    if (refX !== undefined && queryX !== undefined) {
 
-        //recupère l'index du chromosome name d.queryChr dans le genomeData
-        let queryChromNum = Object.values(genomeData[queryGenome]).findIndex(item => item.name === d.queryChr) +1;
-        const refX = chromPositions[[refChromNum]]?.refX;
-        // const queryX = chromPositions[d.queryChr]?.queryX;
-        const queryX = chromPositions[[queryChromNum]]?.queryX;
+        // Définir les couleurs pour chaque type
+        const typeColors = {
+            'SYN': '#d3d3d3', // gris clair
+            'INV': '#ffa500', // orange
+            'INVTR': '#008000', // vert
+            'TRANS': '#008000', // vert
+            'DUP': '#0000ff', // bleu
+        };
+        const refStartX = refX + (d.refStart / scale);
+        const refEndX = refX + (d.refEnd / scale);
+        let queryStartX = queryX + (d.queryStart / scale);
+        let queryEndX = queryX + (d.queryEnd / scale);
+        const color = typeColors[d.type] || '#ccc'; // Utiliser la couleur définie ou gris clair par défaut
 
-        if (refX !== undefined && queryX !== undefined) {
-            const refStartX = refX + (d.refStart / scale);
-            const refEndX = refX + (d.refEnd / scale);
-            let queryStartX = queryX + (d.queryStart / scale);
-            let queryEndX = queryX + (d.queryEnd / scale);
-            const color = typeColors[d.type] || '#ccc'; // Utiliser la couleur définie ou gris clair par défaut
+        const refY = chromPositions[[refChromNum]]?.refY + 10; // Ajuster pour aligner sur le chromosome de référence
+        // const queryY = chromPositions[d.queryChr]?.queryY; // Ajuster pour aligner sur le chromosome de requête
+        const queryY = chromPositions[[queryChromNum]]?.queryY; // Ajuster pour aligner sur le chromosome de requête
 
-            const refY = chromPositions[[refChromNum]]?.refY + 10; // Ajuster pour aligner sur le chromosome de référence
-            // const queryY = chromPositions[d.queryChr]?.queryY; // Ajuster pour aligner sur le chromosome de requête
-            const queryY = chromPositions[[queryChromNum]]?.queryY; // Ajuster pour aligner sur le chromosome de requête
-
-            // Inverser les positions queryStart et queryEnd pour les types d'inversion
-            if (d.type === 'INV' || d.type === 'INVDPAL' || d.type === 'INVTR' || d.type === 'INVTRAL') {
-                [queryStartX, queryEndX] = [queryEndX, queryStartX];
-            }
-
-            // Calculer la longueur de la bande
-            const bandLength = d.refEnd - d.refStart;
-
-            // Déterminer le type de bande (inter ou intra)
-            const bandPos = d.refChr === d.queryChr ? 'intra' : 'inter';
-
-            // Dessiner une bande courbée pour la correspondance
-            const pathData = `
-                M${refStartX},${refY}
-                C${refStartX},${(refY + queryY) / 2} ${queryStartX},${(refY + queryY) / 2} ${queryStartX},${queryY}
-                L${queryEndX},${queryY}
-                C${queryEndX},${(refY + queryY) / 2} ${refEndX},${(refY + queryY) / 2} ${refEndX},${refY}
-                Z
-            `;
-
-            svgGroup.append('path')
-                .datum(d) // Associer les données à l'élément
-                .attr('d', pathData)
-                .attr('fill', color)
-                .attr('opacity', 0.5)
-                .attr('class', 'band')
-                .attr('data-length', bandLength) // Ajouter l'attribut de longueur
-                .attr('data-pos', bandPos) // Ajouter l'attribut de position inter ou intra
-                .attr('data-type', d.type) // Ajouter l'attribut de type de bande
-                .attr('data-ref', d.refChr) //ajoute l'attribut ref
-                .attr('data-ref-num', refChromNum) // ajoute l'attribut ref-num
-                .attr('data-query-num', queryChromNum) // ajoute l'attribut query
-                .attr('data-query', d.queryChr) // ajoute l'attribut query
-                .on('mouseover', function (event, d) {
-                    d3.select(this).attr('opacity', 1); // Mettre en gras au survol
-                    tip.show(event, d); // Afficher le tooltip
-                })
-                .on('mouseout', function (event, d) {
-                    d3.select(this).attr('opacity', 0.5); // Réinitialiser après le survol
-                    tip.hide(event, d); // Masquer le tooltip
-                })
-                .on('click', function (event, d) {
-                    // Récupérer les lignes du fichier correspondant aux positions refStart et refEnd
-                    const linesInRange = getLinesInRange(window.fullParsedData, d.refChr, d.refStart, d.refEnd);
-                    const tableHtml = convertLinesToTableHtml(linesInRange);
-
-                    // Afficher les informations dans la div #info
-                    d3.select('#info').html(`
-                        <br>${tableHtml}
-                    `);
-                });
-        } else {
-            console.error(`Invalid chromosome position for ref: ${d.refChr} or query: ${d.queryChr}`);
+        // Inverser les positions queryStart et queryEnd pour les types d'inversion
+        if (d.type === 'INV' || d.type === 'INVDPAL' || d.type === 'INVTR' || d.type === 'INVTRAL') {
+            [queryStartX, queryEndX] = [queryEndX, queryStartX];
         }
-    });
+
+        // Calculer la longueur de la bande
+        const bandLength = d.refEnd - d.refStart;
+
+        // Déterminer le type de bande (inter ou intra)
+        // const bandPos = d.refChr === d.queryChr ? 'intra' : 'inter';
+        const bandPos = refChromNum === queryChromNum ? 'intra' : 'inter';
+
+        // Dessiner une bande courbée pour la correspondance
+        const pathData = `
+            M${refStartX},${refY}
+            C${refStartX},${(refY + queryY) / 2} ${queryStartX},${(refY + queryY) / 2} ${queryStartX},${queryY}
+            L${queryEndX},${queryY}
+            C${queryEndX},${(refY + queryY) / 2} ${refEndX},${(refY + queryY) / 2} ${refEndX},${refY}
+            Z
+        `;
+
+        svgGroup.append('path')
+            .datum(d) // Associer les données à l'élément
+            .attr('d', pathData)
+            .attr('fill', color)
+            .attr('opacity', 0.5)
+            .attr('class', 'band')
+            .attr('data-length', bandLength) // Ajouter l'attribut de longueur
+            .attr('data-pos', bandPos) // Ajouter l'attribut de position inter ou intra
+            .attr('data-type', d.type) // Ajouter l'attribut de type de bande
+            .attr('data-ref', d.refChr) //ajoute l'attribut ref
+            .attr('data-ref-num', refChromNum) // ajoute l'attribut ref-num
+            .attr('data-query-num', queryChromNum) // ajoute l'attribut query
+            .attr('data-query', d.queryChr) // ajoute l'attribut query
+            .on('mouseover', function (event, d) {
+                d3.select(this).attr('opacity', 1); // Mettre en gras au survol
+                tip.show(event, d); // Afficher le tooltip
+            })
+            .on('mouseout', function (event, d) {
+                d3.select(this).attr('opacity', 0.5); // Réinitialiser après le survol
+                tip.hide(event, d); // Masquer le tooltip
+            })
+            .on('click', function (event, d) {
+                // Récupérer les lignes du fichier correspondant aux positions refStart et refEnd
+                const linesInRange = getLinesInRange(window.fullParsedData, d.refChr, d.refStart, d.refEnd);
+                const tableHtml = convertLinesToTableHtml(linesInRange);
+
+                // Afficher les informations dans la div #info
+                d3.select('#info').html(`
+                    <br>${tableHtml}
+                `);
+        });
+    }else {
+        console.error(`Invalid chromosome position for ref: ${d.refChr} or query: ${d.queryChr}`);
+    }
 }
 
 

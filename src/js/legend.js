@@ -435,8 +435,15 @@ export function updateBandsVisibility() {
     const visibleChromosomes = Array.from(chromEyeIcons)
         .filter(icon => icon.classList.contains('fa-eye'))
         .map(icon => icon.getAttribute('data-chrom'));
-    
-    // console.log('visibleChromosomes', visibleChromosomes);
+        
+    // Définir les dépendances des types
+    const typeDependencies = {
+        'INVTR': ['INV', 'TRANS'],  // INVTR nécessite que INV ET TRANS soient visibles
+        'SYN': ['SYN'],
+        'INV': ['INV'],
+        'TRANS': ['TRANS'],
+        'DUP': ['DUP']
+    };
 
     d3.selectAll('path.band').each(function() {
         const band = d3.select(this);
@@ -450,7 +457,13 @@ export function updateBandsVisibility() {
 
         //modif pour fix bug = bandRefNum au lieu de bandRef
         const isVisibleChrom = visibleChromosomes.includes(bandRefNum) && visibleChromosomes.includes(bandQueryNum);
-        const isVisibleBandType = selectedTypes.includes(bandType);
+        // const isVisibleBandType = selectedTypes.includes(bandType);
+        // Dans updateBandsVisibility()
+        const isVisibleBandType = selectedTypes.some(type => type === bandType) || // Type directement visible
+            (typeDependencies[bandType] && // Si c'est un type dépendant
+            typeDependencies[bandType].every(parentType => // TOUS ses parents doivent être visibles
+                selectedTypes.includes(parentType)
+            ));
         const isVisibleBandPos = (bandPosType === 'intra' && showIntra) || (bandPosType === 'inter' && showInter);
         const isVisibleBandLength = bandLength >= sliderMinValue && bandLength <= sliderMaxValue;
 
@@ -523,6 +536,94 @@ export function createSlider(minBandSize, maxBandSize) {
     });
 }
 
+export function createMergeSlider(min, max) {
+    console.log('create slider from ' + min + ' to ' + max);
+
+    //efface s'il existe déjà un slider
+    const existingSliderContainer = document.getElementById('merge-slider-container');
+    if (existingSliderContainer) {
+        existingSliderContainer.remove();
+    }
+    
+    const mergeSliderContainer = document.createElement('div');
+    mergeSliderContainer.setAttribute('id', 'merge-slider-container');
+    
+    const sliderTitle = document.createElement('h5');
+    sliderTitle.textContent = 'Merge band';
+    sliderTitle.style.margin = '20px 5px';
+
+    const sliderElement = document.createElement('div');
+    sliderElement.setAttribute('id', 'merge-slider');
+
+    // Ajoute un conteneur pour l'axe
+    const axisContainer = document.createElement('div');
+    axisContainer.setAttribute('id', 'merge-slider-axis');
+    axisContainer.style.width = '100%';
+    axisContainer.style.height = '30px';
+
+    mergeSliderContainer.appendChild(sliderTitle);
+    mergeSliderContainer.appendChild(sliderElement);
+    mergeSliderContainer.appendChild(axisContainer);
+
+    // Trouver la section des filtres et ajouter le slider
+    const filterSection = document.querySelector('.filter-section');
+    if (filterSection) {
+        filterSection.appendChild(mergeSliderContainer);
+    }
+
+    rangeSlider(sliderElement, {
+        min: min,
+        max: max,
+        step: 1000,
+        value: [min, max],
+        disabled: false,
+        rangeSlideDisabled: true,
+        thumbsDisabled: [false, true],
+        orientation: 'horizontal',
+        onInput: function(valueSet) {
+            sliderMinValue = valueSet[0];
+            // updateBandsVisibility();
+            console.log('Merge slider values:', sliderMinValue);
+            // bands = tableau de toutes les bandes originales (non fusionnées)
+            const mergedBands = mergeBands(bands, seuilMerge);
+            console.log('Merged bands:', mergedBands);
+        },
+    });
+
+    //supprime le slider de droite #merge-slider > .range-slider__thumb[data-upper
+    const upperThumb = document.querySelector('#merge-slider > .range-slider__thumb[data-upper]');
+    if (upperThumb) {
+        upperThumb.style.display = 'none';
+    }
+
+    // Ajoute l'axe sous le slider
+    createMergeSliderAxis(min, max, axisContainer);
+}
+
+function createMergeSliderAxis(min, max, container) {
+    // Efface le contenu précédent
+    container.innerHTML = '';
+
+    const width = container.clientWidth || 300;
+    const height = 30;
+    const margin = { top: 0, right: 10, bottom: 0, left: 10 };
+
+    const svg = d3.select(container)
+        .append('svg')
+        .attr('width', width)
+        .attr('height', height);
+
+    const x = d3.scaleLinear()
+        .domain([min, max])
+        .range([margin.left, width - margin.right]);
+
+    svg.append('g')
+        .call(d3.axisBottom(x)
+            .ticks(10)
+            .tickFormat(d => `${(d / 1000).toFixed(0)} kb`)
+        );
+}
+
 export function createLengthChart(bandLengths) {
     const barChartContainer = d3.select('#chart-container');
     barChartContainer.selectAll('*').remove(); // Efface tout le contenu existant
@@ -570,7 +671,7 @@ export function createLengthChart(bandLengths) {
     });
 
     // Appliquer le gradient fixe au slider
-    const slider = d3.selectAll(".range-slider");
+    const slider = d3.selectAll("#slider.range-slider");
     slider.style('background', `linear-gradient(to right, ${bins.map((bin, i) => `${colorScale(bin.length)} ${(x(bin.x0) / (width - margin.left - margin.right)) * 100}%`).join(', ')})`);
 
     // axe x
@@ -578,4 +679,43 @@ export function createLengthChart(bandLengths) {
         .attr('transform', `translate(0,${height - margin.top - margin.bottom})`)
         .call(d3.axisBottom(x)
         .tickFormat(d => `${(d / 1000000).toFixed(1)}Mb`)); // Conversion en Mb
+}
+
+
+// Fusionne les bandes consécutives de même type et chromosomes si elles sont proches (distance ≤ threshold)
+export function mergeBands(bands, threshold) {
+    if (!bands || bands.length === 0 || threshold <= 0) return bands;
+
+    // On trie pour que les bandes proches soient consécutives
+    const sorted = [...bands].sort((a, b) => {
+        if (a.refChr !== b.refChr) return a.refChr.localeCompare(b.refChr);
+        if (a.queryChr !== b.queryChr) return a.queryChr.localeCompare(b.queryChr);
+        if (a.type !== b.type) return a.type.localeCompare(b.type);
+        return a.refStart - b.refStart;
+    });
+
+    const merged = [];
+    let current = null;
+
+    for (const band of sorted) {
+        if (
+            current &&
+            band.refChr === current.refChr &&
+            band.queryChr === current.queryChr &&
+            band.type === current.type &&
+            (band.refStart - current.refEnd <= threshold) &&
+            (band.queryStart - current.queryEnd <= threshold)
+        ) {
+            // Fusionne la bande courante avec la précédente
+            current.refEnd = band.refEnd;
+            current.queryEnd = band.queryEnd;
+            // (optionnel) tu peux aussi fusionner d'autres propriétés si besoin
+        } else {
+            if (current) merged.push(current);
+            current = { ...band };
+        }
+    }
+    if (current) merged.push(current);
+
+    return merged;
 }

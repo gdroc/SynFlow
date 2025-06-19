@@ -1,5 +1,5 @@
 import { drawChromosomes, drawStackedChromosomes, drawCorrespondenceBands, resetDrawGlobals, drawMiniChromosome } from './draw.js';
-import { generateBandTypeFilters, createSlider, createLengthChart, updateBandsVisibility, showControlPanel } from './legend.js';
+import { generateBandTypeFilters, createSlider, createLengthChart, updateBandsVisibility, showControlPanel, createMergeSlider } from './legend.js';
 import { Spinner } from './spin.js';
 import { zoom } from './draw.js';
 import { hideForm } from './form.js';
@@ -352,6 +352,10 @@ function allDone() {
 
     // Create and add the slider to filter bands by size
     createSlider(minBandSize, maxBandSize);
+
+    //merge slider
+    // createMergeSlider(0, 100000);
+
     // Create the bar chart to display band size distribution
     createLengthChart(allBandLengths);
 
@@ -474,7 +478,7 @@ export function findUniqueGenomes(bandFileNames) {
     possibleNames = Array.from(possibleNames);
 
     function findCombination(currentCombination, depth) {
-        console.log("Current combination:", currentCombination, "Depth:", depth);
+        // console.log("Current combination:", currentCombination, "Depth:", depth);
         if (depth === uniqueNamesToFind) {
             const genomeSet = new Set(currentCombination);
             if (genomeSet.size === uniqueNamesToFind) {
@@ -1062,4 +1066,45 @@ export function extractAllGenomes(bandFileNames) {
     );
 
     return genomes;
+}
+
+
+
+
+// Fusionne les bandes consécutives de même type et chromosomes si elles sont proches (distance ≤ threshold)
+export function mergeBands(bands, threshold) {
+    if (!bands || bands.length === 0 || threshold <= 0) return bands;
+
+    // On trie pour que les bandes proches soient consécutives
+    const sorted = [...bands].sort((a, b) => {
+        if (a.refChr !== b.refChr) return a.refChr.localeCompare(b.refChr);
+        if (a.queryChr !== b.queryChr) return a.queryChr.localeCompare(b.queryChr);
+        if (a.type !== b.type) return a.type.localeCompare(b.type);
+        return a.refStart - b.refStart;
+    });
+
+    const merged = [];
+    let current = null;
+
+    for (const band of sorted) {
+        if (
+            current &&
+            band.refChr === current.refChr &&
+            band.queryChr === current.queryChr &&
+            band.type === current.type &&
+            (band.refStart - current.refEnd <= threshold) &&
+            (band.queryStart - current.queryEnd <= threshold)
+        ) {
+            // Fusionne la bande courante avec la précédente
+            current.refEnd = band.refEnd;
+            current.queryEnd = band.queryEnd;
+            // (optionnel) tu peux aussi fusionner d'autres propriétés si besoin
+        } else {
+            if (current) merged.push(current);
+            current = { ...band };
+        }
+    }
+    if (current) merged.push(current);
+
+    return merged;
 }
