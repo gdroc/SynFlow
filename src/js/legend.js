@@ -522,7 +522,7 @@ export function createSlider(minBandSize, maxBandSize) {
     rangeSlider(sliderElement, {
         min: minBandSize - 10000,
         max: maxBandSize + 10000,
-        step: 10000,
+        step: 50000,
         value: [minBandSize - 10000, maxBandSize + 10000],
         disabled: false,
         rangeSlideDisabled: false,
