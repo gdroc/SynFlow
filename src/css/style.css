@@ -356,3 +356,86 @@
         background-position: 0 0;
     }
 }
+
+/* Styles pour le système de feedback */
+.feedback-button {
+    position: fixed;
+    bottom: 20px;
+    right: 80px;
+    padding: 8px 15px;
+    background: #000000;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 1000;
+    transition: transform 0.2s;
+}
+
+.feedback-button:hover {
+    transform: scale(1.05);
+}
+
+.feedback-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1001;
+}
+
+.feedback-content {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+}
+
+.stars {
+    color: #ffd700;
+    font-size: 24px;
+    margin: 10px 0;
+}
+
+.stars i {
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+.feedback-field {
+    margin: 15px 0;
+}
+
+.feedback-field textarea {
+    width: 100%;
+    height: 100px;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+}
+
+.submit-feedback {
+    background: #000000;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.close-feedback {
+    float: right;
+    cursor: pointer;
+    font-size: 24px;
+}
