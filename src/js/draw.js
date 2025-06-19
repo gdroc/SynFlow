@@ -406,8 +406,8 @@ export function drawCorrespondenceBands(data, chromPositions, isFirstFile, scale
     const bandsToMerge = data.filter(d => mergeTypes.includes(d.type));
     const bandsNormal = data.filter(d => normalTypes.includes(d.type));
 
-    // Fusionne les bandes à merger
-    const mergedBands = mergeBands(bandsToMerge, mergeThreshold);
+   // Fusionne les bandes à merger en tenant compte des autres bandes
+    const mergedBands = mergeBands(bandsToMerge, bandsNormal, mergeThreshold);
 
     // Concatène tout pour le dessin
     const allBands = bandsNormal.concat(mergedBands);
@@ -419,23 +419,33 @@ export function drawCorrespondenceBands(data, chromPositions, isFirstFile, scale
     });
 }
 
-function mergeBands(bands, threshold) {
-    console.log("Merging bands with threshold:", threshold);
-    if (!bands || bands.length === 0 || threshold <= 0) return bands;
+function mergeBands(bandsToMerge, otherBands, threshold) {
+    if (!bandsToMerge || bandsToMerge.length === 0 || threshold <= 0) return bandsToMerge;
 
     const merged = [];
     let current = null;
 
-    for (const band of bands) {
+    for (const band of bandsToMerge) {
         if (!current) {
             current = { ...band };
             continue;
         }
 
+        // Vérifie s'il y a des bandes d'autres types entre current et band
+        const hasOtherBandsBetween = otherBands.some(other => 
+            other.refChr === current.refChr &&
+            other.queryChr === current.queryChr &&
+            (other.refStart > current.refEnd &&
+            other.refStart < band.refStart) ||
+            (other.queryStart > current.queryEnd &&
+            other.queryStart < band.queryStart)
+        );
+
         const distRef = band.refStart - current.refEnd;
         const distQuery = current.queryStart - band.queryEnd;
 
         if (
+            !hasOtherBandsBetween &&
             band.refChr === current.refChr &&
             band.queryChr === current.queryChr &&
             band.type === current.type &&
@@ -454,12 +464,11 @@ function mergeBands(bands, threshold) {
         }
     }
 
-    // Ne pas oublier la dernière bande
     if (current) {
         merged.push(current);
     }
 
-    console.log(`Merged ${bands.length} bands into ${merged.length} bands`);
+    console.log(`Merged ${bandsToMerge.length} INVTR bands into ${merged.length} bands`);
     return merged;
 }
 
