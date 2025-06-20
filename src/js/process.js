@@ -698,7 +698,7 @@ async function calculateChromosomeDataFromBandFiles(orderedFileObjects, uniqueGe
             let refChr = refLengths[i].name;
             //cherche son binome = le chromosome query qui à l'alignement le plus long
             let queryChr = Object.keys(alignments[refChr]).reduce((a, b) => alignments[refChr][a] > alignments[refChr][b] ? a : b);
-            // console.log("binome de ", refChr, " est ", queryChr);
+            console.log("binome de ", refChr, " est ", queryChr);
             //cherche l'index de queryChr dans queryLengths
             let queryIndex = Object.keys(queryLengths).find(key => queryLengths[key].name === queryChr);
             // console.log("index de ", queryChr, " est ", queryIndex);

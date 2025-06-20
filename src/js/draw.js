@@ -335,6 +335,19 @@ function drawChromPathNoArm(x, y, width, radius, chromNum, chromName, genome, sv
     path += "a" + radius + "," + radius + " 0 0 1 " + radius + "," + -radius; // Arc
     path += "Z";
 
+    //ajoute un tooltip pour le chromosome
+    const tip = d3.tip()
+        .attr('class', 'd3-tip')
+        .offset([-10, 0])
+        .html(function (event, d) {
+            return `
+                <strong>Genome:</strong> <span>${genome}</span><br>
+                <strong>Chromosome:</strong> <span>${chromName.split('_ref')[0].split('_query')[0]}</span><br>
+            `;
+        });
+
+    svg.call(tip);
+
     svg.append("path")
         .attr("d", path)
         .attr("class", "chrom") // Ajoute une classe chrom
@@ -342,7 +355,17 @@ function drawChromPathNoArm(x, y, width, radius, chromNum, chromName, genome, sv
         .attr("chromNum", chromNum)
         .style("stroke", genomeColors[genome]) // Utiliser la couleur du génome
         .style("fill", "rgba(0, 0, 0, 0)")
-        .style("fill-opacity", "0");
+        .style("fill-opacity", "0")
+        .on('mouseover', function (event, d) {
+                d3.select(this).attr('opacity', 1); // Mettre en gras au survol
+                tip.show(event, d); // Afficher le tooltip
+            })
+            .on('mouseout', function (event, d) {
+                d3.select(this).attr('opacity', 0.5); // Réinitialiser après le survol
+                tip.hide(event, d); // Masquer le tooltip
+            });
+
+    
 }
 
 
