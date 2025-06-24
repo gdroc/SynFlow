@@ -3,6 +3,9 @@ import { createLegendContainer } from './legend.js';
 import { zoom } from './draw.js';
 import { handleFileUpload, extractAllGenomes } from './process.js';
 
+//mode de chargement des fichiers
+export let fileUploadMode = ''; // 'remote' ou 'local'
+
 export async function createForm() {
     const form = document.createElement('form');
     form.setAttribute('id', 'file-upload-form');
@@ -304,11 +307,15 @@ async function createExistingFilesForm() {
     const loadButton = document.createElement('button');
     loadButton.setAttribute('type', 'button');
     loadButton.classList.add('btn-magic');
+    loadButton.setAttribute('id', 'submit-remote');
     loadButton.textContent = 'Draw';
     loadButton.style.marginTop = '10px';
     div.appendChild(loadButton);
 
     loadButton.addEventListener('click', async () => {
+
+        fileUploadMode = 'remote'; // Change mode to remote for file upload
+
         if (selectedGenomes.length < 2) {
             chainDiv.innerHTML = '<span style="color:red;">Sélectionnez au moins 2 génomes pour créer une chaîne.</span>';
             return;
@@ -511,11 +518,13 @@ function createUploadSection() {
     submitButton.setAttribute('type', 'button');
     submitButton.classList.add('btn-magic');
     submitButton.setAttribute('style', 'margin-bottom:20px');
-	submitButton.setAttribute('id', 'submit');
+	submitButton.setAttribute('id', 'submit-local');
     submitButton.style.marginLeft = '10px';
     submitButton.textContent = 'Draw';
 
     submitButton.addEventListener('click', () => {
+
+        fileUploadMode = 'local'; // Change mode to local for file upload
 
         const visualizationContainer = document.getElementById('viz');
         visualizationContainer.innerHTML = ''; // Efface le contenu existant

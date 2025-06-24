@@ -1,3 +1,5 @@
+import { fileUploadMode } from "./form.js";
+
 //Fonction pour les contrôles et paramètres
 export function createControlPanel() {
     const controlPanel = document.createElement('div');
@@ -168,9 +170,20 @@ function createParametersContent() {
 
     // Event listener directement ici si besoin :
     checkbox.addEventListener('change', () => {
-         const submitButton = document.querySelector('#submit');
-        console.log('submitButton', submitButton);
-        if (submitButton) submitButton.click();
+        //si les fichiers ont ete uploadés
+        if (fileUploadMode == 'local') {
+            console.log('Stack mode for uploaded files');
+            const submitButton = document.querySelector('#submit-local');
+            console.log('submitButton', submitButton);
+            if (submitButton) submitButton.click();
+        }
+        //si les fichier proviennent de la base de données
+        if (fileUploadMode == 'remote') {
+            console.log('Stack mode for remote files');
+            const submitButton = document.querySelector('#submit-remote');
+            console.log('submitButton', submitButton);
+            if (submitButton) submitButton.click();
+        }
     });
 
     // Zone d'upload
