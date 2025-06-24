@@ -1022,6 +1022,11 @@ function parseSyriData(data) {
 
 export function extractAllGenomes(bandFileNames) {
     const fragmentCounts = {};
+    console.log("Extracting all genomes from band files: ", bandFileNames);
+    bandFileNames = bandFileNames
+        .filter(name => name.endsWith('.out'))
+        .map(name => name.trim());
+
 
     // Génère tous les fragments possibles pour chaque nom de fichier
     bandFileNames.forEach(file => {

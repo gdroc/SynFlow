@@ -3,7 +3,7 @@ import { createLegendContainer } from './legend.js';
 import { zoom } from './draw.js';
 import { handleFileUpload, extractAllGenomes } from './process.js';
 
-export function createForm() {
+export async function createForm() {
     const form = document.createElement('form');
     form.setAttribute('id', 'file-upload-form');
 
@@ -92,7 +92,7 @@ export function createForm() {
         menuItem.innerHTML = `<i class="${item.icon}"></i> ${item.text}`;
         menuItem.setAttribute('data-option', item.id);
         
-        menuItem.addEventListener('click', () => {
+        menuItem.addEventListener('click', async () => {
             // Retirer la classe active de tous les items
             menuColumn.querySelectorAll('div').forEach(div => {
                 div.style.backgroundColor = 'transparent';
@@ -103,7 +103,7 @@ export function createForm() {
             menuItem.style.color = 'white';
             
             // Afficher le formulaire correspondant
-            showForm(item.id);
+            await showForm(item.id);
         });
         
         menuColumn.appendChild(menuItem);
@@ -119,11 +119,11 @@ export function createForm() {
     `;
 
     // Fonction pour afficher le bon formulaire
-    function showForm(option) {
+    async function showForm(option) {
         contentColumn.innerHTML = '';
         switch(option) {
             case 'existing':
-                contentColumn.appendChild(createExistingFilesForm());
+                contentColumn.appendChild(await createExistingFilesForm());
                 break;
             case 'upload':
                 contentColumn.appendChild(createUploadSection());
@@ -149,7 +149,7 @@ export function createForm() {
     const selectedItem = menuColumn.querySelector(`div[data-option="upload"]`);
     selectedItem.style.backgroundColor = 'black';
     selectedItem.style.color = 'white';
-    showForm('upload');
+    (async () => { await showForm('upload'); })();    
     return form;
 }
 
@@ -164,70 +164,57 @@ export function hideForm() {
     }
 }
 
+// Fonction pour récupérer les répertoires Synflow depuis un fichier JSON
+async function fetchSynflowDirectories() {
+    try {
+        const response = await fetch('public/data/config.json');
+        if (!response.ok) throw new Error('Erreur lors du chargement du JSON');
+        const dirs = await response.json();
+        return dirs; // tableau d'URLs
+    } catch (error) {
+        console.error('Error fetching Synflow directories:', error);
+        return [];
+    }
+}
+// Fonction pour récupérer la liste des fichiers .out depuis un dossier distant
+function fetchRemoteFileList(folder) {
+    // Récupère la liste des fichiers .out depuis le HTML du dossier distant
+    return fetch(folder)
+        .then(response => {
+            if (!response.ok) throw new Error('Erreur lors du chargement de la liste de fichiers');
+            return response.text();
+        })
+        .then(html => {
+            // Parse le HTML pour extraire les liens vers les fichiers .out
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const links = Array.from(doc.querySelectorAll('a'));
+            // Filtre les fichiers .out
+            const files = links
+                .map(link => link.textContent)
+                .filter(name => name.endsWith('.out'));
+            return files;
+        });
+}
+
 // Fonctions helpers pour créer les différents formulaires
-function createExistingFilesForm() {
+async function createExistingFilesForm() {
+
     const div = document.createElement('div');
     const title = document.createElement('h5');
     title.textContent = 'Select Study';
     title.style.marginBottom = '10px';
     div.appendChild(title);
 
-    const remoteFolders = {
-        "jeu_test": [
-        "A1_B1_C.out",
-        "A1_B1_D2.out",
-        "A1_B1_B1.out",
-        "A1_B1_C3.out",
-        "A1_B1_D4.out",
-        "C_A1_B1.out",
-        "C_D2.out",
-        "C_B1.out",
-        "C_C3.out",
-        "C_D4.out",
-        "D2_A1_B1.out",
-        "D2_C.out",
-        "D2_B1.out",
-        "D2_C3.out",
-        "D2_D4.out",
-        "B1_A1_B1.out",
-        "B1_C.out",
-        "B1_D2.out",
-        "B1_C3.out",
-        "B1_D4.out",
-        "C3_A1_B1.out",
-        "C3_C.out",
-        "C3_D2.out",
-        "C3_B1.out",
-        "C3_D4.out",
-        "D4_A1_B1.out",
-        "D4_C.out",
-        "D4_D2.out",
-        "D4_B1.out",
-        "D4_C3.out"
-    ],
-        "dataset1": [
-            "A_B.out", "A_C.out", "A_D.out",
-            "B_A.out", "B_C.out", "B_D.out",
-            "C_A.out", "C_B.out", "C_D.out",
-            "D_A.out", "D_B.out", "D_C.out"
-        ],
-        "dataset2": [
-            "A_B.out", "B_C.out", "C_D.out" // Chaîne incomplète pour tester les cas manquants
-        ]
-    };
-
-    // Fonction pour simuler un "fetch" distant
-    function fetchRemoteFileList(dataset = "dataset1") {
-        // Retourne une promesse pour simuler un appel réseau
-        return Promise.resolve(remoteFolders[dataset]);
-    }
-
-    // Sélecteur de dossier (dataset)
+     // Sélecteur de dossier (dataset)
     const folderSelect = document.createElement('select');
     folderSelect.setAttribute('id', 'remote-folder-select');
     folderSelect.style.width = '100%';
     folderSelect.style.marginBottom = '10px';
-    Object.keys(remoteFolders).forEach(folder => {
+
+    //va chercher les répertoires Synflow depuis le fichier JSON
+    const remoteFolders = await fetchSynflowDirectories();
+    remoteFolders.forEach(folder => {
         const option = document.createElement('option');
         option.value = folder;
         option.textContent = folder;
@@ -250,6 +237,10 @@ function createExistingFilesForm() {
     chainDiv.style.fontSize = '0.95em';
     chainDiv.style.color = '#333';
     div.appendChild(chainDiv);
+
+   
+
+    
 
     // Fonction pour charger les fichiers du dossier sélectionné
     function loadFiles(folder) {
@@ -308,13 +299,15 @@ function createExistingFilesForm() {
         // Récupère la liste des fichiers disponibles dans le dossier sélectionné
         const folder = folderSelect.value;
         const allFiles = await fetchRemoteFileList(folder);
+        // Nettoie les espaces autour des noms de fichiers
+        const allFilesTrimmed = allFiles.map(f => f.trim());
 
         // Construit la liste des fichiers nécessaires pour la chaîne
         const neededFiles = [];
         let missingFiles = [];
         for (let i = 0; i < selectedGenomes.length - 1; i++) {
             const fileName = `${selectedGenomes[i]}_${selectedGenomes[i+1]}.out`;
-            if (allFiles.includes(fileName)) {
+            if (allFilesTrimmed.includes(fileName)) {
                 neededFiles.push(fileName);
             } else {
                 missingFiles.push(fileName);
@@ -330,8 +323,10 @@ function createExistingFilesForm() {
         // Télécharge les fichiers nécessaires et crée des objets File
         const files = await Promise.all(neededFiles.map(async file => {
             // Ici, simule le fetch depuis un "dossier distant" (à adapter si tu as un vrai serveur)
-            // Remplace cette ligne par le vrai chemin si besoin
-            const response = await fetch(`public/data/${file}`);
+            //recréer le chemin complet du fichier
+            const filePath = `${folder}${file}`;
+            // Utilise fetch pour récupérer le contenu du fichier
+            const response = await fetch(filePath);
             const text = await response.text();
             return new File([text], file, { type: 'text/plain' });
         }));
@@ -341,6 +336,11 @@ function createExistingFilesForm() {
         files.forEach(file => dataTransfer.items.add(file));
 
         // Appelle ta fonction de visualisation
+        const visualizationContainer = document.getElementById('viz');
+        visualizationContainer.innerHTML = ''; // Efface le contenu existant
+        d3.select("#viz").call(zoom);
+        // Ajoutez un groupe à l'intérieur de l'élément SVG pour contenir les éléments zoomables
+        d3.select("#viz").append("g").attr("id", "zoomGroup");
         handleFileUpload(dataTransfer.files);
     });
 

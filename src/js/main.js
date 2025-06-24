@@ -14,9 +14,11 @@ console.log("syri");
 document.addEventListener('DOMContentLoaded', () => {
 
     const mainContainer = document.getElementById('main-container');
-    mainContainer.appendChild(createForm());
-    mainContainer.appendChild(createControlPanel());
-    mainContainer.appendChild(createGraphSection());    
+    createForm().then(form => {                 
+        mainContainer.appendChild(form);
+        mainContainer.appendChild(createControlPanel());
+        mainContainer.appendChild(createGraphSection());
+    });
 
     setupAnalytics();
 });

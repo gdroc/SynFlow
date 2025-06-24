@@ -22,7 +22,7 @@ export function setupAnalytics() {
         feedbackButton.classList.add('feedback-button');
         feedbackButton.onclick = showFeedbackForm;
         
-        document.querySelector('#graph-section').appendChild(feedbackButton);
+        document.querySelector('#main-container').appendChild(feedbackButton);
     }
 
     // Formulaire de feedback
