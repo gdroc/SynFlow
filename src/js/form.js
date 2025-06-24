@@ -204,11 +204,20 @@ function fetchRemoteFileList(folder) {
 
 // Cree le formulaire pour sélectionner les fichiers existants
 async function createExistingFilesForm() {
-    const div = document.createElement('div');
+
+    //Crée un conteneur pour le form + le help
+    const existingSection = document.createElement('div');
+    existingSection.setAttribute('id', 'existing-file-form');
+    existingSection.style.display = 'flex';
+    existingSection.style.gap = '20px';
+
+    const existingFormContainer = document.createElement('div');
+    existingFormContainer.style.flex = '1';
+
     const title = document.createElement('h5');
     title.textContent = 'Select Study';
     title.style.marginBottom = '10px';
-    div.appendChild(title);
+    existingFormContainer.appendChild(title);
 
     // Sélecteur de dossier (dataset)
     const folderSelect = document.createElement('select');
@@ -230,7 +239,7 @@ async function createExistingFilesForm() {
         option.textContent = formattedFolderName;
         folderSelect.appendChild(option);
     });
-    div.appendChild(folderSelect);
+    existingFormContainer.appendChild(folderSelect);
 
     // Liste cliquable des génomes
     const fileListDiv = document.createElement('div');
@@ -239,7 +248,7 @@ async function createExistingFilesForm() {
     fileListDiv.style.overflowY = 'auto';
     fileListDiv.style.border = '1px solid #ccc';
     fileListDiv.style.padding = '5px';
-    div.appendChild(fileListDiv);
+    existingFormContainer.appendChild(fileListDiv);
 
     // Affichage de la chaîne sélectionnée
     const chainDiv = document.createElement('div');
@@ -247,7 +256,7 @@ async function createExistingFilesForm() {
     chainDiv.style.marginTop = '15px';
     chainDiv.style.fontSize = '0.95em';
     chainDiv.style.color = '#333';
-    div.appendChild(chainDiv);
+    existingFormContainer.appendChild(chainDiv);
 
     // Sélection ordonnée
     let selectedGenomes = [];
@@ -310,7 +319,7 @@ async function createExistingFilesForm() {
     loadButton.setAttribute('id', 'submit-remote');
     loadButton.textContent = 'Draw';
     loadButton.style.marginTop = '10px';
-    div.appendChild(loadButton);
+    existingFormContainer.appendChild(loadButton);
 
     loadButton.addEventListener('click', async () => {
 
@@ -367,7 +376,41 @@ async function createExistingFilesForm() {
         handleFileUpload(dataTransfer.files);
     });
 
-    return div;
+    // Container pour l'aide (partie droite)
+    const existingHelpContainer = document.createElement('div');
+    existingHelpContainer.style.flex = '0 0 600px'; // Largeur fixe de 400px
+    existingHelpContainer.style.padding = '15px';
+    existingHelpContainer.style.backgroundColor = '#f8f9fa';
+    existingHelpContainer.style.borderRadius = '5px';
+    existingHelpContainer.style.border = '1px solid #dee2e6';
+    existingHelpContainer.style.maxHeight = '600px'; // Hauteur maximale
+    existingHelpContainer.style.overflowY = 'auto'; // Scroll si le contenu dépasse
+
+    // Contenu de l'aide
+    existingHelpContainer.innerHTML = `
+        <h5>About the studies</h5>
+        <div style="margin-top: 15px;">
+            <p>
+                The available files come from analyses performed on several organisms using the <b>Synflow workflow</b>.
+                See the 
+                <a href="https://github.com/SouthGreenPlatform/synflow" target="_blank">Synflow documentation</a>.
+            </p>
+            <h6>How to select files</h6>
+            <ul style="padding-left: 20px;">
+                <li>
+                    Select a study from the dropdown menu to view the available accessions.
+                    <br>
+                </li>
+                <li>
+                    Click on every accession you want to include in the chain. The order of selection matters.
+                </li>
+            </ul>
+        </div>
+    `;
+
+    existingSection.appendChild(existingFormContainer);
+    existingSection.appendChild(existingHelpContainer);
+    return existingSection;
 }
     
 
@@ -413,10 +456,10 @@ function createUploadSection() {
     helpContainer.innerHTML = `
         <h5>File Requirements</h5>
         <div style="margin-top: 15px;">
-            <h6>Syri Output Files (.out)</h6>
+            <h6>SyRI output files (.out)</h6>
             <ul style="padding-left: 20px;">
-                <li>Files must be in Syri output format</li>
-                <li>The file names should follow the pattern: genome1_genome2.out</li>
+                <li>Files must be in SyRI output format. <a href="https://schneebergerlab.github.io/syri/fileformat.html">Go to SyRI documentation</a></li>
+                <li>The file names should follow the pattern: <strong>genome1_genome2.out</strong></li>
                 <li>Files can be chained for multiple genome comparisons:</li>
             </ul>
             
@@ -430,14 +473,6 @@ function createUploadSection() {
                 <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
                     This will create a visualization chain: A_thaliana → C_rubella → B_rapa → O_sativa
                 </p>
-            </div>
-
-            <div style="margin-top: 15px;">
-                <h6>File Format Example:</h6>
-                <pre style="background-color: #eee; padding: 10px; border-radius: 4px; font-size: 12px;">
-    #type  source  chr_source  start_source  end_source  target  chr_target  start_target  end_target  comments
-    SYN    A_tha   1          1000          2000        C_rub   1          1200          2200        ID=1
-    INV    A_tha   2          3000          4000        C_rub   2          5000          6000        ID=2</pre>
             </div>
         </div>
     `;
