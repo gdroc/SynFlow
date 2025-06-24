@@ -176,6 +176,7 @@ async function fetchSynflowDirectories() {
         return [];
     }
 }
+
 // Fonction pour récupérer la liste des fichiers .out depuis un dossier distant
 function fetchRemoteFileList(folder) {
     // Récupère la liste des fichiers .out depuis le HTML du dossier distant
@@ -197,7 +198,7 @@ function fetchRemoteFileList(folder) {
         });
 }
 
-// Fonctions helpers pour créer les différents formulaires
+// Cree le formulaire pour sélectionner les fichiers existants
 async function createExistingFilesForm() {
 
     const div = document.createElement('div');
@@ -217,7 +218,13 @@ async function createExistingFilesForm() {
     remoteFolders.forEach(folder => {
         const option = document.createElement('option');
         option.value = folder;
-        option.textContent = folder;
+        //affiche uniquement le nom du dossier avant /synflow (avec ou sans majuscules)
+        //exemple : https://hpc.cirad.fr/bank/banana/synflow/ devient "Banana"
+        //exemple : https://hpc.cirad.fr/bank/vitis/Synflow/ devient "Vitis"
+        const folderName = folder.replace('/synflow/', '').replace('/Synflow/', '').split('/').pop();
+        // Mettre la première lettre en majuscule et le reste en minuscules
+        const formattedFolderName = folderName.charAt(0).toUpperCase() + folderName.slice(1).toLowerCase();
+        option.textContent = formattedFolderName;
         folderSelect.appendChild(option);
     });
     div.appendChild(folderSelect);
@@ -238,10 +245,6 @@ async function createExistingFilesForm() {
     chainDiv.style.color = '#333';
     div.appendChild(chainDiv);
 
-   
-
-    
-
     // Fonction pour charger les fichiers du dossier sélectionné
     function loadFiles(folder) {
 
@@ -261,7 +264,6 @@ async function createExistingFilesForm() {
         });
         chainDiv.innerHTML = '';
     }
-
     // Initialisation avec le premier dossier
     loadFiles(folderSelect.value);
 
@@ -274,7 +276,7 @@ async function createExistingFilesForm() {
     select.addEventListener('change', () => {
         const selected = Array.from(select.selectedOptions).map(opt => opt.textContent);
         if (selected.length > 0) {
-            chainDiv.innerHTML = `<b>Chaîne sélectionnée :</b> <br>${selected.join(' &rarr; ')}`;
+            chainDiv.innerHTML = `<b>Selected chain :</b> <br>${selected.join(' &rarr; ')}`;
         } else {
             chainDiv.innerHTML = '';
         }
