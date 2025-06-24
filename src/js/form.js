@@ -39,14 +39,15 @@ export async function createForm() {
         background-color: white;
         transition: max-height 0.3s ease-out;
         overflow: hidden;
-        max-height: 1000px; // Valeur initiale suffisamment grande
+        max-height: 1000px; 
     `;
 
     // Event listener sur headerBar
     headerBar.addEventListener('click', (event) => {
         event.preventDefault();
         if(formContent.style.maxHeight === '0px' || !formContent.style.maxHeight) {
-            formContent.style.maxHeight = formContent.scrollHeight + 'px';
+            // formContent.style.maxHeight = formContent.scrollHeight + 'px';
+            formContent.style.maxHeight = '1000px'; // Pour une animation fluide
             chevronIcon.className = 'fas fa-chevron-up';
         } else {
             formContent.style.maxHeight = '0px';
@@ -200,14 +201,13 @@ function fetchRemoteFileList(folder) {
 
 // Cree le formulaire pour sélectionner les fichiers existants
 async function createExistingFilesForm() {
-
     const div = document.createElement('div');
     const title = document.createElement('h5');
     title.textContent = 'Select Study';
     title.style.marginBottom = '10px';
     div.appendChild(title);
 
-     // Sélecteur de dossier (dataset)
+    // Sélecteur de dossier (dataset)
     const folderSelect = document.createElement('select');
     folderSelect.setAttribute('id', 'remote-folder-select');
     folderSelect.style.width = '100%';
@@ -229,15 +229,16 @@ async function createExistingFilesForm() {
     });
     div.appendChild(folderSelect);
 
-    // Sélecteur multiple de fichiers
-    const select = document.createElement('select');
-    select.setAttribute('id', 'existing-files');
-    select.setAttribute('multiple', true);
-    select.style.width = '100%';
-    select.style.height = '180px';
-    div.appendChild(select);
+    // Liste cliquable des génomes
+    const fileListDiv = document.createElement('div');
+    fileListDiv.setAttribute('id', 'existing-files-list');
+    fileListDiv.style.maxHeight = '180px';
+    fileListDiv.style.overflowY = 'auto';
+    fileListDiv.style.border = '1px solid #ccc';
+    fileListDiv.style.padding = '5px';
+    div.appendChild(fileListDiv);
 
-    // Conteneur pour afficher la chaîne sélectionnée
+    // Affichage de la chaîne sélectionnée
     const chainDiv = document.createElement('div');
     chainDiv.setAttribute('id', 'selected-chain');
     chainDiv.style.marginTop = '15px';
@@ -245,41 +246,58 @@ async function createExistingFilesForm() {
     chainDiv.style.color = '#333';
     div.appendChild(chainDiv);
 
-    // Fonction pour charger les fichiers du dossier sélectionné
+    // Sélection ordonnée
+    let selectedGenomes = [];
+
+    function updateChainDiv() {
+        if (selectedGenomes.length > 0) {
+            chainDiv.innerHTML = `<b>Selected chain :</b> <br>${selectedGenomes.join(' &rarr; ')}`;
+        } else {
+            chainDiv.innerHTML = '';
+        }
+    }
+
     function loadFiles(folder) {
-
-        select.innerHTML = '';
+        fileListDiv.innerHTML = '';
+        selectedGenomes = [];
+        updateChainDiv();
         fetchRemoteFileList(folder).then(files => {
-
             const genomes = extractAllGenomes(files);
-            // Affiche la liste des génomes pour que l'utilisateur construise sa chaîne
-            console.log('Genomes disponibles :', genomes);
-
             genomes.forEach(genome => {
-                const option = document.createElement('option');
-                option.value = genome;
-                option.textContent = genome;
-                select.appendChild(option);
+                const genomeDiv = document.createElement('div');
+                genomeDiv.textContent = genome;
+                genomeDiv.style.cursor = 'pointer';
+                genomeDiv.style.padding = '4px 8px';
+                genomeDiv.style.margin = '2px 0';
+                genomeDiv.style.borderRadius = '4px';
+                genomeDiv.style.transition = 'background 0.2s';
+                genomeDiv.classList.add('genome-item');
+
+                genomeDiv.addEventListener('click', () => {
+                    const idx = selectedGenomes.indexOf(genome);
+                    if (idx !== -1) {
+                        selectedGenomes.splice(idx, 1);
+                        genomeDiv.style.background = '';
+                        genomeDiv.style.color = '';
+                    } else {
+                        selectedGenomes.push(genome);
+                        genomeDiv.style.background = 'grey';
+                        genomeDiv.style.color = '#fff';
+                    }
+                    updateChainDiv();
+                });
+
+                fileListDiv.appendChild(genomeDiv);
             });
         });
-        chainDiv.innerHTML = '';
     }
+
     // Initialisation avec le premier dossier
     loadFiles(folderSelect.value);
 
     // Changement de dossier = recharge la liste de fichiers
     folderSelect.addEventListener('change', (e) => {
         loadFiles(e.target.value);
-    });
-
-    // Met à jour la chaîne affichée quand la sélection change
-    select.addEventListener('change', () => {
-        const selected = Array.from(select.selectedOptions).map(opt => opt.textContent);
-        if (selected.length > 0) {
-            chainDiv.innerHTML = `<b>Selected chain :</b> <br>${selected.join(' &rarr; ')}`;
-        } else {
-            chainDiv.innerHTML = '';
-        }
     });
 
     // Bouton pour charger les fichiers sélectionnés
@@ -289,10 +307,8 @@ async function createExistingFilesForm() {
     loadButton.textContent = 'Draw';
     loadButton.style.marginTop = '10px';
     div.appendChild(loadButton);
-    loadButton.addEventListener('click', async () => {
-        // Récupère la chaîne de génomes sélectionnée
-        const selectedGenomes = Array.from(select.selectedOptions).map(opt => opt.value);
 
+    loadButton.addEventListener('click', async () => {
         if (selectedGenomes.length < 2) {
             chainDiv.innerHTML = '<span style="color:red;">Sélectionnez au moins 2 génomes pour créer une chaîne.</span>';
             return;
@@ -324,8 +340,6 @@ async function createExistingFilesForm() {
 
         // Télécharge les fichiers nécessaires et crée des objets File
         const files = await Promise.all(neededFiles.map(async file => {
-            // Ici, simule le fetch depuis un "dossier distant" (à adapter si tu as un vrai serveur)
-            //recréer le chemin complet du fichier
             const filePath = `${folder}${file}`;
             // Utilise fetch pour récupérer le contenu du fichier
             const response = await fetch(filePath);
@@ -346,7 +360,7 @@ async function createExistingFilesForm() {
         handleFileUpload(dataTransfer.files);
     });
 
-        return div;
+    return div;
 }
     
 
