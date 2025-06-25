@@ -1,4 +1,4 @@
-import { refGenome, queryGenome, genomeColors, genomeData, scale } from "./process.js";
+import { refGenome, queryGenome, genomeColors, genomeData, scale, allParsedData } from "./process.js";
 
 export let currentYOffset = 0; // Définir globalement
 
@@ -419,9 +419,9 @@ export function drawCorrespondenceBands(data, chromPositions, isFirstFile, scale
     const svgGroup = d3.select('#zoomGroup');
 
     // Types à merger
-    const mergeTypes = ['INVTR'];
+    const mergeTypes = ['INVTR', 'TRANS'];
     // Types à dessiner normalement
-    const normalTypes = ['SYN', 'INV', 'TRANS', 'DUP'];
+    const normalTypes = ['SYN', 'INV', 'DUP'];
 
     // Sépare les bandes à merger et les autres
     const bandsToMerge = data.filter(d => mergeTypes.includes(d.type));
@@ -431,9 +431,7 @@ export function drawCorrespondenceBands(data, chromPositions, isFirstFile, scale
     const mergedBands = mergeBands(bandsToMerge, bandsNormal, mergeThreshold);
 
     // Concatène tout pour le dessin
-    const allBands = bandsNormal.concat(mergedBands);
-
-    
+    const allBands = bandsNormal.concat(mergedBands);    
 
     allBands.forEach(d => {
         drawOneBand(svgGroup, d, chromPositions, refGenome, queryGenome);
@@ -581,23 +579,29 @@ function drawOneBand(svgGroup, d, chromPositions, refGenome, queryGenome) {
                 tip.hide(event, d); // Masquer le tooltip
             })
             .on('click', function (event, d) {
-                // Récupérer les lignes du fichier correspondant aux positions refStart et refEnd
-                const linesInRange = getLinesInRange(window.fullParsedData, d.refChr, d.refStart, d.refEnd);
+                // Cherche le bon jeu de données dans allParsedData
+                const parsedSet = allParsedData.find(set =>
+                    set.refGenome === refGenome && set.queryGenome === queryGenome
+                );
+                if (!parsedSet) {
+                    d3.select('#info').html('<p>No data found for this band.</p>');
+                    return;
+                }
+                const linesInRange = getLinesInRange(parsedSet.data, d.refChr, d.queryChr, d.refStart, d.refEnd, d.queryStart, d.queryEnd);
                 const tableHtml = convertLinesToTableHtml(linesInRange);
 
-                // Afficher les informations dans la div #info
-                d3.select('#info').html(`
-                    <br>${tableHtml}
-                `);
-        });
+                d3.select('#info').html(`<br>${tableHtml}`);
+            });
+        ;
     }else {
         console.error(`Invalid chromosome position for ref: ${d.refChr} or query: ${d.queryChr}`);
     }
 }
 
 
-function getLinesInRange(parsedData, refChr, refStart, refEnd) {
-    return parsedData.filter(d => d.refChr === refChr && d.refStart >= refStart && d.refEnd <= refEnd);
+function getLinesInRange(parsedData, refChr, queryChr, refStart, refEnd, queryStart, queryEnd) {
+    console.log("getLinesInRange", refChr, queryChr, refStart, refEnd, queryStart, queryEnd);
+    return parsedData.filter(d => d.refChr === refChr && d.queryChr === queryChr && d.refStart >= refStart && d.refEnd <= refEnd && d.queryStart >= queryStart && d.queryEnd <= queryEnd);
 }
 
 // function convertLinesToTableHtml(lines) {

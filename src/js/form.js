@@ -374,6 +374,7 @@ async function createExistingFilesForm() {
         // Appelle ta fonction de visualisation
         const visualizationContainer = document.getElementById('viz');
         visualizationContainer.innerHTML = ''; // Efface le contenu existant
+        d3.select('#info').html('');
         d3.select("#viz").call(zoom);
         // Ajoutez un groupe à l'intérieur de l'élément SVG pour contenir les éléments zoomables
         d3.select("#viz").append("g").attr("id", "zoomGroup");
@@ -571,6 +572,8 @@ function createUploadSection() {
 
         const visualizationContainer = document.getElementById('viz');
         visualizationContainer.innerHTML = ''; // Efface le contenu existant
+
+        d3.select('#info').html('');
 
         d3.select("#viz").call(zoom);
 

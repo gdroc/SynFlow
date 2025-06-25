@@ -7,6 +7,7 @@ import { hideForm } from './form.js';
 export let refGenome; // Définir globalement
 export let queryGenome; // Définir globalement
 export let genomeColors = {};
+export let allParsedData = [];
 let genomeLengths; // taille des chromosomes
 export let genomeData; // Données des chromosomes
 let maxAlignments; //duo de chromosomes ref/query avec le plus grand alignement
@@ -40,6 +41,7 @@ function resetGlobals() {
     globalMaxChromosomeLengths = {};
     currentFile = null;
     numGenomes = null;
+    allParsedData = [];
     resetDrawGlobals(); // Réinitialiser currentYOffset
 
 }
@@ -102,7 +104,12 @@ function processChunks(lines, isFirstFile) {
             
             drawCorrespondenceBands(parsedData, chromPositions, isFirstFile, scale);
             previousChromosomePositions = chromPositions;
-            window.fullParsedData = parsedData; // Sauvegarder les données complètes dans une variable globale
+            // window.fullParsedData = parsedData; // Sauvegarder les données du dernier fichier traité
+            allParsedData.push({ //toutes les données de tous les fichiers
+                refGenome,
+                queryGenome,
+                data: parsedData
+            });
             processNextFile(); // Traiter le fichier suivant
         }
     }
