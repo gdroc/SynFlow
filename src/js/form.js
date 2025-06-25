@@ -458,7 +458,7 @@ function createUploadSection() {
         <div style="margin-top: 15px;">
             <h6>SyRI output files (.out)</h6>
             <ul style="padding-left: 20px;">
-                <li>Files must be in SyRI output format. <a href="https://schneebergerlab.github.io/syri/fileformat.html">Go to SyRI documentation</a></li>
+                <li>Files must be in SyRI output format. <a href="https://schneebergerlab.github.io/syri/fileformat.html" target="_blank">See the SyRI documentation</a></li>
                 <li>The file names should follow the pattern: <strong>genome1_genome2.out</strong></li>
                 <li>Files can be chained for multiple genome comparisons:</li>
             </ul>
