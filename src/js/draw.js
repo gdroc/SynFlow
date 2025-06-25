@@ -190,6 +190,8 @@ export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, 
                         .attr('x', currentX + chromWidth / 2)
                         .attr('y', yRefPosition - 10) // Position au-dessus des chromosomes de référence
                         .attr('text-anchor', 'middle')
+                        .attr('class', 'chrom-title')
+                        .attr("chromNum", chrom)
                         .text(genomeData[refGenome][chrom].name);
                 }
             }

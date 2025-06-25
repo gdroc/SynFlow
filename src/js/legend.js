@@ -498,6 +498,16 @@ export function updateBandsVisibility() {
             chrom.attr('display', 'none');
         }
     });
+    //cache aussi le nom du chromosome
+    d3.selectAll('.chrom-title').each(function() {
+        const title = d3.select(this);
+        const chromNum = title.attr('chromNum');
+        if (visibleChromosomes.includes(chromNum)) {
+            title.attr('display', null);
+        } else {
+            title.attr('display', 'none');
+        }
+    });
 }
 
 export function createSlider(minBandSize, maxBandSize) {
