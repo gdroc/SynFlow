@@ -513,7 +513,7 @@ export function findUniqueGenomes(bandFileNames) {
 
 function handleFileUpload(bandFiles) {
     resetGlobals(); // Réinitialiser les variables globales
-    spinner.spin(target);
+    // spinner.spin(target);
 
     // console.log('Chromosome Length Files:', chrlenFiles);
     console.log('Band Files:', bandFiles);

@@ -1,7 +1,7 @@
 import * as toolkit from '../../../toolkit/toolkit.js';
 import { createLegendContainer } from './legend.js';
 import { zoom } from './draw.js';
-import { handleFileUpload, extractAllGenomes } from './process.js';
+import { handleFileUpload, extractAllGenomes, spinner } from './process.js';
 
 //mode de chargement des fichiers
 export let fileUploadMode = ''; // 'remote' ou 'local'
@@ -323,6 +323,10 @@ async function createExistingFilesForm() {
 
     loadButton.addEventListener('click', async () => {
 
+        // Lance le spinner
+        var target = document.getElementById('spinner');
+        spinner.spin(target); 
+
         fileUploadMode = 'remote'; // Change mode to remote for file upload
 
         if (selectedGenomes.length < 2) {
@@ -558,6 +562,10 @@ function createUploadSection() {
     submitButton.textContent = 'Draw';
 
     submitButton.addEventListener('click', () => {
+
+        // Lance le spinner
+        var target = document.getElementById('spinner');
+        spinner.spin(target); 
 
         fileUploadMode = 'local'; // Change mode to local for file upload
 
