@@ -53,7 +53,7 @@ export function createControlPanel() {
         padding: 20px;
         background-color: #f5f5f5;
         display: grid;
-        grid-template-columns: 300px 600px 300px;
+        grid-template-columns: 345px 600px 270px;
         gap: 20px;
     `;
 
