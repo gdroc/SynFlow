@@ -361,7 +361,9 @@ function allDone() {
     console.log("*************"+width, height);
 
     // Mettre à jour les limites de translation du zoom
-    zoom.translateExtent([[0, 0], [width, height]]);
+    // Ajoute une marge (par exemple 200px) à droite et en bas
+    const margin = 200;
+    zoom.translateExtent([[0, 0], [width + margin, height + margin]]);
     d3.select("#viz").call(zoom);
 
     // Determine min and max band sizes

@@ -81,7 +81,7 @@ export function createGraphSection() {
     zoomGroup.setAttribute('id', 'zoomGroup');
 
     zoom = d3.zoom()
-        .scaleExtent([0.1, 10]) // Définir les niveaux de zoom minimum et maximum
+        .scaleExtent([0.5, 15]) // Définir les niveaux de zoom minimum et maximum
         .on("zoom", (event) => {
             // console.log("Zoom event triggered");
             // console.log(event.transform);
