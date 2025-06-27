@@ -1,3 +1,4 @@
+import { showInfoPanel, showInfoUpdatedMessage} from "./info.js";
 import { refGenome, queryGenome, genomeColors, genomeData, scale, allParsedData } from "./process.js";
 
 export let currentYOffset = 0; // Définir globalement
@@ -589,9 +590,11 @@ function drawOneBand(svgGroup, d, chromPositions, refGenome, queryGenome) {
                     d3.select('#info').html('<p>No data found for this band.</p>');
                     return;
                 }
+                 //affiche la section info
+                showInfoPanel();
+                showInfoUpdatedMessage()
                 const linesInRange = getLinesInRange(parsedSet.data, d.refChr, d.queryChr, d.refStart, d.refEnd, d.queryStart, d.queryEnd);
-                const tableHtml = convertLinesToTableHtml(linesInRange);
-
+                const tableHtml = convertLinesToTableHtml(linesInRange);               
                 d3.select('#info').html(`<br>${tableHtml}`);
             });
         ;

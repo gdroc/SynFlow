@@ -2,6 +2,7 @@ import { createForm } from './form.js';
 import { createControlPanel } from './legend.js';
 import { createGraphSection } from './draw.js';
 import { setupAnalytics } from './analytics.js';
+import { createInfoPanel } from './info.js';
 
 console.log("syri");
  // Définir le comportement de zoom
@@ -18,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mainContainer.appendChild(form);
         mainContainer.appendChild(createControlPanel());
         mainContainer.appendChild(createGraphSection());
+        mainContainer.appendChild(createInfoPanel());
     });
 
     setupAnalytics();
