@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon" href="/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SyRI Visualization</title>
+    <title>SynFlow</title>
 
     <!-- styl css -->
     <link rel="stylesheet" type="text/css" href="src/css/style.css">
@@ -21,48 +21,23 @@
     <!-- d3 -->
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="https://unpkg.com/d3-v6-tip@1.0.6/build/d3-v6-tip.js"></script>
-    <script src="https://unpkg.com/d3-v6-tip@1.0.6/build/d3-v6-tip.js"></script>
 
     <!-- font awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 
-    <!-- gsap -->
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script> -->
-
     <script type="module" src="src/js/spin.js"></script>
     <link rel="stylesheet" type="text/css" href="src/css/spin.css">
 
-    <!--SocketIO-->
-    <script src="node_modules/socket.io/client-dist/socket.io.js"></script>
-    <script>
-        //montmedy
-        // var socket = io('https://195.221.175.11:3000', {transports: ['websocket']});
-
-        //garenne gemo
-        // var socket = io('https://wsp1453.southgreen.fr', {transports: ['websocket']});
-        // socket.emit('clientInfo', { url: window.location.href });   
-    </script>
-
-    <!-- intro.js -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.0.1/introjs.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.0.1/intro.min.js"></script>
 
 </head>
 
 <body>
     <div class="container">
-        <h1>SynFlow</h1>
-
+        <!-- <h1>SynFlow</h1> -->
+        <img src="public/img/SynFlow Color.png" alt="SynFlow Logo" style="width: 100%; max-width: 225px; margin: 20px auto;">
         <div id="spinner"></div>
-        <div id="main-container">
-            
-        </div>
-        <!-- <div id="range-slider-example"></div>
-        <div id="bar-chart-container"></div> -->
-        <!-- <div id="viz-container" class="svg-container">
-            <svg id="viz" height="600"></svg>
-        </div> -->
+        <div id="main-container"></div>
         <div id="info" style="overflow-x: auto; height: 800px; padding: 10px; border: 1px solid #ccc;"></div>
-    </div>
+    </img>
 </body>
 </html>
