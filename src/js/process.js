@@ -274,17 +274,29 @@ function updateChromList(globalMaxChromosomeLengths) {
         e.preventDefault();
         const draggingItem = chromListDiv.querySelector('.dragging');
         if (!draggingItem) return;
-        
-        const siblings = [...chromListDiv.querySelectorAll('[draggable]:not(.dragging)')];
-        const nextSibling = siblings.find(sibling => {
-            const rect = sibling.getBoundingClientRect();
-            // Comparer avec la position X au lieu de Y pour un déplacement horizontal
-            const middle = rect.left + rect.width / 2;
-            return e.clientX < middle;
-        });
 
-        if (nextSibling) {
-            chromListDiv.insertBefore(draggingItem, nextSibling);
+        const siblings = [...chromListDiv.querySelectorAll('[draggable]:not(.dragging)')];
+        let insertBefore = null;
+
+        for (const sibling of siblings) {
+            const rect = sibling.getBoundingClientRect();
+            // Si la souris est dans la moitié gauche de l'élément, on insère avant
+            if (
+                e.clientY >= rect.top && e.clientY <= rect.bottom &&
+                e.clientX < rect.left + rect.width / 2
+            ) {
+                insertBefore = sibling;
+                break;
+            }
+            // Si la souris est au-dessus de la première ligne, on insère avant le premier
+            if (e.clientY < siblings[0].getBoundingClientRect().top) {
+                insertBefore = siblings[0];
+                break;
+            }
+        }
+
+        if (insertBefore) {
+            chromListDiv.insertBefore(draggingItem, insertBefore);
         } else {
             chromListDiv.appendChild(draggingItem);
         }
