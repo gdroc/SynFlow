@@ -312,6 +312,22 @@ async function createExistingFilesForm() {
         loadFiles(e.target.value);
     });
 
+    //bouton clear pour deselectionner tout
+    const clearButton = document.createElement('button');
+    clearButton.setAttribute('type', 'button');
+    clearButton.classList.add('btn-simple');
+    clearButton.textContent = 'Clear Selection';
+    clearButton.style.marginTop = '10px';
+    clearButton.addEventListener('click', () => {
+        selectedGenomes = [];
+        updateChainDiv();
+        fileListDiv.querySelectorAll('.genome-item').forEach(item => {
+            item.style.background = '';
+            item.style.color = '';
+        });
+    });
+    existingFormContainer.appendChild(clearButton);
+
     // Bouton pour charger les fichiers sélectionnés
     const loadButton = document.createElement('button');
     loadButton.setAttribute('type', 'button');
