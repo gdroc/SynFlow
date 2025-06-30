@@ -1,5 +1,5 @@
 import { showInfoPanel, showInfoUpdatedMessage} from "./info.js";
-import { refGenome, queryGenome, genomeColors, genomeData, scale, allParsedData } from "./process.js";
+import { refGenome, queryGenome, genomeColors, genomeData, scale, allParsedData, isFirstDraw } from "./process.js";
 
 export let currentYOffset = 0; // Définir globalement
 
@@ -496,6 +496,13 @@ function mergeBands(bandsToMerge, otherBands, threshold) {
 
 function drawOneBand(svgGroup, d, chromPositions, refGenome, queryGenome) {
 
+    //Si c'est un redraw alors on vérifie les filtres de bandes
+    if(!isFirstDraw){
+        if (!isBandVisible(d)) {
+            return;
+        }
+    }
+    
     let refChromNum = Object.values(genomeData[refGenome]).findIndex(item => item.name === d.refChr) + 1;
     let queryChromNum = Object.values(genomeData[queryGenome]).findIndex(item => item.name === d.queryChr) + 1;
     const refX = chromPositions[[refChromNum]]?.refX;
@@ -819,4 +826,51 @@ function initializeTableFiltering() {
             });
         });
     });
+}
+
+function isBandVisible(d) {
+    // Types visibles
+    const eyeIcons = document.querySelectorAll('i[data-type]');
+    const selectedTypes = Array.from(eyeIcons)
+        .filter(icon => !icon.classList.contains('fa-eye-slash'))
+        .map(icon => icon.getAttribute('data-type'));
+
+    // Dépendances de types (copie depuis legend.js si besoin)
+    const typeDependencies = {
+        'INVTR': ['INV', 'TRANS'],
+        'SYN': ['SYN'],
+        'INV': ['INV'],
+        'TRANS': ['TRANS'],
+        'DUP': ['DUP']
+    };
+
+    // Chromosomes visibles
+    const chromEyeIcons = document.querySelectorAll('i.chrom-eye-icon');
+    const visibleChromosomes = Array.from(chromEyeIcons)
+        .filter(icon => icon.classList.contains('fa-eye'))
+        .map(icon => icon.getAttribute('data-chrom'));
+
+    // Inter/intra
+    const showIntra = !document.getElementById('intrachromosomal-filter').classList.contains('fa-eye-slash');
+    const showInter = !document.getElementById('interchromosomal-filter').classList.contains('fa-eye-slash');
+
+    // Slider
+    const bandLength = d.refEnd - d.refStart;
+    const min = window.sliderMinValue ?? 0;
+    const max = window.sliderMaxValue ?? Infinity;
+
+    // Numéros de chromosomes (attention à la conversion)
+    const refChromNum = Object.values(genomeData[refGenome]).findIndex(item => item.name === d.refChr) + 1;
+    const queryChromNum = Object.values(genomeData[queryGenome]).findIndex(item => item.name === d.queryChr) + 1;
+
+    // Vérifications
+    const isVisibleChrom = visibleChromosomes.includes(String(refChromNum)) && visibleChromosomes.includes(String(queryChromNum));
+    const isVisibleBandType = selectedTypes.some(type => type === d.type) ||
+        (typeDependencies[d.type] && typeDependencies[d.type].every(parentType => selectedTypes.includes(parentType)));
+    const bandPos = refChromNum === queryChromNum ? 'intra' : 'inter';
+    const isVisibleBandPos = (bandPos === 'intra' && showIntra) || (bandPos === 'inter' && showInter);
+    
+    const isVisibleBandLength = bandLength >= min && bandLength <= max;
+    return isVisibleChrom && isVisibleBandType && isVisibleBandPos && isVisibleBandLength;
+
 }

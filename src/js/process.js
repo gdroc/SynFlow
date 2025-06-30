@@ -19,6 +19,7 @@ let currentFile; // Défini globalement
 const CHUNK_SIZE = 20000; // Nombre de lignes à traiter à la fois
 let numGenomes; //nombre de génomes à traiter
 export let scale = 100000; // diviseur pour la taille des chromosomes
+export let isFirstDraw = true; //premier dessin
 
 //spinner
 const opts = {
@@ -32,6 +33,7 @@ var target = document.getElementById('spinner');
 export var spinner = new Spinner(opts);
 
 function resetGlobals() {
+    isFirstDraw = true;
     refGenome = null;
     queryGenome = null;
     genomeColors = {};
@@ -306,7 +308,7 @@ function updateChromList(globalMaxChromosomeLengths) {
         const newOrder = [...chromListDiv.querySelectorAll('[draggable]')]
             .map(item => item.dataset.chromNum);
         console.log('Nouvel ordre des chromosomes:', newOrder);
-        // TODO: Mettre à jour l'affichage avec le nouvel ordre
+
         updateChromosomesOrder(newOrder);
 
     });
@@ -450,6 +452,9 @@ function allDone() {
         event.preventDefault();
         downloadSvg();
     });
+
+    isFirstDraw = false;
+
 }
 
 function calculateSNPDensity(data, refLengths, binSize = 100000) {
