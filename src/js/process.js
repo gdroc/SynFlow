@@ -217,7 +217,7 @@ function updateChromList(globalMaxChromosomeLengths) {
                 
                 // Calculer la translation pour centrer le chromosome
                 const translateX = margin - (scale * chromPos.refX);
-                const translateY = margin - (scale * chromPos.refY);
+                const translateY = margin - (scale * chromPos.refY) - svgHeight + 50;
 
                 // console.log("Center X: ", centerX, "Center Y: ", centerY);
                 console.log("Translate X: ", translateX, "Translate Y: ", translateY);
