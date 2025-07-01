@@ -496,10 +496,11 @@ function mergeBands(bandsToMerge, otherBands, threshold) {
 
 function drawOneBand(svgGroup, d, chromPositions, refGenome, queryGenome) {
 
+    let display = 'null';
     //Si c'est un redraw alors on vérifie les filtres de bandes
     if(!isFirstDraw){
         if (!isBandVisible(d)) {
-            return;
+            display = 'none';
         }
     }
     
@@ -572,6 +573,7 @@ function drawOneBand(svgGroup, d, chromPositions, refGenome, queryGenome) {
             .attr('d', pathData)
             .attr('fill', color)
             .attr('opacity', 0.5)
+            .attr('display', display) //gère le filtre isVisible
             .attr('class', 'band')
             .attr('data-length', bandLength) // Ajouter l'attribut de longueur
             .attr('data-pos', bandPos) // Ajouter l'attribut de position inter ou intra
