@@ -269,6 +269,7 @@ async function createExistingFilesForm() {
         }
     }
 
+    //charge la liste des fichiers disponibles
     function loadFiles(folder) {
         fileListDiv.innerHTML = '';
         selectedGenomes = [];

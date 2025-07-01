@@ -1046,6 +1046,7 @@ function parseSyriData(data) {
     return parsedData.filter(d => d.refChr && d.queryChr && d.queryChr !== '-' && d.refChr !== '-'); // Filtrer les lignes invalides
 }
 
+// parse la liste des fichiers syri all vs all et renvoie la liste des génomes
 export function extractAllGenomes(bandFileNames) {
     const fragmentCounts = {};
     console.log("Extracting all genomes from band files: ", bandFileNames);
@@ -1095,6 +1096,11 @@ export function extractAllGenomes(bandFileNames) {
     genomes = genomes.filter(g =>
         singles.has(g) || !genomes.some(other => other !== g && other.includes(g))
     );
+
+    //pour chaque genome, remplace les '-' par un espace. 
+    //puis classe par ordre alphabetique
+    genomes = genomes.map(g => g.replace(/-/g, ' '));
+    genomes.sort((a, b) => a.localeCompare(b));
 
     return genomes;
 }
