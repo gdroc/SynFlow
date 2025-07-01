@@ -884,6 +884,12 @@ function reorderFileList(fileListElement, orderedFileNames, fileType) {
 
             listItem.addEventListener('dragend', (e) => {
                 e.target.classList.remove('dragging');
+                //si on est dans les selected genome dans existing files
+                if (selectedGenomes.length > 0) {
+                    //recréée la chaine avec le nouvel ordre des genome
+                    chainDiv.innerHTML = `<b>Selected chain :</b> <br>${orderedFileNames.join(' &rarr; ')}`;
+                    const loadButton=document.querySelector('#submit-remote').dispatchEvent('clic');
+                }
             });
 
             listItem.addEventListener('dragover', (e) => {
@@ -1097,9 +1103,7 @@ export function extractAllGenomes(bandFileNames) {
         singles.has(g) || !genomes.some(other => other !== g && other.includes(g))
     );
 
-    //pour chaque genome, remplace les '-' par un espace. 
-    //puis classe par ordre alphabetique
-    genomes = genomes.map(g => g.replace(/-/g, ' '));
+    // classe par ordre alphabetique
     genomes.sort((a, b) => a.localeCompare(b));
 
     return genomes;

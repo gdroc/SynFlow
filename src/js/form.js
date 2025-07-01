@@ -278,13 +278,16 @@ async function createExistingFilesForm() {
             const genomes = extractAllGenomes(files);
             genomes.forEach(genome => {
                 const genomeDiv = document.createElement('div');
-                genomeDiv.textContent = genome;
                 genomeDiv.style.cursor = 'pointer';
                 genomeDiv.style.padding = '4px 8px';
                 genomeDiv.style.margin = '2px 0';
                 genomeDiv.style.borderRadius = '4px';
                 genomeDiv.style.transition = 'background 0.2s';
                 genomeDiv.classList.add('genome-item');
+                genomeDiv.dataset.fileName = genome; // vrai nom de fichier
+
+                //affiche le nom sans tiret
+                genomeDiv.textContent = genome.replace(/-/g, ' ');
 
                 genomeDiv.addEventListener('click', () => {
                     const idx = selectedGenomes.indexOf(genome);
