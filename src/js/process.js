@@ -2,7 +2,7 @@ import { drawChromosomes, drawStackedChromosomes, drawCorrespondenceBands, reset
 import { generateBandTypeFilters, createSlider, createLengthChart, updateBandsVisibility, showControlPanel, createMergeSlider } from './legend.js';
 import { Spinner } from './spin.js';
 import { zoom } from './draw.js';
-import { hideForm } from './form.js';
+import { fileUploadMode, hideForm, setSelectedGenomes } from './form.js';
 
 export let refGenome; // Définir globalement
 export let queryGenome; // Définir globalement
@@ -854,6 +854,7 @@ function downloadSvg() {
 
 export { generateColor, readFileInChunks, handleFileUpload };
 
+
 function reorderFileList(fileListElement, orderedFileNames, fileType) {
     // Ne rien faire si la liste n'existe pas
     //exemple: chargement depuis l'onglet existing files
@@ -862,6 +863,24 @@ function reorderFileList(fileListElement, orderedFileNames, fileType) {
     console.log(fileListElement);
     console.log(orderedFileNames);
     console.log(fileType);
+
+    // Ajoute le listener dragend UNE SEULE FOIS
+    if (!fileListElement.dataset.dragendListener) {
+        fileListElement.addEventListener('dragend', () => {
+            const newOrder = [...fileListElement.querySelectorAll('[draggable]')].map(item =>
+                item.dataset.fileName.replace(`.${fileType}`, '')
+            );
+            setSelectedGenomes(newOrder);
+            console.log('Nouvel ordre:', newOrder);
+            uniqueGenomes = newOrder;
+            if (fileUploadMode === 'remote') {
+                const chainDiv = document.querySelector('#selected-chain');
+                chainDiv.innerHTML = `<b>Selected chain :</b> <br>${newOrder.join(' &rarr; ')}`;
+                document.querySelector('#submit-remote').click();
+            }
+        });
+        fileListElement.dataset.dragendListener = "true";
+    }
 
     fileListElement.classList.add('reordering');
 
@@ -884,12 +903,6 @@ function reorderFileList(fileListElement, orderedFileNames, fileType) {
 
             listItem.addEventListener('dragend', (e) => {
                 e.target.classList.remove('dragging');
-                //si on est dans les selected genome dans existing files
-                if (selectedGenomes.length > 0) {
-                    //recréée la chaine avec le nouvel ordre des genome
-                    chainDiv.innerHTML = `<b>Selected chain :</b> <br>${orderedFileNames.join(' &rarr; ')}`;
-                    const loadButton=document.querySelector('#submit-remote').dispatchEvent('clic');
-                }
             });
 
             listItem.addEventListener('dragover', (e) => {
@@ -932,23 +945,6 @@ function reorderFileList(fileListElement, orderedFileNames, fileType) {
 
         fileListElement.classList.remove('reordering');
         fileListElement.classList.add('reordered');
-
-        // Ajouter un événement pour détecter les changements d'ordre
-        fileListElement.addEventListener('dragend', () => {
-            const newOrder = [...fileListElement.querySelectorAll('[draggable]')].map(item => 
-                item.dataset.fileName.replace(`.${fileType}`, '')
-            );
-            console.log('Nouvel ordre:', newOrder);
-            // Mettre à jour uniqueGenomes avec le nouvel ordre
-            uniqueGenomes = newOrder;
-            // Réorganiser les fichiers de bandes en conséquence
-            const bandFileList = document.getElementById('band-file-list');
-            const newBandFiles = orderFilesByGenomes(
-                [...bandFileList.querySelectorAll('[draggable]')].map(item => item.dataset.fileName),
-                newOrder
-            );
-            reorderFileList(bandFileList, newBandFiles, 'out');
-        });
     }, 10);
 }
 

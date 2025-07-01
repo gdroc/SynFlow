@@ -6,6 +6,13 @@ import { handleFileUpload, extractAllGenomes, spinner } from './process.js';
 //mode de chargement des fichiers
 export let fileUploadMode = ''; // 'remote' ou 'local'
 
+
+// Sélection ordonnée
+let selectedGenomes = [];
+export function setSelectedGenomes(genomes) {
+    selectedGenomes = genomes;
+};
+
 export async function createForm() {
     const form = document.createElement('form');
     form.setAttribute('id', 'file-upload-form');
@@ -259,7 +266,8 @@ async function createExistingFilesForm() {
     existingFormContainer.appendChild(chainDiv);
 
     // Sélection ordonnée
-    let selectedGenomes = [];
+    selectedGenomes = [];
+    
 
     function updateChainDiv() {
         if (selectedGenomes.length > 0) {
