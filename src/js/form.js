@@ -407,7 +407,7 @@ async function createExistingFilesForm() {
         try {
             const jbrowseResponse = await fetch(jbrowseFilePath);
             if (jbrowseResponse.ok) {
-                jbrowseLinks = await jbrowseResponse.text();   
+                jbrowseLinks = await jbrowseResponse.json();   
                 console.log(jbrowseLinks);         
             }
         } catch (error) {

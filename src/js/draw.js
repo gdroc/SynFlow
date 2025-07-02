@@ -1,5 +1,6 @@
 import { showInfoPanel, showInfoUpdatedMessage} from "./info.js";
 import { refGenome, queryGenome, genomeColors, genomeData, scale, allParsedData, isFirstDraw } from "./process.js";
+import { jbrowseLinks } from "./form.js";
 
 export let currentYOffset = 0; // Définir globalement
 
@@ -756,10 +757,13 @@ function createDetailedTable(lines) {
         { key: 'refChr', label: 'Ref chr' },
         { key: 'refStart', label: 'Ref start' },
         { key: 'refEnd', label: 'Ref end' },
+        { key: 'refJBrowse', label: '' },   
         { key: 'queryChr', label: 'Query chr' },
         { key: 'queryStart', label: 'Query start' },
         { key: 'queryEnd', label: 'Query end' },
+        { key: 'queryJBrowse', label: '' } ,
         { key: 'type', label: 'Type' }
+        
     ];
 
     const headerHtml = headers
@@ -781,9 +785,46 @@ function createDetailedTable(lines) {
             style = `background-color: ${background}30`;
         }
             
-        const rowHtml = headers
-            .map(header => `<td class="table-cell">${line[header.key]}</td>`)
-            .join('');
+        // Construction des liens JBrowse
+        let refLink = '', queryLink = '';
+        if (typeof jbrowseLinks !== "undefined") {
+            console.log(jbrowseLinks, refGenome, queryGenome);
+            // Génère l'URL avec la position pour la ref
+            const refBase = jbrowseLinks[refGenome];
+            if (refBase) {
+                const refLoc = `${line.refChr}:${line.refStart}..${line.refEnd}`;
+                const refUrl = refBase.includes('?') 
+                    ? `${refBase}&loc=${refLoc}` 
+                    : `${refBase}?loc=${refLoc}`;
+                refLink = `<a href="${refUrl}" target="_blank" title="Go to JBrowse">
+                    <i class="fas fa-external-link-alt"></i>
+                </a>`;
+            }
+            // Génère l'URL avec la position pour la query
+            const queryBase = jbrowseLinks[queryGenome];
+            if (queryBase) {
+                const queryLoc = `${line.queryChr}:${line.queryStart}..${line.queryEnd}`;
+                const queryUrl = queryBase.includes('?') 
+                    ? `${queryBase}&loc=${queryLoc}` 
+                    : `${queryBase}?loc=${queryLoc}`;
+                queryLink = `<a href="${queryUrl}" target="_blank" title="Go to JBrowse">
+                    <i class="fas fa-external-link-alt"></i>
+                </a>`;
+            }
+        }
+
+        const rowHtml = [
+            `<td class="table-cell">${line.refChr}</td>`,
+            `<td class="table-cell">${line.refStart}</td>`,
+            `<td class="table-cell">${line.refEnd}</td>`,
+            `<td class="table-cell">${refLink}</td>`,
+            `<td class="table-cell">${line.queryChr}</td>`,
+            `<td class="table-cell">${line.queryStart}</td>`,
+            `<td class="table-cell">${line.queryEnd}</td>`,
+            `<td class="table-cell">${queryLink}</td>`,
+            `<td class="table-cell">${line.type}</td>`
+
+        ].join('');
             
         return `
             <tr style="${style}">
