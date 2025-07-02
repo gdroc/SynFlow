@@ -604,7 +604,7 @@ function drawOneBand(svgGroup, d, chromPositions, refGenome, queryGenome) {
                 showInfoPanel();
                 showInfoUpdatedMessage()
                 const linesInRange = getLinesInRange(parsedSet.data, d.refChr, d.queryChr, d.refStart, d.refEnd, d.queryStart, d.queryEnd);
-                const tableHtml = convertLinesToTableHtml(linesInRange);               
+                const tableHtml = convertLinesToTableHtml(linesInRange, d.refStart, d.refEnd, d.queryStart, d.queryEnd);               
                 d3.select('#info').html(`<br>${tableHtml}`);
             });
         ;
@@ -655,10 +655,10 @@ function getLinesInRange(parsedData, refChr, queryChr, refStart, refEnd, querySt
 //     `;
 // }
 
-function convertLinesToTableHtml(lines) {
+function convertLinesToTableHtml(lines, refStart, refEnd, queryStart, queryEnd) {
     if (lines.length === 0) return "<p>Aucune donnée disponible</p>";
 
-    const summary = createSummarySection(lines);
+    const summary = createSummarySection(lines, refStart, refEnd, queryStart, queryEnd);
     const table = createDetailedTable(lines);
 
     // Retourner le HTML avec une structure améliorée
@@ -666,7 +666,6 @@ function convertLinesToTableHtml(lines) {
         <div class="data-container">
             <div class="summary-section">
                 <h4>Summary</h4>
-                <p>Click on the badges to filter the table</p>
                 ${summary}
             </div>
             <div class="detailed-table">
@@ -714,22 +713,69 @@ const typeColors = {
     'DEL': '#b22222'
 };
 
-function createSummarySection(lines) {
+function createSummarySection(lines, refStart, refEnd, queryStart, queryEnd) {
+    if (!lines || lines.length === 0) return '';
+
+    // Affichage ref/query sans tirets
+    const refLabel = refGenome.replace(/-/g, ' ');
+    const queryLabel = queryGenome.replace(/-/g, ' ');
+
+    // Génère les liens JBrowse pour la ref et la query (sur la région sélectionnée)
+    let refJBrowseLink = '', queryJBrowseLink = '';
+    if (typeof jbrowseLinks !== "undefined") {
+        const refBase = jbrowseLinks[refGenome];
+        if (refBase) {
+            const refLoc = `${lines[0].refChr}:${refStart}..${refEnd}`;
+            const refUrl = refBase.includes('?')
+                ? `${refBase}&loc=${refLoc}`
+                : `${refBase}?loc=${refLoc}`;
+            refJBrowseLink = `<a href="${refUrl}" target="_blank" title="See reference region in JBrowse" class="jbrowse-link">
+                <i class="fas fa-external-link-alt"></i>
+            </a>`;
+        }
+        const queryBase = jbrowseLinks[queryGenome];
+        if (queryBase) {
+            const queryLoc = `${lines[0].queryChr}:${queryStart}..${queryEnd}`;
+            const queryUrl = queryBase.includes('?')
+                ? `${queryBase}&loc=${queryLoc}`
+                : `${queryBase}?loc=${queryLoc}`;
+            queryJBrowseLink = `<a href="${queryUrl}" target="_blank" title="See query region in JBrowse" class="jbrowse-link">
+                <i class="fas fa-external-link-alt"></i>
+            </a>`;
+        }
+    }
+
+    // Bloc résumé ergonomique
+    const summaryHtml = `
+        <div class="summary-refquery" style="display:flex; gap:10em; align-items:center; margin-bottom:8px;">
+            <div>
+                <b>Ref :</b> ${refLabel}<br>
+                <b>Chr:</b> ${lines[0].refChr}<br>
+                <b>Pos:</b> ${refStart}..${refEnd} ${refJBrowseLink}
+            </div>
+            <div>
+                <b>Query :</b> ${queryLabel}<br>
+                <b>Chr:</b> ${lines[0].queryChr}<br>
+                <b>Pos:</b> ${queryStart}..${queryEnd} ${queryJBrowseLink}
+            </div>
+        </div>
+    `;
+
+    // Comptage des types
     const typeCounts = {};
     lines.forEach(d => {
         typeCounts[d.type] = (typeCounts[d.type] || 0) + 1;
     });
 
-    // Utiliser l'ordre de typeColors
+    // Badges
     const typeCountsHtml = Object.keys(typeColors)
-        .filter(type => typeCounts[type]) // Ne garde que les types présents dans les données
+        .filter(type => typeCounts[type])
         .map(type => {
             const count = typeCounts[type];
             const background = typeColors[type] || '#ccc';
             const style = background.includes('gradient') 
                 ? `background: ${background}` 
                 : `background-color: ${background}`;
-                
             return `
                 <div class="type-badge" data-type="${type}" data-active="true" style="${style}">
                     <span class="type-label">${type}</span>
@@ -739,12 +785,15 @@ function createSummarySection(lines) {
         }).join('');
 
     return `
-        <div class="type-badges-container">
+        ${summaryHtml}
+                    
+        <div><p style="margin-top:20px; margin-bottom:6px;">Click on the badges to filter the table</p></div>
+
+        <div class="type-badges-container" style="margin-top:8px;">
             ${typeCountsHtml}
         </div>
     `;
 }
-
 function hexToRgba(hex, alpha = 1) {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
@@ -788,7 +837,7 @@ function createDetailedTable(lines) {
         // Construction des liens JBrowse
         let refLink = '', queryLink = '';
         if (typeof jbrowseLinks !== "undefined") {
-            console.log(jbrowseLinks, refGenome, queryGenome);
+            // console.log(jbrowseLinks, refGenome, queryGenome);
             // Génère l'URL avec la position pour la ref
             const refBase = jbrowseLinks[refGenome];
             if (refBase) {
