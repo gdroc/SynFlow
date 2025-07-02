@@ -5,6 +5,7 @@ import { handleFileUpload, extractAllGenomes, spinner } from './process.js';
 
 //mode de chargement des fichiers
 export let fileUploadMode = ''; // 'remote' ou 'local'
+export let jbrowseLinks = {}; //liste des lien jbrowse pour les genome sélectionnés dans "existing files"
 
 
 // Sélection ordonnée
@@ -398,6 +399,20 @@ async function createExistingFilesForm() {
         // Simule un input file multiple pour handleFileUpload
         const dataTransfer = new DataTransfer();
         files.forEach(file => dataTransfer.items.add(file));
+
+        //cherche s'il y a un fichier jbrowse_links.json dans le dossier et si oui, le télécharge
+        const jbrowseFileName = 'jbrowse_link.json';
+        const jbrowseFilePath = `${folder}${jbrowseFileName}`;
+        
+        try {
+            const jbrowseResponse = await fetch(jbrowseFilePath);
+            if (jbrowseResponse.ok) {
+                jbrowseLinks = await jbrowseResponse.text();   
+                console.log(jbrowseLinks);         
+            }
+        } catch (error) {
+            console.log("No jbrowse links");
+        }
 
         // Appelle ta fonction de visualisation
         const visualizationContainer = document.getElementById('viz');
