@@ -174,14 +174,14 @@ function createParametersContent() {
         if (fileUploadMode == 'local') {
             console.log('Stack mode for uploaded files');
             const submitButton = document.querySelector('#submit-local');
-            console.log('submitButton', submitButton);
+            // console.log('submitButton', submitButton);
             if (submitButton) submitButton.click();
         }
         //si les fichier proviennent de la base de données
         if (fileUploadMode == 'remote') {
             console.log('Stack mode for remote files');
             const submitButton = document.querySelector('#submit-remote');
-            console.log('submitButton', submitButton);
+            // console.log('submitButton', submitButton);
             if (submitButton) submitButton.click();
         }
     });
@@ -511,7 +511,7 @@ export function updateBandsVisibility() {
 }
 
 export function createSlider(minBandSize, maxBandSize) {
-    console.log('create slider from ' + minBandSize + ' to ' + maxBandSize);
+    // console.log('create slider from ' + minBandSize + ' to ' + maxBandSize);
 
     //efface s'il existe déjà un slider
     const existingSliderContainer = document.getElementById('slider-container');
@@ -560,7 +560,7 @@ export function createSlider(minBandSize, maxBandSize) {
 }
 
 export function createMergeSlider(min, max) {
-    console.log('create slider from ' + min + ' to ' + max);
+    // console.log('create slider from ' + min + ' to ' + max);
 
     //efface s'il existe déjà un slider
     const existingSliderContainer = document.getElementById('merge-slider-container');
@@ -606,10 +606,10 @@ export function createMergeSlider(min, max) {
         onInput: function(valueSet) {
             sliderMinValue = valueSet[0];
             // updateBandsVisibility();
-            console.log('Merge slider values:', sliderMinValue);
+            // console.log('Merge slider values:', sliderMinValue);
             // bands = tableau de toutes les bandes originales (non fusionnées)
             const mergedBands = mergeBands(bands, seuilMerge);
-            console.log('Merged bands:', mergedBands);
+            // console.log('Merged bands:', mergedBands);
         },
     });
 

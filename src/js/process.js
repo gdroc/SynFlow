@@ -61,7 +61,7 @@ function readFileInChunks(file, isFirstFile) {
 
     reader.onload = function(event) {
         const data = event.target.result;
-        console.log("File read successfully: " + file.name);
+        // console.log("File read successfully: " + file.name);
         const lines = data.split('\n');
         processChunks(lines, isFirstFile);
     };
@@ -123,7 +123,7 @@ function processNextFile() {
     const fileIndex = orderedFileObjects.indexOf(currentFile);
     if (fileIndex < orderedFileObjects.length - 1) {
         currentFile = orderedFileObjects[fileIndex + 1];
-        console.log("Current file: " + currentFile.name);
+        // console.log("Current file: " + currentFile.name);
         refGenome = uniqueGenomes[fileIndex + 1];
         queryGenome = uniqueGenomes[fileIndex + 2];
         readFileInChunks(currentFile, false);
@@ -188,7 +188,7 @@ function updateChromList(globalMaxChromosomeLengths) {
     //     // Ajout du comportement de zoom sur le chromosome
         goto.addEventListener('click', () => {
             const chromPos = chromPositions[chromNum];
-            console.log("Chromosome position:", chromPos);
+            // console.log("Chromosome position:", chromPos);
 
             if (chromPos) {
                 const margin = 100;
@@ -198,31 +198,15 @@ function updateChromList(globalMaxChromosomeLengths) {
                 const svgWidth = svgRect.width;
                 const svgHeight = svgRect.height;
 
-                console.log("SVG width", svgWidth);
-
-                // const scale = svgWidth / (chromPos.width + margin) * 5;                
-                // console.log("Scale: ", scale);
-
-                // // Position du centre du chromosome
-                // const centerX = chromPos.refX;
-                // const centerY = chromPos.refY - margin; // Pour aligner en haut avec une marge
-
-                // // Translation pour centrer le chromosome
-                // const translateX = svgWidth / 2 - scale * centerX;
-                // const translateY = margin - scale * chromPos.refY - 1000;
-
-                    // Calculer l'échelle pour que le chromosome occupe la largeur disponible moins les marges
+                // Calculer l'échelle pour que le chromosome occupe la largeur disponible moins les marges
                 const availableWidth = svgWidth - (2 * margin);
-                // const scale = availableWidth / chromPos.width;
-                // console.log("Scale: ", scale);
                 const scale = 10;
                 
                 // Calculer la translation pour centrer le chromosome
                 const translateX = margin - (scale * chromPos.refX);
                 const translateY = margin - (scale * chromPos.refY) - svgHeight + 50;
 
-                // console.log("Center X: ", centerX, "Center Y: ", centerY);
-                console.log("Translate X: ", translateX, "Translate Y: ", translateY);
+                // console.log("Translate X: ", translateX, "Translate Y: ", translateY);
 
                 // Animer le zoom
                 svg.transition()
@@ -307,7 +291,7 @@ function updateChromList(globalMaxChromosomeLengths) {
     chromListDiv.addEventListener('dragend', () => {
         const newOrder = [...chromListDiv.querySelectorAll('[draggable]')]
             .map(item => item.dataset.chromNum);
-        console.log('Nouvel ordre des chromosomes:', newOrder);
+        // console.log('Nouvel ordre des chromosomes:', newOrder);
 
         updateChromosomesOrder(newOrder);
 
@@ -360,7 +344,7 @@ function allDone() {
     const width = graphBounds.width;
     const height = graphBounds.height;
 
-    console.log("*************"+width, height);
+    // console.log("*************"+width, height);
 
     // Mettre à jour les limites de translation du zoom
     // Ajoute une marge (par exemple 200px) à droite et en bas
@@ -542,7 +526,7 @@ function handleFileUpload(bandFiles) {
     // spinner.spin(target);
 
     // console.log('Chromosome Length Files:', chrlenFiles);
-    console.log('Band Files:', bandFiles);
+    // console.log('Band Files:', bandFiles);
 
     // Extraire les noms de fichiers des objets File
     const bandFileNames = Array.from(bandFiles).map(file => file.name);
@@ -557,7 +541,7 @@ function handleFileUpload(bandFiles) {
         return;
     }
 
-    console.log("Unique Genomes: ", uniqueGenomes);
+    // console.log("Unique Genomes: ", uniqueGenomes);
 
     // Attribuer des couleurs aux génomes
     uniqueGenomes.forEach((genome, index) => {
@@ -566,7 +550,7 @@ function handleFileUpload(bandFiles) {
 
     //retrouve l'ordre des fichier 
     const orderedFiles = orderFilesByGenomes(bandFileNames, uniqueGenomes);
-    console.log("Ordered Files: ", orderedFiles);
+    // console.log("Ordered Files: ", orderedFiles);
 
     // Vérifier si tous les fichiers de bandes nécessaires sont présents et dans l'ordre
     if (orderedFiles.length !== bandFileNames.length) {
@@ -598,10 +582,10 @@ function handleFileUpload(bandFiles) {
     // Lire les longueurs des chromosomes à partir du fichier band
     calculateChromosomeDataFromBandFiles(orderedFileObjects, uniqueGenomes).then((data) => {
         genomeData = data;
-        console.log(genomeData)
+        // console.log(genomeData)
         globalMaxChromosomeLengths = calculateGlobalMaxChromosomeLengths(genomeData);
         scale = calculateScale(globalMaxChromosomeLengths);
-        console.log("Global Max Chromosome Lengths: ", globalMaxChromosomeLengths);
+        // console.log("Global Max Chromosome Lengths: ", globalMaxChromosomeLengths);
         //traite les fichiers
         readFileInChunks(currentFile, true, refGenome, queryGenome);
     });
@@ -860,9 +844,9 @@ function reorderFileList(fileListElement, orderedFileNames, fileType) {
     //exemple: chargement depuis l'onglet existing files
     if (!fileListElement) return;
 
-    console.log(fileListElement);
-    console.log(orderedFileNames);
-    console.log(fileType);
+    // console.log(fileListElement);
+    // console.log(orderedFileNames);
+    // console.log(fileType);
 
     // Ajoute le listener dragend UNE SEULE FOIS
     if (!fileListElement.dataset.dragendListener) {
@@ -871,7 +855,7 @@ function reorderFileList(fileListElement, orderedFileNames, fileType) {
                 item.dataset.fileName.replace(`.${fileType}`, '')
             );
             setSelectedGenomes(newOrder);
-            console.log('Nouvel ordre:', newOrder);
+            // console.log('Nouvel ordre:', newOrder);
             uniqueGenomes = newOrder;
             if (fileUploadMode === 'remote') {
                 const chainDiv = document.querySelector('#selected-chain');
@@ -948,56 +932,6 @@ function reorderFileList(fileListElement, orderedFileNames, fileType) {
     }, 10);
 }
 
-
-// function reorderFileList(fileListElement, orderedFileNames, fileType) {
-//     console.log(fileListElement);
-//     console.log(orderedFileNames);
-//     console.log(fileType);
-
-//     // Marquer l'élément comme en train de se réorganiser
-//     fileListElement.classList.add('reordering');
-
-//     // Attendre que les transitions CSS prennent effet
-//     setTimeout(() => {
-//         fileListElement.innerHTML = ''; // Clear the previous file list
-
-//         orderedFileNames.forEach((fileName, index) => {
-//             const listItem = document.createElement('div');
-//             listItem.style.display = 'flex';
-//             listItem.style.alignItems = 'center';
-
-//             const genome = fileName.replace(`.${fileType}`, '');
-
-//             if (fileType === 'chrlen') {
-//                 // Créer un SVG pour le mini chromosome
-//                 const miniChromosomeSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-//                 miniChromosomeSvg.setAttribute("width", "50");
-//                 miniChromosomeSvg.setAttribute("height", "20");
-//                 miniChromosomeSvg.style.marginRight = "10px";
-
-//                 drawMiniChromosome(genome, d3.select(miniChromosomeSvg));
-//                 // genomeColors[genome] = generateColor(index);
-
-//                 listItem.appendChild(miniChromosomeSvg);
-//             }
-
-//             const fileNameSpan = document.createElement('span');
-//             fileNameSpan.textContent = fileName;
-
-//             listItem.appendChild(fileNameSpan);
-//             fileListElement.appendChild(listItem);
-//         });
-
-//         // Forcer le reflow pour les animations
-//         void fileListElement.offsetWidth;
-
-//         // Marquer l'élément comme réorganisé pour les transitions
-//         fileListElement.classList.remove('reordering');
-//         fileListElement.classList.add('reordered');
-//     }, 10); // Ajoutez un léger délai pour garantir que la transition se déclenche
-// }
-
-
 function orderFilesByGenomes(files, genomes) {
     const orderedFiles = [];
     for (let i = 0; i < genomes.length - 1; i++) {
@@ -1051,7 +985,7 @@ function parseSyriData(data) {
 // parse la liste des fichiers syri all vs all et renvoie la liste des génomes
 export function extractAllGenomes(bandFileNames) {
     const fragmentCounts = {};
-    console.log("Extracting all genomes from band files: ", bandFileNames);
+    // console.log("Extracting all genomes from band files: ", bandFileNames);
     bandFileNames = bandFileNames
         .filter(name => name.endsWith('.out'))
         .map(name => name.trim());

@@ -172,8 +172,8 @@ export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, 
 
     let currentX = margin.left; // Position de départ en X
     const chromPositions = {};
-    console.log(genomeData);
-    console.log(genomeData[refGenome]);
+    // console.log(genomeData);
+    // console.log(genomeData[refGenome]);
     for (const chrom in genomeData[refGenome]) {
         //chrom est le numéro du chromosome ex: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
         const refWidth = (genomeData[refGenome][chrom].length || 0) / scale;
@@ -418,7 +418,7 @@ function drawSNPDensityHeatmap(snpDensity, refLengths, chromPositions, binSize =
 
 export function drawCorrespondenceBands(data, chromPositions, isFirstFile, scale, mergeThreshold = 500000) {
     console.log("Draw correspondence bands");
-    console.log(mergeThreshold);
+    // console.log(mergeThreshold);
     const svgGroup = d3.select('#zoomGroup');
 
     // Types à merger
@@ -490,7 +490,7 @@ function mergeBands(bandsToMerge, otherBands, threshold) {
         merged.push(current);
     }
 
-    console.log(`Merged ${bandsToMerge.length} INVTR bands into ${merged.length} bands`);
+    // console.log(`Merged ${bandsToMerge.length} INVTR bands into ${merged.length} bands`);
     return merged;
 }
 
@@ -614,7 +614,7 @@ function drawOneBand(svgGroup, d, chromPositions, refGenome, queryGenome) {
 
 
 function getLinesInRange(parsedData, refChr, queryChr, refStart, refEnd, queryStart, queryEnd) {
-    console.log("getLinesInRange", refChr, queryChr, refStart, refEnd, queryStart, queryEnd);
+    // console.log("getLinesInRange", refChr, queryChr, refStart, refEnd, queryStart, queryEnd);
     return parsedData.filter(d => d.refChr === refChr && d.queryChr === queryChr && d.refStart >= refStart && d.refEnd <= refEnd && d.queryStart >= queryStart && d.queryEnd <= queryEnd);
 }
 

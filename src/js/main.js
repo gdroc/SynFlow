@@ -4,7 +4,7 @@ import { createGraphSection } from './draw.js';
 import { setupAnalytics } from './analytics.js';
 import { createInfoPanel } from './info.js';
 
-console.log("syri");
+// console.log("syri");
  // Définir le comportement de zoom
 // export const zoom = d3.zoom()
 //     .scaleExtent([0.1, 10]) // Définir les niveaux de zoom minimum et maximum
