@@ -4,6 +4,45 @@ import { jbrowseLinks } from "./form.js";
 
 export let currentYOffset = 0; // Définir globalement
 
+// Définir les couleurs pour chaque type
+export const bandeTypeColors = {
+    'SYN': '#d3d3d3', // gris clair
+    'INV': '#ffa500', // orange
+    'INVTR': '#008000', // vert
+    'TRANS': '#008000', // vert
+    'DUP': '#0000ff', // bleu
+};
+
+const typeColors = {
+    // Synténies (gris)
+    'SYN': '#d3d3d3',
+    'SYNAL': '#d3d3d3',
+    'CPL': '#a0a0a0',
+    
+    // Inversions et combinaisons (nuances d'orange)
+    'INV': '#ffa500',
+    'INVAL': '#ffa500',
+    'INVDP': 'linear-gradient(90deg, #ffa500, #4169e1)', // orange vers bleu
+    'INVDPAL': 'linear-gradient(90deg, #ffa500, #4169e1)', 
+    'INVTR': 'linear-gradient(90deg, #ffa500, #2e8b57)', // orange vers vert
+    'INVTRAL': 'linear-gradient(90deg, #ffa500, #2e8b57)',
+
+    // Translocations (vert)
+    'TRANS': '#2e8b57',
+    'TRANSAL': '#2e8b57',
+    
+    // Duplications (bleu)
+    'DUP': '#4169e1',
+    'DUPAL': '#4169e1',
+    
+    // HDR (violet)
+    'HDR': '#9370db',
+    
+    // Autres modifications (rouge)
+    'INS': '#dc143c',
+    'DEL': '#b22222'
+};
+
 export function resetDrawGlobals() {
     currentYOffset = 0;
 }
@@ -516,33 +555,34 @@ function drawOneBand(svgGroup, d, chromPositions, refGenome, queryGenome) {
         .offset([-10, 0])
         .html(function (event, d) {
             return `
-                <strong>Ref Chr:</strong> <span>${d.refChr}</span><br>
-                <strong>Ref Start:</strong> <span>${d.refStart}</span><br>
-                <strong>Ref End:</strong> <span>${d.refEnd}</span><br>
-                <strong>Query Chr:</strong> <span>${d.queryChr}</span><br>
-                <strong>Query Start:</strong> <span>${d.queryStart}</span><br>
-                <strong>Query End:</strong> <span>${d.queryEnd}</span><br>
-                <strong>Type:</strong> <span>${d.type}</span>
+                <div style="min-width:220px; font-size:15px;">
+                    <div style="margin-bottom:6px;">
+                        <span style="font-weight:bold;">Ref</span> : 
+                        <span>${d.refChr}</span> 
+                        <span>[${d.refStart}..${d.refEnd}]</span>
+                    </div>
+                    <div style="margin-bottom:6px;">
+                        <span style="font-weight:bold;">Query</span> : 
+                        <span>${d.queryChr}</span> 
+                        <span>[${d.queryStart}..${d.queryEnd}]</span>
+                    </div>
+                    <div>
+                        <span style="font-weight:bold;">Type :</span> 
+                        <span style="background:${typeColors[d.type]}; border-radius:6px; padding:2px 8px; margin-left:4px;">${d.type}</span>
+                    </div>
+                </div>
             `;
-        });
+    });
 
     svgGroup.call(tip);
 
     if (refX !== undefined && queryX !== undefined) {
 
-        // Définir les couleurs pour chaque type
-        const typeColors = {
-            'SYN': '#d3d3d3', // gris clair
-            'INV': '#ffa500', // orange
-            'INVTR': '#008000', // vert
-            'TRANS': '#008000', // vert
-            'DUP': '#0000ff', // bleu
-        };
         const refStartX = refX + (d.refStart / scale);
         const refEndX = refX + (d.refEnd / scale);
         let queryStartX = queryX + (d.queryStart / scale);
         let queryEndX = queryX + (d.queryEnd / scale);
-        const color = typeColors[d.type] || '#ccc'; // Utiliser la couleur définie ou gris clair par défaut
+        const color = bandeTypeColors[d.type] || '#ccc'; // Utiliser la couleur définie ou gris clair par défaut
 
         const refY = chromPositions[[refChromNum]]?.refY + 10; // Ajuster pour aligner sur le chromosome de référence
         // const queryY = chromPositions[d.queryChr]?.queryY; // Ajuster pour aligner sur le chromosome de requête
@@ -682,36 +722,6 @@ function convertLinesToTableHtml(lines, refStart, refEnd, queryStart, queryEnd) 
 
     return html;
 }
-
-const typeColors = {
-    // Synténies (gris)
-    'SYN': '#d3d3d3',
-    'SYNAL': '#d3d3d3',
-    'CPL': '#a0a0a0',
-    
-    // Inversions et combinaisons (nuances d'orange)
-    'INV': '#ffa500',
-    'INVAL': '#ffa500',
-    'INVDP': 'linear-gradient(90deg, #ffa500, #4169e1)', // orange vers bleu
-    'INVDPAL': 'linear-gradient(90deg, #ffa500, #4169e1)', 
-    'INVTR': 'linear-gradient(90deg, #ffa500, #2e8b57)', // orange vers vert
-    'INVTRAL': 'linear-gradient(90deg, #ffa500, #2e8b57)',
-
-    // Translocations (vert)
-    'TRANS': '#2e8b57',
-    'TRANSAL': '#2e8b57',
-    
-    // Duplications (bleu)
-    'DUP': '#4169e1',
-    'DUPAL': '#4169e1',
-    
-    // HDR (violet)
-    'HDR': '#9370db',
-    
-    // Autres modifications (rouge)
-    'INS': '#dc143c',
-    'DEL': '#b22222'
-};
 
 function createSummarySection(lines, refStart, refEnd, queryStart, queryEnd) {
     if (!lines || lines.length === 0) return '';
