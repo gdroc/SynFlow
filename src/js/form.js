@@ -1,4 +1,4 @@
-import * as toolkit from '../../../toolkit/toolkit.js';
+import * as toolkit from '../../toolkit/toolkit.js';
 import { createLegendContainer } from './legend.js';
 import { zoom } from './draw.js';
 import { handleFileUpload, extractAllGenomes, spinner } from './process.js';
@@ -685,7 +685,7 @@ export function createToolkitContainer() {
     //charge le css de toolkit
     const toolkitCSS = document.createElement("link");
     toolkitCSS.rel = "stylesheet";
-    toolkitCSS.href = "../../../toolkit/toolkit.css";
+    toolkitCSS.href = "../../toolkit/toolkit.css";
     document.head.appendChild(toolkitCSS);
 
     // // Bouton pour lancer le calcul

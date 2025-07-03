@@ -1,0 +1,102 @@
+#toolkit_title {
+  font-family: 'Arial', sans-serif;
+  font-size: 36px;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  background: linear-gradient(to right, #0053ac, #00e1ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+#formContainer {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  font-family: 'Arial', sans-serif;
+  border: 2px solid #333; /* Ajout d'une bordure pour délimiter le conteneur */
+}
+
+#formContainer h1 {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#formContainer label {
+  font-weight: bold;
+  margin-top: 10px;
+  display: block;
+  color: #333;
+}
+
+#formContainer select,
+#formContainer input[type="text"],
+#formContainer input[type="file"] {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0 20px 0;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #fff;
+  transition: border-color 0.3s;
+}
+
+#formContainer select:focus,
+#formContainer input[type="text"]:focus,
+#formContainer input[type="file"]:focus {
+  border-color: #007BFF;
+  outline: none;
+}
+
+#formContainer button {
+  background-color: #333; /* Couleur de fond gris foncé */
+  color: white; /* Couleur du texte blanc */
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+}
+
+#formContainer button:hover {
+  background-color: #555; /* Couleur de fond gris moyen au survol */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Ajout d'une ombre pour l'effet de survol */
+}
+
+#formContainer button:active {
+  background-color: #111; /* Couleur de fond noir à l'activation */
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Réduction de l'ombre à l'activation */
+}
+
+/* Style pour la console */
+#console {
+  border: 1px solid #000;
+  padding: 10px;
+  margin-top: 20px;
+  height: 200px;
+  overflow-y: scroll;  /* Pour permettre le défilement */
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  font-family: 'Courier New', Courier, monospace; /* Police de caractères pour la console */
+}
+
+#console p {
+  margin: 0;
+  padding: 5px 0;
+  border-bottom: 1px solid #ddd;
+}
+

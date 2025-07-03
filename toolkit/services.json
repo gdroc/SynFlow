@@ -1,0 +1,122 @@
+{
+	"services": {
+		"synflow-galaxy": {
+			"label": "Synflow via Galaxy",
+			"service": "galaxy",
+			"command": "python3 /opt/home/summo/scripts/synflow.py --url https://usegalaxy.fr --delete-history --debug",
+			"arguments": {
+				"inputs": [
+					{
+						"name": "query",
+						"label": "Query file",
+						"type": "file",
+						"flag": "--query",
+						"default": "/opt/projects/VisuSNP/htdocs/toolkit/public/scripts/qrygenome.fasta",
+						"required": true
+					},
+					{
+						"name": "target",
+						"label": "Target file (reference genome)",
+						"type": "file",
+						"flag": "--target",
+						"default": "/opt/projects/VisuSNP/htdocs/toolkit/public/scripts/refgenome.fasta",
+						"required": true
+					},
+					{
+						"name": "workflow",
+						"label": "Workflow",
+						"type": "select",
+						"flag": "--workflow",
+						"optionsSource": "SyriWorkflows",
+						"required": true
+					}
+				]
+			}
+		},
+		"synflow": {
+			"label": "Synflow",
+			"service": "opal",
+			"command": "python2 /opt/OpalPythonClient/opal-py-2.4.1/GenericServiceClient.py",
+			"url": "http://193.52.26.138:8080/opal2/services/synflow",
+			"action": "launchJob",
+			"arguments": {
+				"inputs": [
+					{
+						"name": "input1",
+						"label": "First input file",
+						"type": "file",
+						"flag": "-i",
+						"default": "/NAS/muse/web/HUBs/coffea/opal/C21.fasta",
+						"required": true
+					},
+					{
+						"name": "input2",
+						"label": "Second input file",
+						"type": "file",
+						"flag": "-i",
+						"default": "/NAS/muse/web/HUBs/coffea/opal/DH.fasta",
+						"required": true
+					}
+				]
+			}
+		},
+		"blast": {
+			"label": "BLAST",
+			"service": "opal",
+			"command": "python2 /opt/OpalPythonClient/opal-py-2.4.1/GenericServiceClient.py",
+			"url": "http://193.52.26.138:8080/opal2/services/ncbi-blastn",
+			"action": "launchJob",
+			"arguments": {
+				"inputs": [
+					{
+						"name": "db",
+						"label": "Database",
+						"type": "select",
+						"flag": "-db",
+						"optionsSource": "blastDBs",
+						"required": true
+					},
+					{
+						"name": "query",
+						"label": "Query file",
+						"type": "file",
+						"flag": "-query",
+						"default": "Macma4_04_g00010.fna",
+						"required": true
+					},
+					{
+						"name": "task",
+						"label": "Task",
+						"type": "text",
+						"flag": "-task",
+						"default": "blastn",
+						"required": true
+					},
+					{
+						"name": "output",
+						"label": "Output file name",
+						"type": "text",
+						"flag": "-out",
+						"default": "Macma4_04_g00010.out",
+						"required": true
+					}
+				]
+			}
+		}
+	},
+	"databases": {
+		"blastDBs": [
+			"banana/Genomes/Musa_acuminata_ssp_malaccensis_4.3/Musa_acuminata_pahang_v4_gene.fna",
+			"banana/Genomes/OtherDB/ExampleDB.fna",
+			"banana/Genomes/ExampleDB2/AnotherDB.fna"
+		],
+		"SyriWorkflows": [
+			"Nucmer",
+			"Minimap2"
+		],
+		"anotherServiceDBs": [
+			"path/to/db1.fna",
+			"path/to/db2.fna"
+		]
+	}
+}
