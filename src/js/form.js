@@ -823,10 +823,10 @@ export function loadAllChromosomeLengths(files) {
 async function loadTestData() {
     // Define paths to your test files
     const testBandFiles = [
-        'public/data/C21_464_C23_A03.out',
-        'public/data/C23_A03_C45_410.out',
-        'public/data/C45_410_C5_126_2.out',
-        'public/data/DH_200_94_C21_464.out'
+        'public/data/C21-464_C23-A03.out',
+        'public/data/C23-A03_C45-410.out',
+        'public/data/C45-410_C5-126-2.out',
+        'public/data/DH-200-94_C21-464.out'
     ];
 
     const bandFiles = await Promise.all(testBandFiles.map(async path => {

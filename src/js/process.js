@@ -468,57 +468,96 @@ function extractGenomeNames(chrlenFileNames) {
 }
 
 // Trouver les génomes uniques à partir des fichiers de bandes
-export function findUniqueGenomes(bandFileNames) {
-    console.log("Finding unique genomes from :", bandFileNames);
-    const fileCount = bandFileNames.length;
-    const uniqueNamesToFind = fileCount + 1;
-    numGenomes = uniqueNamesToFind;
-    let possibleNames = new Set();
+// export function findUniqueGenomes(bandFileNames) {
+//     console.log("Finding unique genomes from :", bandFileNames);
+//     const fileCount = bandFileNames.length;
+//     const uniqueNamesToFind = fileCount + 1;
+//     numGenomes = uniqueNamesToFind;
+//     let possibleNames = new Set();
 
-    // Extraire les noms de génomes directement à partir des noms de fichiers de bandes
-    bandFileNames.forEach(file => {
-        const baseName = file.replace('.out', '');
-        const parts = baseName.split('_');
-        for (let i = 1; i < parts.length; i++) {
-            possibleNames.add(parts.slice(0, i).join('_'));
-            possibleNames.add(parts.slice(i).join('_'));
-        }
+//     // Extraire les noms de génomes directement à partir des noms de fichiers de bandes
+//     bandFileNames.forEach(file => {
+//         const baseName = file.replace('.out', '');
+//         const parts = baseName.split('_');
+//         for (let i = 1; i < parts.length; i++) {
+//             possibleNames.add(parts.slice(0, i).join('_'));
+//             possibleNames.add(parts.slice(i).join('_'));
+//         }
+//     });
+
+//     possibleNames = Array.from(possibleNames);
+
+//     function findCombination(currentCombination, depth) {
+//         // console.log("Current combination:", currentCombination, "Depth:", depth);
+//         if (depth === uniqueNamesToFind) {
+//             const genomeSet = new Set(currentCombination);
+//             if (genomeSet.size === uniqueNamesToFind) {
+//                 const generatedFiles = [];
+//                 for (let i = 0; i < currentCombination.length - 1; i++) {
+//                     generatedFiles.push(`${currentCombination[i]}_${currentCombination[i + 1]}.out`);
+//                 }
+//                 const match = generatedFiles.every(f => bandFileNames.includes(f));
+//                 if (match) {
+//                     return Array.from(genomeSet);
+//                 }
+//             }
+//             return null;
+//         }
+
+//         for (let i = 0; i < possibleNames.length; i++) {
+//             if (!currentCombination.includes(possibleNames[i])) {
+//                 currentCombination.push(possibleNames[i]);
+//                 const result = findCombination(currentCombination, depth + 1);
+//                 if (result) {
+//                     return result;
+//                 }
+//                 currentCombination.pop();
+//             }
+//         }
+
+//         return null;
+//     }
+
+//     return findCombination([], 0);
+// }
+
+
+//version avec nommage simple des fichiers de bandes
+// exemple genome-1_genome-2.out
+export function findUniqueGenomes(bandFileNames) {
+    // Extrait les paires de chaque fichier
+    const pairs = bandFileNames
+        .map(f => f.replace('.out', '').split('_'))
+        .filter(parts => parts.length === 2);
+
+    // Compte les occurrences de chaque génome
+    const counts = {};
+    pairs.forEach(([a, b]) => {
+        counts[a] = (counts[a] || 0) + 1;
+        counts[b] = (counts[b] || 0) + 1;
     });
 
-    possibleNames = Array.from(possibleNames);
+    // Liste des génomes qui apparaissent en début de fichier
+    const firsts = pairs.map(([a, b]) => a);
 
-    function findCombination(currentCombination, depth) {
-        // console.log("Current combination:", currentCombination, "Depth:", depth);
-        if (depth === uniqueNamesToFind) {
-            const genomeSet = new Set(currentCombination);
-            if (genomeSet.size === uniqueNamesToFind) {
-                const generatedFiles = [];
-                for (let i = 0; i < currentCombination.length - 1; i++) {
-                    generatedFiles.push(`${currentCombination[i]}_${currentCombination[i + 1]}.out`);
-                }
-                const match = generatedFiles.every(f => bandFileNames.includes(f));
-                if (match) {
-                    return Array.from(genomeSet);
-                }
-            }
-            return null;
-        }
+    // Trouve une extrémité : n'apparaît qu'une fois ET est en début de fichier
+    let start = Object.keys(counts).find(g => counts[g] === 1 && firsts.includes(g));
+    if (!start) throw new Error("Impossible de trouver une extrémité de la chaîne");
 
-        for (let i = 0; i < possibleNames.length; i++) {
-            if (!currentCombination.includes(possibleNames[i])) {
-                currentCombination.push(possibleNames[i]);
-                const result = findCombination(currentCombination, depth + 1);
-                if (result) {
-                    return result;
-                }
-                currentCombination.pop();
-            }
-        }
-
-        return null;
+    // Reconstitue la chaîne
+    const result = [start];
+    let current = start;
+    let prev = null;
+    while (result.length < pairs.length + 1) {
+        // Cherche le binôme du génome courant qui n'est pas le précédent
+        const next = pairs.find(([a, b]) => (a === current && b !== prev) || (b === current && a !== prev));
+        if (!next) break;
+        const nextGenome = next[0] === current ? next[1] : next[0];
+        result.push(nextGenome);
+        prev = current;
+        current = nextGenome;
     }
-
-    return findCombination([], 0);
+    return result;
 }
 
 function handleFileUpload(bandFiles) {
@@ -530,9 +569,11 @@ function handleFileUpload(bandFiles) {
 
     // Extraire les noms de fichiers des objets File
     const bandFileNames = Array.from(bandFiles).map(file => file.name);
+    console.log(bandFileNames);
     
     // Trouver et ordonne les génomes à partir des noms de fichiers de bandes
     uniqueGenomes = findUniqueGenomes(bandFileNames);
+    console.log(uniqueGenomes);
 
     // Vérifier si tous les fichiers de bandes nécessaires sont présents
     if (!uniqueGenomes || uniqueGenomes.length < 2) {
@@ -548,9 +589,10 @@ function handleFileUpload(bandFiles) {
         genomeColors[genome] = generateColor(index);
     });
 
+
     //retrouve l'ordre des fichier 
     const orderedFiles = orderFilesByGenomes(bandFileNames, uniqueGenomes);
-    // console.log("Ordered Files: ", orderedFiles);
+    console.log("Ordered Files: ", orderedFiles);
 
     // Vérifier si tous les fichiers de bandes nécessaires sont présents et dans l'ordre
     if (orderedFiles.length !== bandFileNames.length) {
