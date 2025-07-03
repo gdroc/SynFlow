@@ -507,19 +507,19 @@ function createUploadSection() {
             <h6>SyRI output files (.out)</h6>
             <ul style="padding-left: 20px;">
                 <li>Files must be in SyRI output format. <a href="https://schneebergerlab.github.io/syri/fileformat.html" target="_blank">See the SyRI documentation</a></li>
-                <li>The file names should follow the pattern: <strong>genome1_genome2.out</strong></li>
+                <li>The file names should follow the pattern: <strong>ref-genome_query-genome.out</strong></li>
                 <li>Files can be chained for multiple genome comparisons:</li>
             </ul>
             
             <div style="margin: 15px 0; padding: 10px; background-color: #fff; border-radius: 4px;">
                 <strong>Example of file chain:</strong>
                 <ul style="padding-left: 20px;">
-                    <li>A_thaliana_C_rubella.out</li>
-                    <li>C_rubella_B_rapa.out</li>
-                    <li>B_rapa_O_sativa.out</li>
+                    <li>A-thaliana_C-rubella.out</li>
+                    <li>C-rubella_B-rapa.out</li>
+                    <li>B-rapa_O-sativa.out</li>
                 </ul>
                 <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
-                    This will create a visualization chain: A_thaliana → C_rubella → B_rapa → O_sativa
+                    This will create a visualization chain: A-thaliana → C-rubella → B-rapa → O-sativa
                 </p>
             </div>
         </div>
