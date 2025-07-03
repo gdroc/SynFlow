@@ -1,30 +1,45 @@
-# SynFlow
+<img src="public/img/SynFlow_logo.png" alt="SynFlow Logo" width="200"/>
 
 ## Description
 
-SynFlow is a web application that allows you to visualize the alignment of genomes and their structural variations using SyRI data. The application supports interactive features such as zooming, panning, and filtering of bands by type and length.
+SynFlow is a powerful web application for visualizing genome alignments and structural variations using SyRI (Structural Rearrangement Identifier) data. It provides an interactive platform for exploring genomic synteny, inversions, translocations, duplications, and other structural rearrangements between genomes.
 
 ## Features
 
-- Upload and visualize chromosome length and band files
+- Upload your own data or explore the database
 - Interactive zoom and pan
 - Filter bands by type and length
 - Stack chromosomes vertically or align them horizontally
 - Download the visualization as an SVG file
 
+
 ## Usage
 
-1. Upload the input files using the form.
+#### SyRI output files (.out)
+- Files must be in SyRI output format. [See the SyRI documentation](https://schneebergerlab.github.io/syri/fileformat.html)
+- The file names should follow the pattern: **ref-genome_query-genome.out**
+- Files can be chained for multiple genome comparisons:
 
-| File Name      | File Description                                          |
-|----------------|-----------------------------------------------------------|
-| `*syri.out`    | Pairwise structural annotation information between genomes|
+Example of file chain:
+- A-thaliana_C-rubella.out
+- C-rubella_B-rapa.out
+- B-rapa_O-sativa.out
+This will create a visualization chain: **A-thaliana → C-rubella → B-rapa → O-sativa**
 
-2. Select the "Stack chromosomes vertically" checkbox if you want to stack the chromosomes.
-3. Click on the "Draw" button to generate the visualization.
-4. Use the zoom and pan features to explore the visualization.
-5. Filter the bands using the legend and the slider.
-6. Download the visualization as an SVG file by clicking the "Download SVG" button.
+#### Three ways to input data:
+![input data](public/img/input.png)
+  - **Existing files**: select from precomputed datasets. The available files come from analyses performed on several organisms using the SynMake workflow. [See the Synmake documentation.](https://gitlab.cirad.fr/agap/cluster/snakemake/synmake)
+  - **Classic upload**: use the "Browse" button to upload your own files
+  - **Run the pipeline**: launch the Synmake workflow via the integrated toolkit
+
+#### Click the "Draw" button to generate the visualization.
+Use the zoom and pan features to explore the visualization. 
+Chromosome order can be changed by drag and drop.
+![graph](public/img/chrom_switch.gif)
+#### Filter the bands using the legend and the slider.
+Download graph as SVG
+![Controle panel](public/img/filter.gif
+)
 
 ## License
 
@@ -43,4 +58,3 @@ See also the list of [contributors](https://github.com/SouthGreenPlatform/SynFlo
 
 - Special thanks to the contributors of the [SyRI tool](https://github.com/schneebergerlab/syri).
 - Inspiration from [plotsr](https://github.com/schneebergerlab/plotsr).
-
