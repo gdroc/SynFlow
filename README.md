@@ -37,7 +37,6 @@ Use the zoom and pan features to explore the visualization.
 Chromosome order can be changed by drag and drop.
 ![graph](public/img/chrom_switch.gif)
 #### Filter the bands using the legend and the slider.
-Download graph as SVG
 ![Controle panel](public/img/filter.gif
 )
 
