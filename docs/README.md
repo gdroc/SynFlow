@@ -76,7 +76,7 @@ The visualization interface supports:
 - Chromosome reordering support  
 - Toggle visibility of individual chromosomes (Show/Hide)
   
-![Graph Visualization](Graph.gif)
+![Graph Visualization](chrom_switch.gif)
 
 ## Control Panel
 
@@ -86,4 +86,4 @@ The control panel allows you to:
 - Choose how chromosomes are arranged: stacked vertically or aligned horizontally  
 - Download the current visualization in SVG format for high-quality export
 
-![Graph Visualization](Control.gif)
+![Graph Visualization](filter.gif)
