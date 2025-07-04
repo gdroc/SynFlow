@@ -21,11 +21,11 @@ To explore without uploading anything, you can choose from a list of curated gen
 
 1. Go to the **“Existing Files”** tab.
 
-![Existing Files](https://hpc.cirad.fr/bank/banana/synflow/example/existing_file.png "Existing Files")
+![Existing Files](existing_file.png "Existing Files")
 
 2. Select your dataset from the dropdown (e.g. *m acuminata banksii - m acuminata malaccensis*).
 
-![Dataset](https://hpc.cirad.fr/bank/banana/synflow/example/select_genome.png "Dataset")
+![Dataset](select_genome.png "Dataset")
 
 3. Click **Draw** to visualize the structural variants.
 
@@ -37,7 +37,7 @@ Files must be in SyRI output results in TSV formats. [See the SyRI documentation
 
 1. Go to the **“Upload Files”** tab.
 
-![Upload File](https://hpc.cirad.fr/bank/banana/synflow/example/upload.png "Upload file")
+![Upload File](upload.png "Upload file")
 
 2. Upload both files.
 3. Click **Draw**.
@@ -61,7 +61,7 @@ Don’t have SyRI results yet? You can submit two genome assemblies (FASTA files
 
 1. Go to the **“Run Workflow”** tab.
 
-![Run job](https://hpc.cirad.fr/bank/banana/synflow/example/run_job.png "Run job")
+![Run job](run_job.png "Run job")
 
 2. Upload two `.fasta` genome files (reference and query).
 3. Click **Submit**. 
@@ -75,12 +75,8 @@ The visualization interface supports:
 - Interactive zoom and pan functionality  
 - Chromosome reordering support  
 - Toggle visibility of individual chromosomes (Show/Hide)
-
-<video controls width="800">
-  <source src="https://hpc.cirad.fr/bank/banana/synflow/example/Graph.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
-
+  
+![Graph Visualization](Graph.gif)
 
 ## Control Panel
 
@@ -90,7 +86,4 @@ The control panel allows you to:
 - Choose how chromosomes are arranged: stacked vertically or aligned horizontally  
 - Download the current visualization in SVG format for high-quality export
 
-<video controls width="800">
-  <source src="https://hpc.cirad.fr/bank/banana/synflow/example/Control.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+![Graph Visualization](Control.gif)
