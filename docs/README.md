@@ -21,11 +21,11 @@ To explore without uploading anything, you can choose from a list of curated gen
 
 1. Go to the **“Existing Files”** tab.
 
-![Existing Files](existing_file.png "Existing Files")
+![Existing Files](assets/existing_file.png "Existing Files")
 
 2. Select your dataset from the dropdown (e.g. *m acuminata banksii - m acuminata malaccensis*).
 
-![Dataset](select_genome.png "Dataset")
+![Dataset](assets/select_genome.png "Dataset")
 
 3. Click **Draw** to visualize the structural variants.
 
@@ -37,7 +37,7 @@ Files must be in SyRI output results in TSV formats. [See the SyRI documentation
 
 1. Go to the **“Upload Files”** tab.
 
-![Upload File](upload.png "Upload file")
+![Upload File](assets/upload.png "Upload file")
 
 2. Upload both files.
 3. Click **Draw**.
@@ -61,7 +61,7 @@ Don’t have SyRI results yet? You can submit two genome assemblies (FASTA files
 
 1. Go to the **“Run Workflow”** tab.
 
-![Run job](run_job.png "Run job")
+![Run job](assets/run_job.png "Run job")
 
 2. Upload two `.fasta` genome files (reference and query).
 3. Click **Submit**. 
@@ -76,7 +76,11 @@ The visualization interface supports:
 - Chromosome reordering support  
 - Toggle visibility of individual chromosomes (Show/Hide)
   
-![Graph Visualization](chrom_switch.gif)
+![Graph Visualization](assets/Graph.gif)
+
+The GIF depicts a visual example from Figure 3 of the study by Martin et al.
+
+> Martin, G., Istace, B., Baurens, F.C. *et al.* (2025). *Unravelling genomic drivers of speciation in Musa through genome assemblies of wild banana ancestors.* **Nature Communications**, 16, 961. [https://doi.org/10.1038/s41467-025-56329-4](https://doi.org/10.1038/s41467-025-56329-4)
 
 ## Control Panel
 
@@ -86,4 +90,6 @@ The control panel allows you to:
 - Choose how chromosomes are arranged: stacked vertically or aligned horizontally  
 - Download the current visualization in SVG format for high-quality export
 
-![Graph Visualization](filter.gif)
+![Graph Visualization](assets/filter.gif)
+
+
