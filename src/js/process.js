@@ -859,13 +859,23 @@ function downloadSvg() {
     const zoomGroup = document.getElementById('zoomGroup');
     const serializer = new XMLSerializer();
 
-    // Calculate the bounding box of the entire SVG content
-    const bbox = zoomGroup.getBBox();
-    const viewBox = [bbox.x, bbox.y, bbox.width, bbox.height].join(' ');
+    // Utilise le bounding box du SVG entier pour être sûr d'inclure tout
+    const bbox = svgElement.getBBox();
+    const padding = 20;
+    const viewBox = [
+        bbox.x - padding,
+        bbox.y - padding,
+        bbox.width + 2 * padding,
+        bbox.height + 2 * padding
+    ].join(' ');
 
     // Clone the SVG element to avoid modifying the original
     const clonedSvgElement = svgElement.cloneNode(true);
+    clonedSvgElement.removeAttribute('width');
+    clonedSvgElement.removeAttribute('height');
     clonedSvgElement.setAttribute('viewBox', viewBox);
+    clonedSvgElement.setAttribute('width', bbox.width + 2 * padding);
+    clonedSvgElement.setAttribute('height', bbox.height + 2 * padding);
 
     // Serialize and create a blob
     const source = serializer.serializeToString(clonedSvgElement);
