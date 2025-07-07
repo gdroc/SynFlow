@@ -1,0 +1,21 @@
+site_name: Synflow Documentation
+theme:
+   name: readthedocs
+   features:
+    - navigation.expand
+    - search.highlight
+    - search.suggest
+    - content.code.annotate
+    - content.code.copy
+    - navigation.sections
+    - navigation.path
+    - toc.integrate 
+
+
+
+nav:
+  - Home: README.md
+  - Input: input.md
+  - Visualisation: visualisation.md
+  - Control: control.md
+  - Installation: installation.md
