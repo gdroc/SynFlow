@@ -1,3 +1,4 @@
 # Ignorer tout le contenu du dossier public/data
 public/data/*
+!public/data/config.json
 node_modules/*
