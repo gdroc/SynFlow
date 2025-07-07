@@ -525,6 +525,10 @@ function extractGenomeNames(chrlenFileNames) {
 //version avec nommage simple des fichiers de bandes
 // exemple genome-1_genome-2.out
 export function findUniqueGenomes(bandFileNames) {
+
+    //met à jour le nombre de génomes
+    numGenomes = bandFileNames.length + 1; // Nombre de génomes = nombre de fichiers + 1
+
     // Extrait les paires de chaque fichier
     const pairs = bandFileNames
         .map(f => f.replace('.out', '').split('_'))
