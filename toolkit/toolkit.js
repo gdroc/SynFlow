@@ -293,6 +293,8 @@ export function generateForm(selectedService) {
         submitButton.textContent = "Submit";
         submitButton.onclick = (event) => {
             event.preventDefault();
+            addToConsole('Sending files...');
+
             // Faites quelque chose lorsque le bouton est cliqué
             submitForm();
             console.log("Bouton cliqué !");      
@@ -328,6 +330,7 @@ function addToConsole(message) {
  * @returns {void} N'a pas de valeur de retour
  */
 function submitForm() {
+
     const serviceSelect = document.getElementById("serviceSelect");
     let selectedService;
 
