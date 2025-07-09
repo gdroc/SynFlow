@@ -701,7 +701,7 @@ function convertLinesToTableHtml(lines, refStart, refEnd, queryStart, queryEnd, 
     if (lines.length === 0) return "<p>Aucune donnée disponible</p>";
 
     const summary = createSummarySection(lines, refStart, refEnd, queryStart, queryEnd, refGenome, queryGenome);
-    const table = createDetailedTable(lines);
+    const table = createDetailedTable(lines, refGenome, queryGenome);
 
     // Retourner le HTML avec une structure améliorée
     const html = `
@@ -813,7 +813,7 @@ function hexToRgba(hex, alpha = 1) {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-function createDetailedTable(lines) {
+function createDetailedTable(lines, refGenome, queryGenome) {
     const headers = [
         { key: 'refChr', label: 'Ref chr' },
         { key: 'refStart', label: 'Ref start' },
