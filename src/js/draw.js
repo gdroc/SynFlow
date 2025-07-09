@@ -619,10 +619,12 @@ function drawOneBand(svgGroup, d, chromPositions, refGenome, queryGenome) {
             .attr('data-length', bandLength) // Ajouter l'attribut de longueur
             .attr('data-pos', bandPos) // Ajouter l'attribut de position inter ou intra
             .attr('data-type', d.type) // Ajouter l'attribut de type de bande
+            .attr('data-ref-genome', refGenome) // Ajouter l'attribut de génome
             .attr('data-ref', d.refChr) //ajoute l'attribut ref
             .attr('data-ref-num', refChromNum) // ajoute l'attribut ref-num
             .attr('data-query-num', queryChromNum) // ajoute l'attribut query
             .attr('data-query', d.queryChr) // ajoute l'attribut query
+            .attr('data-query-genome', queryGenome) // ajoute l'attribut query-genome
             .on('mouseover', function (event, d) {
                 d3.select(this).attr('opacity', 1); // Mettre en gras au survol
                 tip.show(event, d); // Afficher le tooltip
@@ -644,7 +646,7 @@ function drawOneBand(svgGroup, d, chromPositions, refGenome, queryGenome) {
                 showInfoPanel();
                 showInfoUpdatedMessage()
                 const linesInRange = getLinesInRange(parsedSet.data, d.refChr, d.queryChr, d.refStart, d.refEnd, d.queryStart, d.queryEnd);
-                const tableHtml = convertLinesToTableHtml(linesInRange, d.refStart, d.refEnd, d.queryStart, d.queryEnd);               
+                const tableHtml = convertLinesToTableHtml(linesInRange, d.refStart, d.refEnd, d.queryStart, d.queryEnd, refGenome, queryGenome);               
                 d3.select('#info').html(`<br>${tableHtml}`);
             });
         ;
@@ -695,10 +697,10 @@ function getLinesInRange(parsedData, refChr, queryChr, refStart, refEnd, querySt
 //     `;
 // }
 
-function convertLinesToTableHtml(lines, refStart, refEnd, queryStart, queryEnd) {
+function convertLinesToTableHtml(lines, refStart, refEnd, queryStart, queryEnd, refGenome, queryGenome) {
     if (lines.length === 0) return "<p>Aucune donnée disponible</p>";
 
-    const summary = createSummarySection(lines, refStart, refEnd, queryStart, queryEnd);
+    const summary = createSummarySection(lines, refStart, refEnd, queryStart, queryEnd, refGenome, queryGenome);
     const table = createDetailedTable(lines);
 
     // Retourner le HTML avec une structure améliorée
@@ -723,7 +725,7 @@ function convertLinesToTableHtml(lines, refStart, refEnd, queryStart, queryEnd) 
     return html;
 }
 
-function createSummarySection(lines, refStart, refEnd, queryStart, queryEnd) {
+function createSummarySection(lines, refStart, refEnd, queryStart, queryEnd, refGenome, queryGenome) {
     if (!lines || lines.length === 0) return '';
 
     // Affichage ref/query sans tirets
