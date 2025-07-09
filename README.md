@@ -4,6 +4,10 @@
 
 SynFlow is a powerful web application for visualizing genome alignments and structural variations using SyRI (Structural Rearrangement Identifier) data. It provides an interactive platform for exploring genomic synteny, inversions, translocations, duplications, and other structural rearrangements between genomes.
 
+SynFlow is available for free to use at [synvisio.southgreen.fr](synvisio.southgreen.fr)
+
+A more descriptive documention of SynVisio is available [here](https://synflow.readthedocs.io/en/latest/)
+
 ## Features
 
 - Upload your own data or explore the database
@@ -11,7 +15,6 @@ SynFlow is a powerful web application for visualizing genome alignments and stru
 - Filter bands by type and length
 - Stack chromosomes vertically or align them horizontally
 - Download the visualization as an SVG file
-
 
 ## Usage
 
@@ -46,10 +49,9 @@ This project is licensed under the terms of the GNU General Public License v3.0.
 
 ## Authors
 
-- **Marilyne Summo**
-- **Gaëtan Droc**
-- **Gautier Sarah**
-- [Southgreen Platform](https://github.com/SouthGreenPlatform)
+- Marilyne Summo
+- Gaëtan Droc
+- Gautier Sarah
 
 See also the list of [contributors](https://github.com/SouthGreenPlatform/SynFlow/contributors) who participated in this project.
 
