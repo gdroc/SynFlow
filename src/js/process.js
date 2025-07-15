@@ -144,7 +144,7 @@ function updateChromList(globalMaxChromosomeLengths) {
 
     // Récupérer les positions des chromosomes
     chromNums.forEach(chromNum => {
-        const chromElement = document.querySelector(`path[chromnum="${chromNum}"]`);
+        const chromElement = document.querySelector(`path[data-chrom-num="${chromNum}"]`);
         if (chromElement) {
             const bbox = chromElement.getBBox();
             chromPositions[chromNum] = { refX: bbox.x, refY: bbox.y, width: bbox.width, height: bbox.height };

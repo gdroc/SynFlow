@@ -232,7 +232,7 @@ export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, 
                         .attr('y', yRefPosition - 10) // Position au-dessus des chromosomes de référence
                         .attr('text-anchor', 'middle')
                         .attr('class', 'chrom-title')
-                        .attr("chromNum", chrom)
+                        .attr("data-chrom-num", chrom)
                         .text(genomeData[refGenome][chrom].name);
                 }
             }
@@ -395,7 +395,7 @@ function drawChromPathNoArm(x, y, width, radius, chromNum, chromName, genome, sv
         .attr("d", path)
         .attr("class", "chrom") // Ajoute une classe chrom
         .attr("id", chromName)
-        .attr("chromNum", chromNum)
+        .attr("data-chrom-num", chromNum)
         .style("stroke", genomeColors[genome]) // Utiliser la couleur du génome
         .style("fill", "rgba(0, 0, 0, 0)")
         .style("fill-opacity", "0")

@@ -489,7 +489,7 @@ export function updateBandsVisibility() {
     d3.selectAll('.chrom').each(function() {
         const chrom = d3.select(this);
         // const chromName = chrom.attr('id').split('_')[0];
-        const chromNum = chrom.attr('chromNum');
+        const chromNum = chrom.attr('data-chrom-num');
 
         // if (visibleChromosomes.includes(chromName)) {
         if (visibleChromosomes.includes(chromNum)) {
@@ -501,7 +501,7 @@ export function updateBandsVisibility() {
     //cache aussi le nom du chromosome
     d3.selectAll('.chrom-title').each(function() {
         const title = d3.select(this);
-        const chromNum = title.attr('chromNum');
+        const chromNum = title.attr('data-chrom-num');
         if (visibleChromosomes.includes(chromNum)) {
             title.attr('display', null);
         } else {
