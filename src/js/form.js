@@ -650,6 +650,37 @@ function createUploadSection() {
     return uploadSection;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export function createToolkitContainer() {
     //////////////////:
     // TOOLKIT
@@ -729,6 +760,10 @@ export function createToolkitContainer() {
             loadOutputButton.style.display = 'block';
             const consoleDiv = document.getElementById('console');
             consoleDiv.appendChild(loadOutputButton);
+
+            //scroll jusqu'en bas de la console    
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+
 
             // event pour lancer le dessin des fichiers de sortie
             loadOutputButton.addEventListener('click', async (event) => {
