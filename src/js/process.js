@@ -546,8 +546,11 @@ export function findUniqueGenomes(bandFileNames) {
 
     // Trouve une extrémité : n'apparaît qu'une fois ET est en début de fichier
     let start = Object.keys(counts).find(g => counts[g] === 1 && firsts.includes(g));
-    if (!start) throw new Error("Impossible de trouver une extrémité de la chaîne");
-
+    if (!start) {
+        alert("Error: Unable to find a unique starting genome. Please check your band files.");
+        spinner.stop();
+        return null;
+    }
     // Reconstitue la chaîne
     const result = [start];
     let current = start;
