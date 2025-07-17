@@ -584,7 +584,7 @@ function handleFileUpload(bandFiles) {
 
     // Vérifier si tous les fichiers de bandes nécessaires sont présents
     if (!uniqueGenomes || uniqueGenomes.length < 2) {
-        alert('Some band files are missing or do not match the .chrlen files. Please ensure all necessary files are uploaded.');
+        alert('Some band files are missing. Please ensure all necessary files are uploaded.');
         spinner.stop();
         return;
     }
