@@ -757,7 +757,7 @@ export function createToolkitContainer() {
             }
             
             // Créer et déclencher un événement personnalisé
-            event = new CustomEvent('consoleMessage', { detail: 'Job is running, result will be available here : ' + synflowURL });
+            event = new CustomEvent('consoleMessage', { detail: 'Job is running, result will be available here for 10 days : ' + synflowURL });
             document.dispatchEvent(event);
 
             const consoleDiv = document.getElementById('console');
