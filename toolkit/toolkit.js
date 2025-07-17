@@ -114,6 +114,12 @@ export function initSocketConnection() {
         console.error('Erreur de connexion à Socket.IO :', error);
     });
 
+    socket.on('toolkitPath', (data) => {
+        // Créer et déclencher un événement personnalisé
+        const event = new CustomEvent('ToolkitPathEvent', { detail: data });
+        document.dispatchEvent(event);
+    });
+
     socket.on('outputResult', (data) => {
         // Ajouter le message à la console
         console.log(`${data}`);
@@ -138,7 +144,97 @@ export function initSocketConnection() {
         const event = new CustomEvent('ToolkitResultEvent', { detail: path });
         document.dispatchEvent(event);
     });
+
+
+    //ecoute l'event 'toolkitID' 
+    document.addEventListener('toolkitID', (event) => {
+        const toolkitID = event.detail;
+        console.log('Toolkit ID reçu:', toolkitID);
+        socket.emit('getToolkitFiles', toolkitID);
+
+    });
+
+    //recupère les fichier de toolkitID
+    socket.on('toolkitFilesResults', (data) => {
+        // Ajouter le message à la console
+        console.log(`${data}`);
+        //transforme le path en URL
+        //exemple : path = /opt/projects/gemo.southgreen.fr/prod/tmp/toolkit_run/toolkit_mPyhtgJXDWApk9wvAAAL/ref_querry.out
+        //exemple url = https://gemo.southgreen.fr/tmp/toolkit_run/toolkit_mPyhtgJXDWApk9wvAAAL/ref_querry.out
+        let outputFilesPath = [];
+        data.forEach(file => {
+            const toolkitID = file.split('/')[7];
+            const fileName = file.split('/')[8];
+            outputFilesPath.push(`https://gemo.southgreen.fr/tmp/toolkit_run/${toolkitID}/${fileName}`);
+            // Créer et déclencher un événement personnalisé
+            const event = new CustomEvent('toolkitFilesFromID', { detail: outputFilesPath });
+            document.dispatchEvent(event);
+        });
+    });
+
+    // //receptionne la liste des fichiers à partie du toolkitID
+    // socket.on('toolkitFiles', (files) => {
+
+    //     //fetch les fichiers resultats de toolkit :
+    //     // exemple : /opt/projects/gemo.southgreen.fr/prod/tmp/toolkit_run/toolkit_jD1prpcgQajoO2umAAAV/
+    //     // toolkitID = toolkit_jD1prpcgQajoO2umAAAV
+    //     const toolkitPath = `https://gemo.southgreen.fr/tmp/toolkit_run/${toolkitID}/`;
+    //     fetch(toolkitPath)
+    //         .then(response => {
+    //             if (!response.ok) {
+    //                 throw new Error('Network response was not ok');
+    //             }
+    //             return response.text();
+    //         })
+    //         .then(async data => {
+    //             // Traiter les données reçues
+    //             console.log('Toolkit data:', data);
+    //             // Afficher les fichiers dans la console
+    //             const consoleDiv = document.getElementById('console');
+    //             consoleDiv.innerHTML = ''; // Vider la console avant d'afficher les nouveaux fichiers
+                
+    //             // Sélectionne et affiche l'onglet 'upload'
+    //             const menuColumn = document.querySelector('[data-option="upload"]');
+
+    //             if (menuColumn) menuColumn.click();
+
+    //             try {
+    //                 const response = await fetch(path);
+    //                 const text = await response.text();
+    //                 const fileName = path.split('/').pop();
+    //                 const bandFile = new File([text], fileName, { type: 'text/plain' });
+                
+                
+    //                 // Creating DataTransfer objects to simulate file upload
+    //                 // const chrLenDataTransfer = new DataTransfer();
+    //                 const bandDataTransfer = new DataTransfer();
+                
+    //                 // Add files to the DataTransfer objects
+    //                 bandDataTransfer.items.add(bandFile);
+                
+    //                 // Set the files to the input fields
+    //                 const bandInput = document.getElementById('band-files');
+                
+    //                 // chrLenInput.files = chrLenDataTransfer.files;
+    //                 bandInput.files = bandDataTransfer.files;
+                
+    //                 // Update the file lists
+    //                 // updateFileList(chrLenInput, document.getElementById('chrlen-file-list'));
+    //                 updateFileList(bandInput, document.getElementById('band-file-list'));
+    //             } catch (error) {
+    //                 console.error('Error fetching the file:', error);
+    //             }
+
+
+    //         })
+    //         .catch(error => {
+    //             console.error('Error fetching toolkit data:', error);
+    //             const consoleDiv = document.getElementById('console');
+    //             consoleDiv.innerHTML = `<div>Error fetching toolkit data: ${error.message}</div>`;
+    //         });
+    // });
 }
+
 
 /**
  * Loads the services and databases from the specified JSON file.
@@ -376,3 +472,4 @@ function submitForm() {
         addToConsole('Erreur lors de l\'envoi:', error);
     });
 }
+

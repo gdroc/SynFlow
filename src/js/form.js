@@ -127,6 +127,7 @@ export async function createForm() {
         padding: 15px;
         background-color: white;
         border-radius: 5px;
+        overflow: hidden;
         box-shadow: 0 0 5px rgba(0,0,0,0.1);
     `;
 
@@ -736,6 +737,67 @@ export function createToolkitContainer() {
         //init toolkit
         toolkit.initToolkit(generateSelect, serviceName);
 
+        //reception du toolkit path pour générer une url
+        document.addEventListener('ToolkitPathEvent', (event) => {
+            const toolkitPath = event.detail;
+            console.log('Toolkit Path:', toolkitPath);
+
+            //exemple de path = /opt/projects/gemo.southgreen.fr/prod/tmp/toolkit_run/toolkit_D_kHW7cvKUZrzrn-AAAP/ref_querry.out
+            const toolkitID = toolkitPath.split('/')[7];
+
+            //genère une URL synflow pour acceder aux resultats
+            const baseURL = window.location.origin;
+            let synflowURL;
+            if (window.location.pathname.startsWith('/synflow')) {
+                // Sur la dev, il faut ajouter /synflow
+                synflowURL = `${baseURL}/synflow/?id=${toolkitID}`;
+            } else {
+                // Sur la prod, pas besoin
+                synflowURL = `${baseURL}/?id=${toolkitID}`;
+            }
+            
+            // Créer et déclencher un événement personnalisé
+            event = new CustomEvent('consoleMessage', { detail: 'Job is running, result will be available here : ' + synflowURL });
+            document.dispatchEvent(event);
+
+            const consoleDiv = document.getElementById('console');
+            let jobMsg = document.getElementById('job-status-msg');
+            if (!jobMsg) {
+                jobMsg = document.createElement('div');
+                jobMsg.id = 'job-status-msg';
+                jobMsg.style.position = 'sticky'; // Fixe en haut de la console
+                jobMsg.style.top = '0';
+                jobMsg.style.zIndex = '10';
+                jobMsg.style.background = '#eaf7ea';
+                jobMsg.style.border = '1px solid #b2d8b2';
+                jobMsg.style.padding = '8px';
+                jobMsg.style.marginBottom = '8px';
+                jobMsg.style.borderRadius = '5px';
+                jobMsg.fontSize = 'small';
+                jobMsg.style.fontWeight = 'bold';
+                jobMsg.style.boxShadow = '0 2px 6px rgba(0,0,0,0.04)';
+                consoleDiv.prepend(jobMsg);
+            }
+            jobMsg.innerHTML = `Job is running, result will be available here : <br>
+                <a href="${synflowURL}" target="_blank">${synflowURL}</a>
+                <button id="copy-link-btn" style="margin-left:10px;padding:4px 10px;border-radius:4px;border:1px solid #b2d8b2;background:#fff;cursor:pointer;">Copy Link</button>`;
+
+            const copyBtn = document.getElementById('copy-link-btn');
+            copyBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                navigator.clipboard.writeText(synflowURL)
+                    .then(() => {
+                        copyBtn.textContent = 'Copied!';
+                        setTimeout(() => { copyBtn.textContent = 'Copy Link'; }, 1500);
+                    })
+                    .catch(() => {
+                        copyBtn.textContent = 'Error';
+                        setTimeout(() => { copyBtn.textContent = 'Copy Link'; }, 1500);
+                    });
+            });
+
+        });
+
         //reception des resultats de toolkit
         document.addEventListener('ToolkitResultEvent', (event) => {
             const data = event.detail;
@@ -811,7 +873,7 @@ export function createToolkitContainer() {
 
 
 
-function updateFileList(inputElement, fileListElement) {
+export function updateFileList(inputElement, fileListElement) {
     const files = inputElement.files;
     fileListElement.innerHTML = ''; // Clear the previous file list
     for (let i = 0; i < files.length; i++) {
