@@ -616,7 +616,7 @@ function handleFileUpload(bandFiles) {
     const bandFileList = document.getElementById('band-file-list');
     reorderFileList(genomeList, uniqueGenomes, 'chrlen'); //affiche les mini chromosomes
     reorderFileList(bandFileList, orderedFiles, 'out'); // réordonne les fichier de bandes dans la div band-file-list
-    
+
     // Utiliser les objets File pour lire les fichiers
     orderedFileObjects = orderedFiles.map(fileName => 
         Array.from(bandFiles).find(file => file.name === fileName)

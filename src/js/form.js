@@ -4,7 +4,8 @@ import { zoom } from './draw.js';
 import { handleFileUpload, extractAllGenomes, spinner } from './process.js';
 
 //mode de chargement des fichiers
-export let fileUploadMode = ''; // 'remote' ou 'local'
+export let fileUploadMode = ''; //  'remote' ou 'local'
+export let fileOrderMode = ''; //'allavsall' ou 'chain'
 export let jbrowseLinks = {}; //liste des lien jbrowse pour les genome sélectionnés dans "existing files"
 
 
@@ -211,6 +212,18 @@ function fetchRemoteFileList(folder) {
         });
 }
 
+function updateChainDiv() {
+    const chainDiv = document.getElementById('selected-chain');
+    if(chainDiv){
+         if (selectedGenomes.length > 0) {
+            chainDiv.innerHTML = `<b>Selected chain :</b> <br>${selectedGenomes.join(' &rarr; ')}`;
+        } else {
+            chainDiv.innerHTML = '';
+        }
+    }
+   
+}
+
 // Cree le formulaire pour sélectionner les fichiers existants
 async function createExistingFilesForm() {
 
@@ -269,15 +282,6 @@ async function createExistingFilesForm() {
 
     // Sélection ordonnée
     selectedGenomes = [];
-    
-
-    function updateChainDiv() {
-        if (selectedGenomes.length > 0) {
-            chainDiv.innerHTML = `<b>Selected chain :</b> <br>${selectedGenomes.join(' &rarr; ')}`;
-        } else {
-            chainDiv.innerHTML = '';
-        }
-    }
 
     //charge la liste des fichiers disponibles
     function loadFiles(folder) {
@@ -286,35 +290,7 @@ async function createExistingFilesForm() {
         updateChainDiv();
         fetchRemoteFileList(folder).then(files => {
             const genomes = extractAllGenomes(files);
-            genomes.forEach(genome => {
-                const genomeDiv = document.createElement('div');
-                genomeDiv.style.cursor = 'pointer';
-                genomeDiv.style.padding = '4px 8px';
-                genomeDiv.style.margin = '2px 0';
-                genomeDiv.style.borderRadius = '4px';
-                genomeDiv.style.transition = 'background 0.2s';
-                genomeDiv.classList.add('genome-item');
-                genomeDiv.dataset.fileName = genome; // vrai nom de fichier
-
-                //affiche le nom sans tiret
-                genomeDiv.textContent = genome.replace(/-/g, ' ');
-
-                genomeDiv.addEventListener('click', () => {
-                    const idx = selectedGenomes.indexOf(genome);
-                    if (idx !== -1) {
-                        selectedGenomes.splice(idx, 1);
-                        genomeDiv.style.background = '';
-                        genomeDiv.style.color = '';
-                    } else {
-                        selectedGenomes.push(genome);
-                        genomeDiv.style.background = 'grey';
-                        genomeDiv.style.color = '#fff';
-                    }
-                    updateChainDiv();
-                });
-
-                fileListDiv.appendChild(genomeDiv);
-            });
+            populateGenomeList(genomes, fileListDiv);
         });
     }
 
@@ -360,7 +336,7 @@ async function createExistingFilesForm() {
         fileUploadMode = 'remote'; // Change mode to remote for file upload
 
         if (selectedGenomes.length < 2) {
-            chainDiv.innerHTML = '<span style="color:red;">Sélectionnez au moins 2 génomes pour créer une chaîne.</span>';
+            chainDiv.innerHTML = '<span style="color:red;">Please select at least 2 genomes to construct a chain.</span>';
             return;
         }
 
@@ -384,7 +360,7 @@ async function createExistingFilesForm() {
 
         // Affiche un message si des fichiers sont manquants
         if (missingFiles.length > 0) {
-            chainDiv.innerHTML = `<span style="color:red;">Fichiers manquants :<br>${missingFiles.join('<br>')}</span>`;
+            chainDiv.innerHTML = `<span style="color:red;">Missing file(s) :<br>${missingFiles.join('<br>')}</span>`;
             return;
         }
 
@@ -587,6 +563,14 @@ function createUploadSection() {
     // Append containers to input container
     inputContainer.appendChild(bandContainer);
 
+    //affiche la chain
+    const chainDiv = document.createElement('div');
+    chainDiv.setAttribute('id', 'selected-chain');
+    chainDiv.style.marginTop = '15px';
+    chainDiv.style.fontSize = '0.95em';
+    chainDiv.style.color = '#333';
+
+
     // Button to load test dataset
     const loadTestButton = document.createElement('button');
     loadTestButton.setAttribute('type', 'button');
@@ -613,7 +597,7 @@ function createUploadSection() {
         spinner.spin(target); 
 
         fileUploadMode = 'local'; // Change mode to local for file upload
-
+    
         const visualizationContainer = document.getElementById('viz');
         visualizationContainer.innerHTML = ''; // Efface le contenu existant
 
@@ -624,15 +608,64 @@ function createUploadSection() {
         // Ajoutez un groupe à l'intérieur de l'élément SVG pour contenir les éléments zoomables
         d3.select("#viz").append("g").attr("id", "zoomGroup");
 
-        ///////////////changement
-        const bandFiles = document.getElementById('band-files').files;
-        handleFileUpload(bandFiles);
+
+        //si mode allavsall
+        //récupère la chaine choisi par l'utilisateur
+        if(fileOrderMode === 'allvsall'){
+               if (selectedGenomes.length < 2) {
+                    chainDiv.innerHTML = '<span style="color:red;">Please select at least 2 genomes to construct a chain.</span>';
+                    return;
+                }
+
+                // Nettoie les espaces autour des noms de fichiers
+                const files = document.getElementById('band-files').files;
+                const allFilesTrimmed = Array.from(files).map(f => f.name.trim());
+
+                // Construit la liste des fichiers nécessaires pour la chaîne
+                const neededFiles = [];
+                let missingFiles = [];
+                for (let i = 0; i < selectedGenomes.length - 1; i++) {
+                    const fileName = `${selectedGenomes[i]}_${selectedGenomes[i+1]}.out`;
+                    if (allFilesTrimmed.includes(fileName)) {
+                        neededFiles.push(fileName);
+                    } else {
+                        missingFiles.push(fileName);
+                    }
+                }
+                // Affiche un message si des fichiers sont manquants
+                if (missingFiles.length > 0) {
+                    chainDiv.innerHTML = `<span style="color:red;">Missing file(s) :<br>${missingFiles.join('<br>')}</span>`;
+                    return;
+                }
+
+                // Récupère les objets File correspondant à neededFiles
+                const filesArray = Array.from(files);
+                const filesToSend = neededFiles.map(name =>
+                    filesArray.find(f => f.name.trim() === name)
+                );
+
+                // Vérifie qu'on a bien tous les objets File
+                if (filesToSend.includes(undefined)) {
+                    chainDiv.innerHTML = `<span style="color:red;">Internal error: some files not found.</span>`;
+                    return;
+                }
+
+                handleFileUpload(filesToSend);
+
+
+        }else{
+            //sinon charge comme avant a partir des fichiers.
+            const bandFiles = document.getElementById('band-files').files;
+            handleFileUpload(bandFiles);
+        }
+
+       
     });
 
     bandInput.addEventListener('change', (event) => {
         updateFileList(bandInput, bandFileList);
     });
-
+        
 
      // Boutons
     const buttonContainer = document.createElement('div');
@@ -642,6 +675,7 @@ function createUploadSection() {
 
     // Assemblage final
     formContainer.appendChild(inputContainer);
+    formContainer.appendChild(chainDiv);
     formContainer.appendChild(buttonContainer);
     
     uploadSection.appendChild(document.createElement('br'));
@@ -874,6 +908,12 @@ export function createToolkitContainer() {
 
 
 export function updateFileList(inputElement, fileListElement) {
+
+    //reinitialise la liste des genomes
+    selectedGenomes = [];
+    updateChainDiv();
+
+
     const files = inputElement.files;
     fileListElement.innerHTML = ''; // Clear the previous file list
     for (let i = 0; i < files.length; i++) {
@@ -881,6 +921,72 @@ export function updateFileList(inputElement, fileListElement) {
         listItem.textContent = files[i].name;
         fileListElement.appendChild(listItem);
     }
+
+    //detecte le all vs all 
+    const bandFileNames = Array.from(inputElement.files).map(file => file.name);
+    const genomes = extractAllGenomes(bandFileNames);
+    const expectedFileCount = genomes.length * (genomes.length - 1);
+
+
+    if (bandFileNames.length === expectedFileCount) {
+        // Mode all vs all
+        fileOrderMode = 'allvsall';
+        console.log("All vs All mode detected with genomes: ", genomes);
+        //affiche le selection des genomes
+        const fileListDiv = document.createElement('div');
+        fileListDiv.setAttribute('id', 'existing-files-list');
+        fileListDiv.style.maxHeight = '180px';
+        fileListDiv.style.overflowY = 'auto';
+        fileListDiv.style.border = '1px solid #ccc';
+        fileListDiv.style.padding = '5px';
+
+        const bandFileList = document.getElementById('band-file-list');
+        //append après bandFileList
+        bandFileList.parentNode.insertBefore(fileListDiv, bandFileList.nextSibling);
+        populateGenomeList(genomes, fileListDiv);
+
+        
+    } else {
+        // Mode chaîne
+        fileOrderMode = 'chain';
+        console.log("Chain mode detected with genomes: ", genomes);
+
+        // Sélection ordonnée
+        selectedGenomes = genomes;
+        updateChainDiv();
+    }
+}
+
+function populateGenomeList(genomes, listDiv){
+    genomes.forEach(genome => {
+        const genomeDiv = document.createElement('div');
+        genomeDiv.style.cursor = 'pointer';
+        genomeDiv.style.padding = '4px 8px';
+        genomeDiv.style.margin = '2px 0';
+        genomeDiv.style.borderRadius = '4px';
+        genomeDiv.style.transition = 'background 0.2s';
+        genomeDiv.classList.add('genome-item');
+        genomeDiv.dataset.fileName = genome; // vrai nom de fichier
+
+        //affiche le nom sans tiret
+        genomeDiv.textContent = genome.replace(/-/g, ' ');
+
+        genomeDiv.addEventListener('click', () => {
+            const idx = selectedGenomes.indexOf(genome);
+            if (idx !== -1) {
+                selectedGenomes.splice(idx, 1);
+                genomeDiv.style.background = '';
+                genomeDiv.style.color = '';
+            } else {
+                selectedGenomes.push(genome);
+                genomeDiv.style.background = 'grey';
+                genomeDiv.style.color = '#fff';
+            }
+            updateChainDiv();
+        });
+
+        listDiv.appendChild(genomeDiv);
+    });
 }
 
 
