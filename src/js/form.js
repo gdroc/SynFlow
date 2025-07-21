@@ -90,6 +90,7 @@ export async function createForm() {
     const menuItems = [
         { id: 'existing', icon: 'fas fa-folder-open', text: 'Existing Files' },
         { id: 'upload', icon: 'fas fa-upload', text: 'Upload Files' },
+        { id: 'ftp', icon: 'fas fa-network-wired', text: 'Browse FTP' },
         { id: 'calculate', icon: 'fas fa-cogs', text: 'Run Calculation' }
     ];
 
@@ -144,6 +145,9 @@ export async function createForm() {
                 break;
             case 'calculate':
                 contentColumn.appendChild(createToolkitContainer());
+                break;
+            case 'ftp':
+                contentColumn.appendChild(createFTPSection());
                 break;
         }
     }
@@ -715,6 +719,251 @@ function createUploadSection() {
 
 
 
+
+
+
+
+
+export function createFTPSection() {
+    // Section principale
+    const ftpSection = document.createElement('div');
+    ftpSection.setAttribute('id', 'ftp-section');
+    ftpSection.style.display = 'flex';
+    ftpSection.style.gap = '20px';
+
+    // Partie gauche : formulaire FTP
+    const formContainer = document.createElement('div');
+    formContainer.style.flex = '1';
+
+    const title = document.createElement('h5');
+    title.textContent = 'Import files from FTP';
+    title.style.marginBottom = '10px';
+    formContainer.appendChild(title);
+
+    // Champ d'URL FTP
+    const ftpInput = document.createElement('input');
+    ftpInput.setAttribute('type', 'text');
+    ftpInput.setAttribute('placeholder', 'Paste FTP folder URL here');
+    ftpInput.style.width = '100%';
+    ftpInput.style.marginBottom = '10px';
+    formContainer.appendChild(ftpInput);
+
+    // Bouton pour charger la liste des fichiers
+    const fetchButton = document.createElement('button');
+    fetchButton.setAttribute('type', 'button');
+    fetchButton.classList.add('btn-simple');
+    fetchButton.textContent = 'Fetch Files';
+    fetchButton.style.marginBottom = '10px';
+    formContainer.appendChild(fetchButton);
+
+    // Liste des fichiers .out trouvés
+    const fileListDiv = document.createElement('div');
+    fileListDiv.setAttribute('id', 'ftp-files-list');
+    fileListDiv.style.maxHeight = '180px';
+    fileListDiv.style.overflowY = 'auto';
+    fileListDiv.style.border = '1px solid #ccc';
+    fileListDiv.style.padding = '5px';
+    formContainer.appendChild(fileListDiv);
+
+    // Affichage de la chaîne sélectionnée
+    const chainDiv = document.createElement('div');
+    chainDiv.setAttribute('id', 'selected-chain-ftp');
+    chainDiv.style.marginTop = '15px';
+    chainDiv.style.fontSize = '0.95em';
+    chainDiv.style.color = '#333';
+    formContainer.appendChild(chainDiv);
+
+    // Bouton pour lancer la visualisation
+    const drawButton = document.createElement('button');
+    drawButton.setAttribute('type', 'button');
+    drawButton.classList.add('btn-magic');
+    drawButton.textContent = 'Draw';
+    drawButton.style.marginTop = '10px';
+    formContainer.appendChild(drawButton);
+
+    // Sélection ordonnée
+    let ftpSelectedGenomes = [];
+
+    // Fonction pour charger et afficher la liste des fichiers .out depuis le FTP
+    fetchButton.addEventListener('click', async () => {
+        fileListDiv.innerHTML = '';
+        ftpSelectedGenomes = [];
+        chainDiv.innerHTML = '';
+        const folder = ftpInput.value.trim();
+        if (!folder) {
+            fileListDiv.innerHTML = '<span style="color:red;">Please enter a valid FTP folder URL.</span>';
+            return;
+        }
+        try {
+            const files = await fetchRemoteFileList(folder);
+            if (files.length === 0) {
+                fileListDiv.innerHTML = '<span style="color:red;">No .out files found in this folder.</span>';
+                return;
+            }
+            const genomes = extractAllGenomes(files);
+            // Mode all vs all ou chaîne
+            const expectedFileCount = genomes.length * (genomes.length - 1);
+            if (files.length === expectedFileCount) {
+                // Mode all vs all
+                fileListDiv.innerHTML = '<div style="margin-bottom:8px;color:#555;font-style:italic;">Select genomes in the desired order for the chain.</div>';
+                populateGenomeListFTP(genomes, fileListDiv, ftpSelectedGenomes, chainDiv);
+            } else {
+                // Mode chaîne
+                ftpSelectedGenomes = genomes;
+                updateChainDivFTP(chainDiv, ftpSelectedGenomes);
+            }
+        } catch (error) {
+            fileListDiv.innerHTML = `<span style="color:red;">Error fetching files: ${error.message}</span>`;
+        }
+    });
+
+    //press enter is clicking the submit button
+    ftpInput.addEventListener('keypress', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault(); // Empêche le comportement par défaut du formulaire
+            fetchButton.click();
+        }
+    });
+
+    // Fonction pour afficher la chaîne sélectionnée
+    function updateChainDivFTP(chainDiv, genomes) {
+        if (genomes.length > 0) {
+            chainDiv.innerHTML = `<b>Selected chain :</b> <br>${genomes.join(' &rarr; ')}`;
+        } else {
+            chainDiv.innerHTML = '';
+        }
+    }
+
+    // Fonction pour afficher la liste des génomes et gérer la sélection
+    function populateGenomeListFTP(genomes, listDiv, selectedGenomes, chainDiv) {
+        listDiv.innerHTML = '';
+        genomes.forEach(genome => {
+            const genomeDiv = document.createElement('div');
+            genomeDiv.style.cursor = 'pointer';
+            genomeDiv.style.padding = '4px 8px';
+            genomeDiv.style.margin = '2px 0';
+            genomeDiv.style.borderRadius = '4px';
+            genomeDiv.style.transition = 'background 0.2s';
+            genomeDiv.classList.add('genome-item');
+            genomeDiv.dataset.fileName = genome;
+            genomeDiv.textContent = genome.replace(/-/g, ' ');
+
+            genomeDiv.addEventListener('click', () => {
+                const idx = selectedGenomes.indexOf(genome);
+                if (idx !== -1) {
+                    selectedGenomes.splice(idx, 1);
+                    genomeDiv.style.background = '';
+                    genomeDiv.style.color = '';
+                } else {
+                    selectedGenomes.push(genome);
+                    genomeDiv.style.background = 'grey';
+                    genomeDiv.style.color = '#fff';
+                }
+                updateChainDivFTP(chainDiv, selectedGenomes);
+            });
+
+            listDiv.appendChild(genomeDiv);
+        });
+    }
+
+    // Handler du bouton Draw
+    drawButton.addEventListener('click', async () => {
+        // Lance le spinner
+        var target = document.getElementById('spinner');
+        spinner.spin(target);
+
+        fileUploadMode = 'remote'; // Mode FTP = remote
+
+        if (ftpSelectedGenomes.length < 2) {
+            chainDiv.innerHTML = '<span style="color:red;">Please select at least 2 genomes to construct a chain.</span>';
+            return;
+        }
+
+        const folder = ftpInput.value.trim();
+        const allFiles = await fetchRemoteFileList(folder);
+        const allFilesTrimmed = allFiles.map(f => f.trim());
+
+        // Construit la liste des fichiers nécessaires pour la chaîne
+        const neededFiles = [];
+        let missingFiles = [];
+        for (let i = 0; i < ftpSelectedGenomes.length - 1; i++) {
+            const fileName = `${ftpSelectedGenomes[i]}_${ftpSelectedGenomes[i+1]}.out`;
+            if (allFilesTrimmed.includes(fileName)) {
+                neededFiles.push(fileName);
+            } else {
+                missingFiles.push(fileName);
+            }
+        }
+
+        // Affiche un message si des fichiers sont manquants
+        if (missingFiles.length > 0) {
+            chainDiv.innerHTML = `<span style="color:red;">Missing file(s) :<br>${missingFiles.join('<br>')}</span>`;
+            return;
+        }
+
+        // Télécharge les fichiers nécessaires et crée des objets File
+        const files = await Promise.all(neededFiles.map(async file => {
+            const filePath = `${folder}${file}`;
+            const response = await fetch(filePath);
+            const text = await response.text();
+            return new File([text], file, { type: 'text/plain' });
+        }));
+
+        // Simule un input file multiple pour handleFileUpload
+        const dataTransfer = new DataTransfer();
+        files.forEach(file => dataTransfer.items.add(file));
+
+        // Appelle la fonction de visualisation
+        const visualizationContainer = document.getElementById('viz');
+        visualizationContainer.innerHTML = '';
+        d3.select('#info').html('');
+        d3.select("#viz").call(zoom);
+        d3.select("#viz").append("g").attr("id", "zoomGroup");
+        handleFileUpload(dataTransfer.files);
+    });
+
+    // Partie droite : aide
+    const helpContainer = document.createElement('div');
+    helpContainer.style.flex = '0 0 600px';
+    helpContainer.style.padding = '15px';
+    helpContainer.style.backgroundColor = '#f8f9fa';
+    helpContainer.style.borderRadius = '5px';
+    helpContainer.style.border = '1px solid #dee2e6';
+    helpContainer.style.maxHeight = '300px';
+    helpContainer.style.overflowY = 'auto';
+
+    helpContainer.innerHTML = `
+        <h5>FTP Import Help</h5>
+        <div style="margin-top: 15px;">
+            <ul style="padding-left: 20px;">
+                <li>Paste the FTP folder URL containing your SyRI output files (.out).</li>
+                <li>Click "Fetch Files" to list available files.</li>
+                <li>If all possible pairs are detected, select genomes in the desired order for the chain.</li>
+                <li>Click "Draw" to visualize the selected chain.</li>
+            </ul>
+            <div style="margin: 15px 0; padding: 10px; background-color: #fff; border-radius: 4px;">
+                <strong>Example FTP URL:</strong>
+                <div style="margin-top:5px; font-size:0.95em; color:#333;">
+                    ftp://yourserver.org/path/to/syri/results/
+                </div>
+            </div>
+            <div style="margin: 15px 0; padding: 10px; background-color: #fff; border-radius: 4px;">
+                <strong>File naming:</strong>
+                <ul style="padding-left: 20px;">
+                    <li>ref-genome_query-genome.out</li>
+                    <li>All vs all mode: all possible pairs must be present.</li>
+                    <li>Chain mode: only consecutive pairs are needed.</li>
+                </ul>
+            </div>
+        </div>
+    `;
+
+    // Assemblage final
+    ftpSection.appendChild(formContainer);
+    ftpSection.appendChild(helpContainer);
+
+    return ftpSection;
+}
 
 
 
