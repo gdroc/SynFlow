@@ -474,7 +474,7 @@ function createUploadSection() {
     helpContainer.style.backgroundColor = '#f8f9fa';
     helpContainer.style.borderRadius = '5px';
     helpContainer.style.border = '1px solid #dee2e6';
-    helpContainer.style.maxHeight = '600px'; // Hauteur maximale
+    helpContainer.style.maxHeight = '300px'; // Hauteur maximale
     helpContainer.style.overflowY = 'auto'; // Scroll si le contenu dépasse
 
     // Contenu de l'aide
@@ -485,11 +485,11 @@ function createUploadSection() {
             <ul style="padding-left: 20px;">
                 <li>Files must be in SyRI output format. <a href="https://schneebergerlab.github.io/syri/fileformat.html" target="_blank">See the SyRI documentation</a></li>
                 <li>The file names should follow the pattern: <strong>ref-genome_query-genome.out</strong></li>
-                <li>Files can be chained for multiple genome comparisons:</li>
+                <li>Files can be chained for multiple genome comparisons (chain mode), or you can upload all possible pairs (all vs all mode).</li>
             </ul>
             
             <div style="margin: 15px 0; padding: 10px; background-color: #fff; border-radius: 4px;">
-                <strong>Example of file chain:</strong>
+                <strong>Example of file chain for 3 genomes :</strong>
                 <ul style="padding-left: 20px;">
                     <li>A-thaliana_C-rubella.out</li>
                     <li>C-rubella_B-rapa.out</li>
@@ -497,6 +497,30 @@ function createUploadSection() {
                 </ul>
                 <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
                     This will create a visualization chain: A-thaliana → C-rubella → B-rapa → O-sativa
+                </p>
+            </div>
+            <div style="margin: 15px 0; padding: 10px; background-color: #fff; border-radius: 4px;">
+                <strong>Example of all vs all for 3 genomes:</strong>
+                <div style="display: flex; gap: 30px;">
+                    <ul style="padding-left: 20px; margin:0;">
+                        <li>A-thaliana_C-rubella.out</li>
+                        <li>C-rubella_A-thaliana.out</li>
+                        <li>A-thaliana_B-rapa.out</li>
+                        <li>B-rapa_A-thaliana.out</li>
+                        <li>A-thaliana_O-sativa.out</li>
+                        <li>O-sativa_A-thaliana.out</li>
+                    </ul>
+                    <ul style="padding-left: 20px; margin:0;">
+                        <li>C-rubella_B-rapa.out</li>
+                        <li>B-rapa_C-rubella.out</li>
+                        <li>C-rubella_O-sativa.out</li>
+                        <li>O-sativa_C-rubella.out</li>
+                        <li>B-rapa_O-sativa.out</li>
+                        <li>O-sativa_B-rapa.out</li>
+                    </ul>
+                </div>
+                <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
+                    If all possible pairs are detected, you will be asked to select the order of genomes for the visualization chain.
                 </p>
             </div>
         </div>
