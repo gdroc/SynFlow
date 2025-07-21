@@ -612,45 +612,44 @@ function createUploadSection() {
         //si mode allavsall
         //récupère la chaine choisi par l'utilisateur
         if(fileOrderMode === 'allvsall'){
-               if (selectedGenomes.length < 2) {
-                    chainDiv.innerHTML = '<span style="color:red;">Please select at least 2 genomes to construct a chain.</span>';
-                    return;
+            if (selectedGenomes.length < 2) {
+                chainDiv.innerHTML = '<span style="color:red;">Please select at least 2 genomes to construct a chain.</span>';
+                return;
+            }
+
+            // Nettoie les espaces autour des noms de fichiers
+            const files = document.getElementById('band-files').files;
+            const allFilesTrimmed = Array.from(files).map(f => f.name.trim());
+
+            // Construit la liste des fichiers nécessaires pour la chaîne
+            const neededFiles = [];
+            let missingFiles = [];
+            for (let i = 0; i < selectedGenomes.length - 1; i++) {
+                const fileName = `${selectedGenomes[i]}_${selectedGenomes[i+1]}.out`;
+                if (allFilesTrimmed.includes(fileName)) {
+                    neededFiles.push(fileName);
+                } else {
+                    missingFiles.push(fileName);
                 }
+            }
+            // Affiche un message si des fichiers sont manquants
+            if (missingFiles.length > 0) {
+                chainDiv.innerHTML = `<span style="color:red;">Missing file(s) :<br>${missingFiles.join('<br>')}</span>`;
+                return;
+            }
 
-                // Nettoie les espaces autour des noms de fichiers
-                const files = document.getElementById('band-files').files;
-                const allFilesTrimmed = Array.from(files).map(f => f.name.trim());
+            // Récupère les objets File correspondant à neededFiles
+            const filesArray = Array.from(files);
+            const filesToSend = neededFiles.map(name =>
+                filesArray.find(f => f.name.trim() === name)
+            );
 
-                // Construit la liste des fichiers nécessaires pour la chaîne
-                const neededFiles = [];
-                let missingFiles = [];
-                for (let i = 0; i < selectedGenomes.length - 1; i++) {
-                    const fileName = `${selectedGenomes[i]}_${selectedGenomes[i+1]}.out`;
-                    if (allFilesTrimmed.includes(fileName)) {
-                        neededFiles.push(fileName);
-                    } else {
-                        missingFiles.push(fileName);
-                    }
-                }
-                // Affiche un message si des fichiers sont manquants
-                if (missingFiles.length > 0) {
-                    chainDiv.innerHTML = `<span style="color:red;">Missing file(s) :<br>${missingFiles.join('<br>')}</span>`;
-                    return;
-                }
-
-                // Récupère les objets File correspondant à neededFiles
-                const filesArray = Array.from(files);
-                const filesToSend = neededFiles.map(name =>
-                    filesArray.find(f => f.name.trim() === name)
-                );
-
-                // Vérifie qu'on a bien tous les objets File
-                if (filesToSend.includes(undefined)) {
-                    chainDiv.innerHTML = `<span style="color:red;">Internal error: some files not found.</span>`;
-                    return;
-                }
-
-                handleFileUpload(filesToSend);
+            // Vérifie qu'on a bien tous les objets File
+            if (filesToSend.includes(undefined)) {
+                chainDiv.innerHTML = `<span style="color:red;">Internal error: some files not found.</span>`;
+                return;
+            }
+            handleFileUpload(filesToSend);
 
 
         }else{
@@ -658,8 +657,6 @@ function createUploadSection() {
             const bandFiles = document.getElementById('band-files').files;
             handleFileUpload(bandFiles);
         }
-
-       
     });
 
     bandInput.addEventListener('change', (event) => {
@@ -932,6 +929,18 @@ export function updateFileList(inputElement, fileListElement) {
         // Mode all vs all
         fileOrderMode = 'allvsall';
         console.log("All vs All mode detected with genomes: ", genomes);
+        //affiche un message pour selectionner les genomes dans l'ordre souhaité : 
+        const allvsAllMessage = document.createElement('div');
+        allvsAllMessage.textContent = 'Select genomes in the desired order for the chain.';
+        allvsAllMessage.style.marginTop = '10px';
+        allvsAllMessage.style.fontSize = '0.9em';
+        allvsAllMessage.style.color = '#555';
+        allvsAllMessage.style.fontStyle = 'italic';
+        allvsAllMessage.style.padding = '5px';
+        allvsAllMessage.style.backgroundColor = '#f9f9f9';
+        allvsAllMessage.style.border = '1px solid #ddd';
+        allvsAllMessage.style.borderRadius = '4px';
+        allvsAllMessage.style.textAlign = 'center';
         //affiche le selection des genomes
         const fileListDiv = document.createElement('div');
         fileListDiv.setAttribute('id', 'existing-files-list');
@@ -943,6 +952,8 @@ export function updateFileList(inputElement, fileListElement) {
         const bandFileList = document.getElementById('band-file-list');
         //append après bandFileList
         bandFileList.parentNode.insertBefore(fileListDiv, bandFileList.nextSibling);
+        bandFileList.parentNode.insertBefore(allvsAllMessage, bandFileList.nextSibling);
+
         populateGenomeList(genomes, fileListDiv);
 
         
