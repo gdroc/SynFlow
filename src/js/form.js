@@ -1061,7 +1061,7 @@ export function createToolkitContainer() {
             }
             
             // Créer et déclencher un événement personnalisé
-            event = new CustomEvent('consoleMessage', { detail: 'Job is running, result will be available here for 10 days : ' + synflowURL });
+            event = new CustomEvent('consoleMessage', { detail: 'Job is running, result will be available here for 10 days: ' + synflowURL });
             document.dispatchEvent(event);
 
             const consoleDiv = document.getElementById('console');
@@ -1082,7 +1082,7 @@ export function createToolkitContainer() {
                 jobMsg.style.boxShadow = '0 2px 6px rgba(0,0,0,0.04)';
                 consoleDiv.prepend(jobMsg);
             }
-            jobMsg.innerHTML = `Job is running, result will be available here : <br>
+            jobMsg.innerHTML = `Job is running, result will be available here for 10 days: <br>
                 <a href="${synflowURL}" target="_blank">${synflowURL}</a>
                 <button id="copy-link-btn" style="margin-left:10px;padding:4px 10px;border-radius:4px;border:1px solid #b2d8b2;background:#fff;cursor:pointer;">Copy Link</button>`;
 
@@ -1125,7 +1125,10 @@ export function createToolkitContainer() {
             loadOutputButton.style.marginTop = '10px';
             loadOutputButton.style.display = 'block';
             const consoleDiv = document.getElementById('console');
-            consoleDiv.appendChild(loadOutputButton);
+         
+           //ENLEVE LE BOUTON DRAW
+            // MAINTENANT IL Y A LE LIEN
+            // consoleDiv.appendChild(loadOutputButton);
 
             //scroll jusqu'en bas de la console    
             consoleDiv.scrollTop = consoleDiv.scrollHeight;
@@ -1168,9 +1171,7 @@ export function createToolkitContainer() {
                 }
             });
         })
-    // });
-    // const formContainer = document.getElementById('form-container');
-    // formContainer.appendChild(toolkitContainer);
+
     return toolkitContainer;
 }
 
