@@ -243,7 +243,7 @@ export function initSocketConnection() {
 export function loadServices() {
     return new Promise((resolve, reject) => {
         // Fetch the services and databases from the JSON file
-        fetch('/toolkit/services.json')
+        fetch('/synflow/toolkit/services.json')
             .then(response => response.json())  // Parse the JSON response
             .then(data => {
                 // Store the parsed services and databases in global variables
@@ -310,91 +310,87 @@ export function generateForm(selectedService) {
     // Vérifier si le conteneur du formulaire existe déjà
     let formContainer = document.getElementById("formContainer");
 
-    // Si le conteneur n'existe pas, le créer
     if (!formContainer) {
         formContainer = document.createElement("div");
-        formContainer.id = "formContainer";  // Assign the ID
-        toolkitContainer.appendChild(formContainer);  // Append it to the body or a specific parent element
+        formContainer.id = "formContainer";
+        toolkitContainer.appendChild(formContainer);
     }
 
     // Vérifier si la console existe déjà
     let consoleDiv = document.getElementById("console");
 
-    // Si la console n'existe pas, la créer
     if (!consoleDiv) {
         consoleDiv = document.createElement("div");
         consoleDiv.id = "console";
-        // consoleDiv.style.border = "1px solid #000";
-        // consoleDiv.style.padding = "10px";
-        // consoleDiv.style.marginTop = "20px";
-        // consoleDiv.style.height = "200px";
-        // consoleDiv.style.overflowY = "scroll";  // Pour permettre le défilement
-        toolkitContainer.appendChild(consoleDiv);  // Ajouter la console au body ou un autre élément
+        toolkitContainer.appendChild(consoleDiv);
     }
 
     // On vide le conteneur du formulaire à chaque fois
     formContainer.innerHTML = "";
     consoleDiv.innerHTML = "<p>Console :</p>";
 
-    // Vérification si un service est sélectionné
     if (selectedService && servicesData[selectedService]) {
         const service = servicesData[selectedService];
         const fields = service.arguments.inputs;
 
-        // Pour chaque champ dans le service sélectionné, on génère un input
+        // Générer les champs dynamiquement
         fields.forEach(field => {
             const label = document.createElement("label");
             label.textContent = field.label;
             label.htmlFor = field.name;
 
             let input;
-            // Si c'est un select (par exemple pour la base de données)
             if (field.type === "select") {
                 input = document.createElement("select");
                 input.name = field.name;
 
-                // Récupérer les options à partir de la source dans databases
-                const options = databasesData[field.optionsSource];  // Référence à la bonne liste de databases
+                const options = databasesData[field.optionsSource];
                 options.forEach(optionValue => {
                     const option = document.createElement("option");
                     option.value = optionValue;
                     option.textContent = optionValue;
                     input.appendChild(option);
                 });
+
             } else if (field.type === "text") {
                 input = document.createElement("input");
                 input.type = "text";
                 input.name = field.name;
                 input.value = field.default || "";
+
             } else if (field.type === "file") {
+                console.log('single file input detected');
                 input = document.createElement("input");
                 input.type = "file";
                 input.name = field.name;
+
+            } else if (field.type === "file[]") {
+                console.log('multiple file input detected');
+                input = document.createElement("input");
+                input.type = "file";
+                input.name = field.name;
+                input.multiple = true; // Permet la sélection multiple
             }
 
-            // Ajouter l'attribut "required" si nécessaire
             if (field.required) {
                 input.required = true;
             }
 
-            // Ajout du label et de l'input au formulaire
             formContainer.appendChild(label);
             formContainer.appendChild(input);
             formContainer.appendChild(document.createElement("br"));
         });
 
-        // Ajout du bouton submit
+        // Bouton Submit
         const submitButton = document.createElement("button");
         submitButton.id = "submitBtn";
         submitButton.textContent = "Submit";
         submitButton.onclick = (event) => {
             event.preventDefault();
             addToConsole('Sending files...');
-
-            // Faites quelque chose lorsque le bouton est cliqué
             submitForm();
-            console.log("Bouton cliqué !");      
-        };  
+            console.log("Bouton cliqué !");
+        };
         formContainer.appendChild(submitButton);
     }
 }
@@ -445,12 +441,19 @@ function submitForm() {
 
     const formData = new FormData();
 
-    // Récupérer tous les inputs du formulaire (y compris fichiers et sélection)
     Array.from(formContainer.querySelectorAll("input, select")).forEach(input => {
         if (input.type === "file" && input.files.length > 0) {
-            formData.append(input.name, input.files[0]);  // Ajouter chaque fichier au FormData
+            if (input.multiple) {
+                //Boucle sur chaque fichier pour les champs multi-fichier
+                Array.from(input.files).forEach(file => {
+                    formData.append(input.name, file);
+                });
+            } else {
+                // Champ fichier simple : on ajoute le fichier unique
+                formData.append(input.name, input.files[0]);
+            }
         } else {
-            formData.append(input.name, input.value);  // Ajouter les valeurs texte ou sélection
+            formData.append(input.name, input.value);
         }
     });
 

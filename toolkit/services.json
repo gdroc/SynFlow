@@ -33,7 +33,7 @@
 				]
 			}
 		},
-		"synflow": {
+		"synflow_old": {
 			"label": "Synflow",
 			"service": "opal",
 			"command": "python2 /opt/OpalPythonClient/opal-py-2.4.1/GenericServiceClient.py",
@@ -55,6 +55,28 @@
 						"type": "file",
 						"flag": "-i",
 						"default": "/NAS/muse/web/HUBs/coffea/opal/DH.fasta",
+						"required": true
+					}
+				]
+			}
+		},
+		"synflow": {
+			"label": "Synflow",
+			"service": "opal",
+			"command": "python2 /opt/OpalPythonClient/opal-py-2.4.1/GenericServiceClient.py",
+			"url": "http://193.52.26.138:8080/opal2/services/synflow",
+			"action": "launchJob",
+			"arguments": {
+				"inputs": [
+					{
+						"name": "inputs",
+						"label": "Genome fasta files (min. 2 files)",
+						"type": "file[]",
+						"flag": "-i",
+						"default": [
+							"/NAS/muse/web/HUBs/coffea/opal/C21.fasta",
+							"/NAS/muse/web/HUBs/coffea/opal/DH.fasta"
+						],
 						"required": true
 					}
 				]
