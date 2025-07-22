@@ -1,4 +1,6 @@
 import { fileUploadMode } from "./form.js";
+import { uniqueGenomes } from "./process.js";
+import { jbrowseLinks } from "./form.js";
 
 //Fonction pour les contrôles et paramètres
 export function createControlPanel() {
@@ -32,6 +34,7 @@ export function createControlPanel() {
 
     // Ajout de l'icône de fermeture
     const chevronIcon = document.createElement('i');
+    chevronIcon.id = 'control-panel-chevron';
     chevronIcon.className = 'fas fa-chevron-up';
     chevronIcon.style.color = '#666';
     headerBar.appendChild(chevronIcon);
@@ -126,9 +129,9 @@ export function showControlPanel() {
     if (panelContent) {
         panelContent.style.maxHeight = panelContent.scrollHeight + 'px';
         // Mettre à jour l'icône du bouton
-        const hideButton = document.querySelector('#control-panel button');
+        const hideButton = document.querySelector('#control-panel-chevron');
         if (hideButton) {
-            hideButton.innerHTML = '<i class="fas fa-chevron-up"></i>';
+            hideButton.classList = 'fas fa-chevron-up';
         }
     }
 }
@@ -231,7 +234,7 @@ export function createLegendContainer() {
 
     const legendContent = document.createElement('div');
     legendContent.setAttribute('id', 'legend-content');
-    legendContent.setAttribute('style', 'display:flex;');
+    // legendContent.setAttribute('style', 'display:flex;');
 
     // Container for genome names and order
     const genomeList = document.createElement('div');
@@ -240,9 +243,15 @@ export function createLegendContainer() {
 
     const legendDiv = document.createElement('div');
     legendDiv.setAttribute('id', 'legend');
-    
+
+    const jbrowseButton = document.createElement('button');
+    jbrowseButton.textContent = 'JBrowse Links';
+    jbrowseButton.style.marginLeft = '10px';   
+    jbrowseButton.addEventListener('click', configJBrowse);
+
     legendContent.appendChild(genomeList);
     legendContent.appendChild(legendDiv);
+    legendContent.appendChild(jbrowseButton);
 
     legendContainer.appendChild(legendContent);
 
@@ -251,6 +260,190 @@ export function createLegendContainer() {
     // inputContainer.appendChild(legendContainer);
     return legendContainer;
 }
+
+function configJBrowse() {
+    console.log("Config jbrowse");
+    console.log(uniqueGenomes);
+
+    // Crée la fenêtre
+    const container = document.createElement('div');
+    container.classList.add('modal');
+
+    //arrière-plan semi-transparent avec effet flou
+    container.setAttribute('style', `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(3px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    `);
+
+    // Conteneur modal : design carte épurée
+    let html = `<div id="modal-content" style="
+        background: #fff;
+        padding: 25px 30px;
+        border-radius: 12px;
+        max-height: 80%;
+        overflow-y: auto;
+        width: 550px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        animation: fadeIn 0.3s ease-out;
+        position: relative;
+    ">`;
+
+    // Titre
+    html += `<h2 style="
+        margin-top: 0;
+        font-size: 1.4em;
+        color: #333;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    ">Configure JBrowse Links</h2>`;
+
+    // Texte explicatif
+    html += `<p style="color:#666; margin-bottom: 15px;">
+        Enter the JBrowse URLs for each genome (leave blank if not applicable).
+    </p>`;
+
+    // Liste des champs avec pré-remplissage
+    uniqueGenomes.forEach(genome => {
+        const safeId = `url-${genome.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+        const existingUrl = jbrowseLinks[genome] || ''; // Pré-remplit si dispo
+        html += `
+            <div style="margin-bottom:15px;">
+                <label for="${safeId}" style="
+                    display: block;
+                    font-weight: 500;
+                    color: #444;
+                    margin-bottom: 5px;
+                ">🔗 <b>${genome}</b></label>
+                <input type="text" id="${safeId}" name="${safeId}" style="
+                    width: 100%;
+                    padding: 8px 10px;
+                    border: 1px solid #ccc;
+                    border-radius: 6px;
+                    box-sizing: border-box;
+                    font-size: 0.95em;
+                    transition: border-color 0.2s;
+                " value="${existingUrl}" 
+                onfocus="this.style.borderColor='#007bff'" 
+                onblur="this.style.borderColor='#ccc'">
+                <span id="error-${safeId}" style="
+                    color: #dc3545;
+                    display: none;
+                    font-size: 0.85em;
+                ">❌ Invalid URL</span>
+            </div>
+        `;
+    });
+
+    // Boutons d’action
+    html += `
+        <div style="text-align: right; margin-top: 20px;">
+            <button id="saveJbrowseConfig" style="
+                padding: 8px 16px;
+                border: none;
+                border-radius: 6px;
+                background-color:rgb(216, 235, 255);
+                color: black;
+                font-size: 1em;
+                font-weight: 500;
+                cursor: pointer;
+                transition: background-color 0.2s;
+            " 
+            onmouseover="this.style.backgroundColor='rgb(179, 216, 255)'" 
+            onmouseout="this.style.backgroundColor='rgb(216, 235, 255)'">
+                Save
+            </button>
+            <button id="closeJbrowseConfig" style="
+                padding: 8px 16px;
+                border: none;
+                border-radius: 6px;
+                background-color:rgb(216, 216, 216);
+                color: black;
+                font-size: 1em;
+                font-weight: 500;
+                margin-left: 10px;
+                cursor: pointer;
+                transition: background-color 0.2s;
+            " 
+            onmouseover="this.style.backgroundColor='rgb(193, 193, 193)'" 
+            onmouseout="this.style.backgroundColor='rgb(216, 216, 216)'">
+                Cancel
+            </button>
+        </div>
+    `;
+    html += `</div>`;
+
+    // Injecte dans le container
+    container.innerHTML = html;
+    document.body.appendChild(container);
+
+    //Vérifie si une URL est valide
+    function isValidUrl(url) {
+        try {
+            const parsed = new URL(url);
+            return (parsed.protocol === 'http:' || parsed.protocol === 'https:');
+        } catch (_) {
+            return false;
+        }
+    }
+
+    //Sauvegarder les modifications
+    document.getElementById('saveJbrowseConfig').addEventListener('click', () => {
+        let hasError = false;
+
+        uniqueGenomes.forEach(genome => {
+            const safeId = `url-${genome.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+            const input = document.getElementById(safeId);
+            const errorSpan = document.getElementById(`error-${safeId}`);
+            const url = input.value.trim();
+
+            // Vérifie l’URL si non vide
+            if (url && !isValidUrl(url)) {
+                input.style.border = "1px solid #dc3545"; // Rouge
+                errorSpan.style.display = "inline";
+                hasError = true;
+            } else {
+                input.style.border = "1px solid #ccc"; // Normal
+                errorSpan.style.display = "none";
+
+                if (url) {
+                    jbrowseLinks[genome] = url; //Met à jour la variable globale
+                } else {
+                    delete jbrowseLinks[genome]; //Supprime l’entrée si vide
+                }
+            }
+        });
+
+        if (hasError) {
+            alert("Some URLs are invalid. Please fix them before saving.");
+            return; // Ne ferme pas la popup
+        }
+
+        console.log('Nouvelle configuration JBrowse :', jbrowseLinks);
+
+        // Fermer la popup
+        document.body.removeChild(container);
+    });
+
+    // Fermer sans sauvegarder
+    document.getElementById('closeJbrowseConfig').addEventListener('click', () => {
+        document.body.removeChild(container);
+    });
+}
+
+
+
+
+
+
 
 export function generateBandTypeFilters() {
     const filterDiv = document.querySelector('.filter-section'); 

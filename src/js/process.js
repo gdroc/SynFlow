@@ -11,7 +11,7 @@ export let allParsedData = [];
 let genomeLengths; // taille des chromosomes
 export let genomeData; // Données des chromosomes
 let maxAlignments; //duo de chromosomes ref/query avec le plus grand alignement
-let uniqueGenomes;
+export let uniqueGenomes;
 let orderedFileObjects = []; // Défini globalement
 let previousChromosomePositions = null;
 let globalMaxChromosomeLengths = {};
