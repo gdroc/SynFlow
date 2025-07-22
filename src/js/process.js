@@ -2,7 +2,7 @@ import { drawChromosomes, drawStackedChromosomes, drawCorrespondenceBands, reset
 import { generateBandTypeFilters, createSlider, createLengthChart, updateBandsVisibility, showControlPanel, createMergeSlider } from './legend.js';
 import { Spinner } from './spin.js';
 import { zoom } from './draw.js';
-import { fileUploadMode, hideForm, setSelectedGenomes } from './form.js';
+import { fileOrderMode, fileUploadMode, hideForm, setSelectedGenomes } from './form.js';
 
 export let refGenome; // Définir globalement
 export let queryGenome; // Définir globalement
@@ -920,6 +920,10 @@ function reorderFileList(fileListElement, orderedFileNames, fileType) {
                 const chainDiv = document.querySelector('#selected-chain');
                 chainDiv.innerHTML = `<b>Selected chain :</b> <br>${newOrder.join(' &rarr; ')}`;
                 document.querySelector('#submit-remote').click();
+            }else if(fileOrderMode === 'allvsall') {
+                const chainDiv = document.querySelector('#selected-chain');
+                chainDiv.innerHTML = `<b>Selected chain :</b> <br>${newOrder.join(' &rarr; ')}`;
+                document.querySelector('#submit-local').click();
             }
         });
         fileListElement.dataset.dragendListener = "true";
