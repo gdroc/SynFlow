@@ -338,7 +338,7 @@ function configJBrowse() {
                     color: #dc3545;
                     display: none;
                     font-size: 0.85em;
-                ">❌ Invalid URL</span>
+                ">Invalid URL</span>
             </div>
         `;
     });
