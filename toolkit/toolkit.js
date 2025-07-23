@@ -347,7 +347,8 @@ export function generateForm(selectedService) {
                 const options = databasesData[field.optionsSource];
                 options.forEach(optionValue => {
                     const option = document.createElement("option");
-                    option.value = optionValue;
+                    //en minuscule
+                    option.value = optionValue.toLowerCase();
                     option.textContent = optionValue;
                     input.appendChild(option);
                 });

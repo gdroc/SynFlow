@@ -78,6 +78,14 @@
 							"/NAS/muse/web/HUBs/coffea/opal/DH.fasta"
 						],
 						"required": true
+					},
+					{
+						"name": "workflow",
+						"label": "Workflow",
+						"type": "select",
+						"flag": "-m",
+						"optionsSource": "SyriWorkflows",
+						"required": true
 					}
 				]
 			}
