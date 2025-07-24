@@ -693,6 +693,8 @@ function handleFileUpload(bandFiles, bedFiles) {
     if (bedFiles.length > 0) {
         // Calcule la densité d'annotation pour chaque fichier .bed
         bedFiles.forEach(async bedFile => {
+            //si pas null
+            if (!bedFile) return;
             const text = await bedFile.text();
             const genomeName = bedFile.name.replace('.bed', ''); // Enlève l'extension .bed pour obtenir le nom du génome
             const density = calculateAnnotationDensity(text, genomeName);

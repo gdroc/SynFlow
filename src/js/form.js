@@ -390,13 +390,16 @@ async function createExistingFilesForm() {
         const bedFiles = await Promise.all(selectedGenomes.map(async genome => {
             const bedFilePath = `${folder}${genome}.bed`;
             //si le fichier existe on le télécharge
-            if (allFilesTrimmed.includes(`${genome}.bed`)) {
+            try {
                 const response = await fetch(bedFilePath);
                 if (response.ok) {
                     const text = await response.text();
                     return new File([text], `${genome}.bed`, { type: 'text/plain' });
                 }
+            } catch (error) {
+                console.log(`Error fetching bed file for ${genome}:`, error);
             }
+            
             return null;
         }));
 
