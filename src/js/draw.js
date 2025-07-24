@@ -307,57 +307,6 @@ export function drawStackedChromosomes(genomeData, maxLengths, fileIndex, totalG
     return chromPositions;
 }
 
-// export function drawStackedChromosomes(genomeData, maxLengths, fileIndex, totalGenomes, scale) {
-//     console.log("Draw stacked chromosomes"); 
-//     const svgGroup = d3.select('#zoomGroup');
-//     const margin = { top: 30, bottom: 30, left: 50, right: 50 };
-//     const spaceBetween = 100;
-//     const totalSpaceBetween = totalGenomes * 100;
-//     const maxLength = Math.max(...Object.values(maxLengths));
-//     const totalWidth = (maxLength / scale) + margin.left + margin.right;
-//     // d3.select('#viz').attr('width', totalWidth);
-
-//     const radius = 5; // Exemple de radius pour les extrémités des chromosomes, moitié de la hauteur
-
-//     let currentX = margin.left; // Position de départ en X
-//     let currentY = margin.top + (fileIndex+1) * spaceBetween; //position de départ en Y
-
-//     const chromPositions = {};
-
-//     let chromNum = 0;
-//     for (const chromName in maxLengths) {
-//         chromNum++;
-//         const refLength = genomeData[refGenome][chromName].length;
-//         const queryLength = genomeData[queryGenome][chromName].length;
-//         const refWidth = (refLength || 0) / scale;
-//         const queryWidth = (queryLength || 0) / scale;
-//         const chromWidth = maxLengths[chromName] / scale;
-
-//         if (!isNaN(chromWidth) && chromWidth > 0) {
-//             if (fileIndex == 0) { // si c'est le premier fichier on dessine la ref, sinon elle est dejà dessinée
-//                 //chr ref
-//                 drawChromPathNoArm(currentX, currentY, refWidth, radius,chromNum, chromName + "_ref", refGenome, svgGroup, scale);
-//                 // Ajouter les noms des chromosomes
-//                 svgGroup.append('text')
-//                     .attr('x', currentX + chromWidth / 2)
-//                     .attr('y', currentY - 10) // Position au-dessus des chromosomes de référence
-//                     .attr('text-anchor', 'middle')
-//                     .text(chromName);
-//             }
-//             //chr query
-//             drawChromPathNoArm(currentX, currentY+spaceBetween , queryWidth, radius, chromNum, chromName + "_query", queryGenome, svgGroup, scale);
-
-//             chromPositions[chromName] = { refX: currentX, queryX: currentX, refY: currentY, queryY: currentY+spaceBetween };
-//             currentY += totalSpaceBetween;
-
-//         } else {
-//             console.error(`Invalid chromosome width for ${chromName}: ${chromWidth}`);
-//         }
-//     }
-
-//     currentY += totalSpaceBetween; // Mettre à jour la position Y pour le fichier suivant
-//     return chromPositions; // Retourner les positions des chromosomes
-// }
 
 
 
@@ -391,22 +340,24 @@ function drawChromPathNoArm(x, y, width, radius, chromNum, chromName, genome, sv
 
     svg.call(tip);
 
+    const gradientId = `gradient-${genome}-${chromName.split('_ref')[0].split('_query')[0]}`; // Générer un ID de gradient unique
+
     svg.append("path")
         .attr("d", path)
         .attr("class", "chrom") // Ajoute une classe chrom
         .attr("id", chromName)
         .attr("data-chrom-num", chromNum)
         .style("stroke", genomeColors[genome]) // Utiliser la couleur du génome
-        .style("fill", "rgba(0, 0, 0, 0)")
-        .style("fill-opacity", "0")
+        // .style("fill", "rgba(0, 0, 0, 0)")
+        //fill avec le gradient s'il existe
+        // #gradient-m-AA-pisangmadu-h1-Macmad_h1_01
+        .style('fill', `url(#${gradientId})`)
         .on('mouseover', function (event, d) {
                  tip.show(event, d); // Afficher le tooltip
             })
             .on('mouseout', function (event, d) {
                 tip.hide(event, d); // Masquer le tooltip
             });
-
-    
 }
 
 

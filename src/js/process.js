@@ -320,7 +320,7 @@ function updateChromosomesOrder(newOrder) {
     resetDrawGlobals();
     
     // Réinitialiser les variables spécifiques au dessin
-    d3.select('#zoomGroup').selectAll('*').remove();
+    d3.select('#zoomGroup').selectAll('*:not(defs)').remove();
     currentFile = orderedFileObjects[0];
     refGenome = uniqueGenomes[0];
     queryGenome = uniqueGenomes[1];
@@ -462,6 +462,68 @@ function calculateSNPDensity(data, refLengths, binSize = 100000) {
     return snpDensity;
 }
 
+//BED file example :
+//chromosome    start	end	name	strand
+//Macmad_h1_01	16953	25284	Macmad_h1_01g000010	+
+export function calculateAnnotationDensity(data, genomeName, binSize = 20000) {
+    console.log("Calculating annotation density for genome:", genomeName);
+    const annotationDensity = {};
+
+    // Compter les annotations par bin
+    data.split('\n').forEach(d => {
+        const [chr, start, end, name, strand] = d.split('\t');
+        if (!chr || !start) return; // Ignorer les lignes vides ou incorrectes
+        const binIndex = Math.floor(+start / binSize);
+        if (!annotationDensity[chr]) {
+            annotationDensity[chr] = {};
+        }
+        annotationDensity[chr][binIndex] = (annotationDensity[chr][binIndex] || 0) + 1;
+    });
+
+    // Extraire toutes les densités pour l'échelle de couleur
+    const allCounts = [];
+    for (const chr in annotationDensity) {
+        allCounts.push(...Object.values(annotationDensity[chr]));
+    }
+
+    //applique les couleurs des genomes
+    const color = genomeColors[genomeName] || '#000'; // Couleur de départ
+    const colorScale = d3.scaleSequential(d3.interpolateRgb("white", color))
+        .domain([0, d3.max(allCounts)]);
+
+    // Ajouter les gradients
+    const svg = d3.select('#viz');
+
+    let defs = svg.select('defs');
+    if (defs.empty()) {
+        defs = svg.append('defs');
+    }
+
+    for (const chr in annotationDensity) {
+        const gradientId = `gradient-${genomeName}-${chr}`;
+
+        const gradient = defs.append('linearGradient')
+            .attr('id', gradientId)
+            .attr('x1', '0%')
+            .attr('y1', '0%')
+            .attr('x2', '100%')
+            .attr('y2', '0%');
+
+        const bins = Object.keys(annotationDensity[chr]).map(Number);
+        const minBin = Math.min(...bins);
+        const maxBin = Math.max(...bins);
+
+        for (const bin of bins) {
+            const density = annotationDensity[chr][bin] || 0;
+            const offset = ((bin - minBin) / (maxBin - minBin)) * 100;
+            gradient.append('stop')
+                .attr('offset', `${offset}%`)
+                .attr('stop-color', colorScale(density));
+        }
+    }
+    return annotationDensity;
+}
+
 // Extraire les noms des génomes à partir des fichiers .chrlen
 function extractGenomeNames(chrlenFileNames) {
     return chrlenFileNames.map(fileName => fileName.replace('.chrlen', ''));
@@ -567,7 +629,7 @@ export function findUniqueGenomes(bandFileNames) {
     return result;
 }
 
-function handleFileUpload(bandFiles) {
+function handleFileUpload(bandFiles, bedFiles) {
     resetGlobals(); // Réinitialiser les variables globales
     // spinner.spin(target);
 
@@ -595,7 +657,6 @@ function handleFileUpload(bandFiles) {
     uniqueGenomes.forEach((genome, index) => {
         genomeColors[genome] = generateColor(index);
     });
-
 
     //retrouve l'ordre des fichier 
     const orderedFiles = orderFilesByGenomes(bandFileNames, uniqueGenomes);
@@ -627,6 +688,16 @@ function handleFileUpload(bandFiles) {
     // Définir globalement refGenome et queryGenome
     refGenome = uniqueGenomes[0];
     queryGenome = uniqueGenomes[1];
+
+    //Si on a des fichiers .bed, on clacule pour chacun la densité d'annotation
+    if (bedFiles.length > 0) {
+        // Calcule la densité d'annotation pour chaque fichier .bed
+        bedFiles.forEach(async bedFile => {
+            const text = await bedFile.text();
+            const genomeName = bedFile.name.replace('.bed', ''); // Enlève l'extension .bed pour obtenir le nom du génome
+            const density = calculateAnnotationDensity(text, genomeName);
+        });
+    }
 
     // Lire les longueurs des chromosomes à partir du fichier band
     calculateChromosomeDataFromBandFiles(orderedFileObjects, uniqueGenomes).then((data) => {
@@ -757,7 +828,7 @@ async function calculateChromosomeDataFromBandFiles(orderedFileObjects, uniqueGe
             let refChr = refLengths[i].name;
             //cherche son binome = le chromosome query qui à l'alignement le plus long
             let queryChr = Object.keys(alignments[refChr]).reduce((a, b) => alignments[refChr][a] > alignments[refChr][b] ? a : b);
-            console.log("binome de ", refChr, " est ", queryChr);
+            // console.log("binome de ", refChr, " est ", queryChr);
             //cherche l'index de queryChr dans queryLengths
             let queryIndex = Object.keys(queryLengths).find(key => queryLengths[key].name === queryChr);
             // console.log("index de ", queryChr, " est ", queryIndex);

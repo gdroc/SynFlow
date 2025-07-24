@@ -2,6 +2,7 @@ import * as toolkit from '../../toolkit/toolkit.js';
 import { createLegendContainer } from './legend.js';
 import { zoom } from './draw.js';
 import { handleFileUpload, extractAllGenomes, spinner } from './process.js';
+import { calculateAnnotationDensity } from './process.js';
 
 //mode de chargement des fichiers
 export let fileUploadMode = ''; //  'remote' ou 'local'
@@ -339,6 +340,14 @@ async function createExistingFilesForm() {
 
         fileUploadMode = 'remote'; // Change mode to remote for file upload
 
+        // Réinitialise les variables de dessin
+        const visualizationContainer = document.getElementById('viz');
+        visualizationContainer.innerHTML = ''; // Efface le contenu existant
+        d3.select('#info').html('');
+        d3.select("#viz").call(zoom);
+        // Ajoutez un groupe à l'intérieur de l'élément SVG pour contenir les éléments zoomables
+        d3.select("#viz").append("g").attr("id", "zoomGroup");
+
         if (selectedGenomes.length < 2) {
             chainDiv.innerHTML = '<span style="color:red;">Please select at least 2 genomes to construct a chain.</span>';
             return;
@@ -377,6 +386,22 @@ async function createExistingFilesForm() {
             return new File([text], file, { type: 'text/plain' });
         }));
 
+        //Cherche s'il y a un fichier .bed pour chaque genome et si oui, le télécharge
+        const bedFiles = await Promise.all(selectedGenomes.map(async genome => {
+            const bedFilePath = `${folder}${genome}.bed`;
+            //si le fichier existe on le télécharge
+            if (allFilesTrimmed.includes(`${genome}.bed`)) {
+                const response = await fetch(bedFilePath);
+                if (response.ok) {
+                    const text = await response.text();
+                    return new File([text], `${genome}.bed`, { type: 'text/plain' });
+                }
+            }
+            return null;
+        }));
+
+        console.log('Bed files:', bedFiles);
+
         // Simule un input file multiple pour handleFileUpload
         const dataTransfer = new DataTransfer();
         files.forEach(file => dataTransfer.items.add(file));
@@ -394,15 +419,8 @@ async function createExistingFilesForm() {
         } catch (error) {
             console.log("No jbrowse links");
         }
-
-        // Appelle ta fonction de visualisation
-        const visualizationContainer = document.getElementById('viz');
-        visualizationContainer.innerHTML = ''; // Efface le contenu existant
-        d3.select('#info').html('');
-        d3.select("#viz").call(zoom);
-        // Ajoutez un groupe à l'intérieur de l'élément SVG pour contenir les éléments zoomables
-        d3.select("#viz").append("g").attr("id", "zoomGroup");
-        handleFileUpload(dataTransfer.files);
+        
+        handleFileUpload(dataTransfer.files, bedFiles);
     });
 
     // Container pour l'aide (partie droite)
@@ -745,8 +763,25 @@ export function createFTPSection() {
     ftpInput.setAttribute('type', 'text');
     ftpInput.setAttribute('placeholder', 'Paste FTP folder URL here');
     ftpInput.style.width = '100%';
-    ftpInput.style.marginBottom = '10px';
+    ftpInput.style.marginBottom = '5px';
     formContainer.appendChild(ftpInput);
+
+    //exemple cliquable
+    const exampleLink = document.createElement('a');
+    exampleLink.setAttribute('href', 'https://hpc.cirad.fr/bank/banana/synflow/');
+    exampleLink.setAttribute('target', '_blank');
+    exampleLink.textContent = 'Example: https://hpc.cirad.fr/bank/banana/synflow/';
+    exampleLink.style.display = 'block';
+    exampleLink.style.marginBottom = '10px';
+    exampleLink.style.color = 'grey';
+    exampleLink.style.fontSize = '0.9em';
+    exampleLink.style.fontStyle = 'italic';
+    exampleLink.style.textDecoration = 'none';
+    exampleLink.addEventListener('click', (event) => {
+        event.preventDefault(); // Empêche le comportement par défaut du lien
+        ftpInput.value = exampleLink.href; // Remplit le champ d'URL avec l'exemple
+    });
+    formContainer.appendChild(exampleLink);
 
     // Bouton pour charger la liste des fichiers
     const fetchButton = document.createElement('button');
@@ -763,6 +798,7 @@ export function createFTPSection() {
     fileListDiv.style.overflowY = 'auto';
     fileListDiv.style.border = '1px solid #ccc';
     fileListDiv.style.padding = '5px';
+    fileListDiv.style.display = 'none';
     formContainer.appendChild(fileListDiv);
 
     // Affichage de la chaîne sélectionnée
@@ -787,6 +823,8 @@ export function createFTPSection() {
     // Fonction pour charger et afficher la liste des fichiers .out depuis le FTP
     fetchButton.addEventListener('click', async () => {
         fileListDiv.innerHTML = '';
+        fileListDiv.style.display = 'block'; // Affiche la liste des fichiers
+
         ftpSelectedGenomes = [];
         chainDiv.innerHTML = '';
         const folder = ftpInput.value.trim();
