@@ -44,6 +44,26 @@ export function createInfoPanel() {
 		max-height: 0px;  // Initialement caché
 	`;
 
+	//div pour le dessin des anchors
+	const anchorsDiv = document.createElement('div');
+	anchorsDiv.setAttribute('id', 'anchors');
+	anchorsDiv.style.cssText = `
+		background-color: white;
+		border-radius: 0 0 8px 8px;
+		transition: max-height 0.3s ease-out;
+		overflow: hidden;
+		max-height: 0px;  // Initialement caché
+	`;
+
+	const anchorsDrawDiv = document.createElement('div');
+	anchorsDrawDiv.setAttribute('id', 'zoomed-synteny');
+
+
+	panelContent.appendChild(anchorsDrawDiv);
+	panelContent.appendChild(anchorsDiv);
+
+
+	//div pour le contenu de l'info
 	const infoDiv = document.createElement('div');
 	infoDiv.setAttribute('id', 'info');
 	infoDiv.style.cssText = `
@@ -51,7 +71,7 @@ export function createInfoPanel() {
 		border-radius: 0 0 8px 8px;
 		transition: max-height 0.3s ease-out;
 		overflow: hidden;
-		max-height: 1000px;  // Initialement caché
+		max-height:2000px;  // Initialement caché
 	`;
 
 	panelContent.appendChild(infoDiv);
@@ -60,7 +80,7 @@ export function createInfoPanel() {
 	headerBar.addEventListener('click', (event) => {
 		event.preventDefault();
 		if(panelContent.style.maxHeight === '0px' || !panelContent.style.maxHeight) {
-			panelContent.style.maxHeight = '1000px';
+			panelContent.style.maxHeight = '2000px';
 			chevronIcon.className = 'fas fa-chevron-up';
 		} else {
 			panelContent.style.maxHeight = '0px';
@@ -79,7 +99,7 @@ export function createInfoPanel() {
 export function showInfoPanel() {
     const panelContent = document.getElementById('info-panel-content');
     if (panelContent) {
-        panelContent.style.maxHeight = '1000px';
+        panelContent.style.maxHeight = '2000px';
         // Mettre à jour l'icône du bouton
         const hideButton = document.querySelector('#info-panel button');
         if (hideButton) {

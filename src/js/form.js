@@ -8,7 +8,8 @@ import { calculateAnnotationDensity } from './process.js';
 export let fileUploadMode = ''; //  'remote' ou 'local'
 export let fileOrderMode = ''; //'allavsall' ou 'chain'
 export let jbrowseLinks = {}; //liste des lien jbrowse pour les genome sélectionnés dans "existing files"
-
+export let anchorsFiles = [];
+export let bedFiles = [];
 
 // Sélection ordonnée
 let selectedGenomes = [];
@@ -387,7 +388,7 @@ async function createExistingFilesForm() {
         }));
 
         //Cherche s'il y a un fichier .bed pour chaque genome et si oui, le télécharge
-        const bedFiles = await Promise.all(selectedGenomes.map(async genome => {
+        bedFiles = await Promise.all(selectedGenomes.map(async genome => {
             const bedFilePath = `${folder}${genome}.bed`;
             //si le fichier existe on le télécharge
             try {
@@ -403,7 +404,23 @@ async function createExistingFilesForm() {
             return null;
         }));
 
-        console.log('Bed files:', bedFiles);
+    
+        //Cherche les fichiers .anchors correspondant aux fichiers .out sélectionnés
+        anchorsFiles = [];
+        files.forEach(async file => {
+            const anchorsFileName = file.name.replace('.out', '.anchors');
+            const anchorsFilePath = `${folder}${anchorsFileName}`;
+            try {
+                const response = await fetch(anchorsFilePath);
+                if (response.ok) {
+                    const text = await response.text();
+                    anchorsFiles.push(new File([text], anchorsFileName, { type: 'text/plain' }));
+                }
+            } catch (error) {
+                console.log(`Error fetching anchors file for ${file.name}:`, error);
+            }
+        });
+        console.log('Anchors files:', anchorsFiles);
 
         // Simule un input file multiple pour handleFileUpload
         const dataTransfer = new DataTransfer();

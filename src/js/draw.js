@@ -1,6 +1,6 @@
 import { showInfoPanel, showInfoUpdatedMessage} from "./info.js";
 import { refGenome, queryGenome, genomeColors, genomeData, scale, allParsedData, isFirstDraw } from "./process.js";
-import { jbrowseLinks } from "./form.js";
+import { anchorsFiles, bedFiles, jbrowseLinks } from "./form.js";
 
 export let currentYOffset = 0; // Définir globalement
 
@@ -584,7 +584,7 @@ function drawOneBand(svgGroup, d, chromPositions, refGenome, queryGenome) {
                 d3.select(this).attr('opacity', 0.5); // Réinitialiser après le survol
                 tip.hide(event, d); // Masquer le tooltip
             })
-            .on('click', function (event, d) {
+            .on('click', async function (event, d) {
                 // Cherche le bon jeu de données dans allParsedData
                 const parsedSet = allParsedData.find(set =>
                     set.refGenome === refGenome && set.queryGenome === queryGenome
@@ -597,7 +597,7 @@ function drawOneBand(svgGroup, d, chromPositions, refGenome, queryGenome) {
                 showInfoPanel();
                 showInfoUpdatedMessage()
                 const linesInRange = getLinesInRange(parsedSet.data, d.refChr, d.queryChr, d.refStart, d.refEnd, d.queryStart, d.queryEnd);
-                const tableHtml = convertLinesToTableHtml(linesInRange, d.refStart, d.refEnd, d.queryStart, d.queryEnd, refGenome, queryGenome);               
+                const tableHtml = await convertLinesToTableHtml(linesInRange, d.refStart, d.refEnd, d.queryStart, d.queryEnd, refGenome, queryGenome);               
                 d3.select('#info').html(`<br>${tableHtml}`);
             });
         ;
@@ -648,15 +648,29 @@ function getLinesInRange(parsedData, refChr, queryChr, refStart, refEnd, querySt
 //     `;
 // }
 
-function convertLinesToTableHtml(lines, refStart, refEnd, queryStart, queryEnd, refGenome, queryGenome) {
+async function convertLinesToTableHtml(lines, refStart, refEnd, queryStart, queryEnd, refGenome, queryGenome) {
     if (lines.length === 0) return "<p>Aucune donnée disponible</p>";
 
+    // Récupérer les données d'anchors
+    const anchorsResult = await createAnchorsSection(lines, refStart, refEnd, queryStart, queryEnd, refGenome, queryGenome);
+    
+    // Afficher le HTML des anchors
+    const anchorsHtml = anchorsResult.html;
+    
+    // Utiliser les données pour créer la vue zoomée
+    const orthologPairs = anchorsResult.data;
+    createZoomedSyntenyView(orthologPairs, refGenome, queryGenome, refStart, refEnd, queryStart, queryEnd);
+    
     const summary = createSummarySection(lines, refStart, refEnd, queryStart, queryEnd, refGenome, queryGenome);
     const table = createDetailedTable(lines, refGenome, queryGenome);
 
     // Retourner le HTML avec une structure améliorée
     const html = `
         <div class="data-container">
+            <div class="anchors-section">
+                <h4>Anchors</h4>
+                ${anchorsHtml}
+            </div>
             <div class="summary-section">
                 <h4>Summary</h4>
                 ${summary}
@@ -675,6 +689,372 @@ function convertLinesToTableHtml(lines, refStart, refEnd, queryStart, queryEnd, 
 
     return html;
 }
+
+
+async function createAnchorsSection(lines, refStart, refEnd, queryStart, queryEnd, refGenome, queryGenome) {
+    const refChr = lines[0].refChr;
+    const queryChr = lines[0].queryChr;
+
+    try {
+        // Récupère les data du fichier anchors correspondant aux coordonnées choisies
+        const anchorFileName = refGenome + '_' + queryGenome + '.anchors';
+        // Cherche le fichier dans anchorsFiles
+        const anchorFile = anchorsFiles.find(file => file.name === anchorFileName);
+        
+        if (!anchorFile) {
+            console.warn(`Fichier anchors ${anchorFileName} non trouvé`);
+            return { html: '<div class="anchors-refquery">Fichier anchors non trouvé</div>', data: [] };
+        }
+
+        // Récupère les fichiers BED pour ref et query
+        const refBedFile = bedFiles.find(file => file.name === refGenome + '.bed');
+        const queryBedFile = bedFiles.find(file => file.name === queryGenome + '.bed');
+
+        if (!refBedFile || !queryBedFile) {
+            console.warn('Fichiers BED manquants');
+            return { html: '<div class="anchors-refquery">Fichiers BED manquants</div>', data: [] };
+        }
+
+        // Récupère le contenu des fichiers
+        const [anchorText, refBedText, queryBedText] = await Promise.all([
+            anchorFile.text(),
+            refBedFile.text(),
+            queryBedFile.text()
+        ]);
+
+        // Parse les lignes des fichiers BED
+        const refBedLines = refBedText.split('\n').filter(line => line.trim());
+        const queryBedLines = queryBedText.split('\n').filter(line => line.trim());
+        const anchorLines = anchorText.split('\n').filter(line => line.trim());
+
+        // Filtre les gènes du BED ref dans la région d'intérêt
+        const refGenesInRegion = refBedLines.filter(line => {
+            const [chr, start, end] = line.split('\t');
+            const geneStart = parseInt(start);
+            const geneEnd = parseInt(end);
+            
+            // Vérifie si le gène est dans la région spécifiée
+            return chr === refChr && 
+                geneStart >= refStart && 
+                geneEnd <= refEnd;
+        });
+
+        // Pour chaque gène du bed ref, cherche son orthologue dans le fichier anchors
+        const orthologPairs = [];
+        
+        refGenesInRegion.forEach(refBedLine => {
+            const [refChr, refStart, refEnd, refGeneName, refScore, refStrand] = refBedLine.split('\t');
+            
+            // Filtre les anchors pour ce gène
+            const foundAnchors = anchorLines.filter(line => 
+                line.split('\t')[0] === refGeneName
+            );
+            
+            foundAnchors.forEach(anchorLine => {
+                const [refAnchor, queryAnchor, score] = anchorLine.split('\t');
+                
+                // Trouve les coordonnées du gène query correspondant
+                const queryBedLine = queryBedLines.find(line => {
+                    const bedQueryGeneName = line.split('\t')[3];
+                    const cleanQueryAnchor = queryAnchor;
+                    return bedQueryGeneName === cleanQueryAnchor || bedQueryGeneName === queryAnchor;
+                });
+                
+                if (queryBedLine) {
+                    const [queryChr, queryStart, queryEnd, queryName, queryScore, queryStrand] = queryBedLine.split('\t');
+                    orthologPairs.push({
+                        ref: {
+                            name: refGeneName,
+                            chr: refChr,
+                            start: parseInt(refStart),
+                            end: parseInt(refEnd),
+                            strand: refStrand || '+'
+                        },
+                        query: {
+                            name: queryName,
+                            chr: queryChr,
+                            start: parseInt(queryStart),
+                            end: parseInt(queryEnd),
+                            strand: queryStrand || '+'
+                        },
+                        score: parseFloat(score) || 0,
+                        anchorRef: refAnchor,
+                        anchorQuery: queryAnchor
+                    });
+                }
+            });
+        });
+
+        console.log('Paires orthologues trouvées:', orthologPairs);
+
+        // Génère le HTML pour afficher les orthologues
+        const orthologsHtml = orthologPairs.map(pair => `
+            <div class="ortholog-pair" style="margin-top:5px; padding:5px 0; border-bottom:1px solid #eee;">
+                <div style="font-weight:bold;">${pair.ref.name} ↔ ${pair.query.name}</div>
+                <div style="font-size:12px; color:#555;">
+                    ${pair.ref.chr}:${pair.ref.start.toLocaleString()}-${pair.ref.end.toLocaleString()} → 
+                    ${pair.query.chr}:${pair.query.start.toLocaleString()}-${pair.query.end.toLocaleString()}
+                    <span style="float:right;">Score : ${pair.score}</span>
+                </div>
+            </div>
+        `).join('');
+
+        const anchorsHtml = `
+            <div class="anchors-refquery" style="max-height:300px; overflow-y:auto; border:1px solid #ccc; padding:10px; border-radius:5px;">
+                <h4 style="margin-bottom:10px;">Orthologues détectés (${orthologPairs.length})</h4>
+                ${orthologsHtml || '<div style="padding:10px; text-align:center; color:#666;">Aucun orthologue trouvé dans cette région</div>'}
+            </div>
+        `;
+
+        // Retourner à la fois le HTML et les données
+        return {
+            html: anchorsHtml,
+            data: orthologPairs
+        };
+
+    } catch (error) {
+        console.error('Erreur dans createAnchorsSection:', error);
+        return { 
+            html: '<div class="anchors-refquery">Erreur lors du chargement des données</div>',
+            data: []
+        };
+    }
+}
+
+/////////////////////////////////////////////////
+function createZoomedSyntenyView(orthologPairs, refGenome, queryGenome, refStart, refEnd, queryStart, queryEnd) {
+    
+    // Vérifier si on a des données
+    if (!orthologPairs || orthologPairs.length === 0) {
+        d3.select('#zoomed-synteny').html('<div>Aucune paire orthologue à afficher</div>');
+        return;
+    }
+
+    // Configuration du dessin
+    const margin = { top: 50, right: 100, bottom: 50, left: 150 };
+    const width = 1200 - margin.left - margin.right;
+    const height = 400 - margin.bottom - margin.top;
+    const chromosomeHeight = 10;
+    const geneHeight = 15;
+    const refY = 100;
+    const queryY = 250;
+
+    // Créer le conteneur SVG
+    const svg = d3.select('#zoomed-synteny')
+        .html('') // Nettoyer le contenu précédent
+        .append('svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom);
+
+    const g = svg.append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+    // Échelles pour positionner les gènes
+    const refScale = d3.scaleLinear()
+        .domain([refStart, refEnd])
+        .range([0, width]);
+
+    const queryScale = d3.scaleLinear()
+        .domain([queryStart, queryEnd])
+        .range([0, width]);
+
+    // Dessiner les chromosomes de référence
+    g.append('rect')
+        .attr('x', 0)
+        .attr('y', refY - chromosomeHeight/2)
+        .attr('width', width)
+        .attr('height', chromosomeHeight)
+        .attr('stroke', genomeColors[refGenome] || '#666')
+        .attr('fill', 'white')
+        .attr('rx', 5);
+
+    // Label chromosome ref
+    g.append('text')
+        .attr('x', -10)
+        .attr('y', refY + 5)
+        .attr('text-anchor', 'end')
+        .attr('font-weight', 'bold')
+        .text(`${refGenome}`);
+
+    // Dessiner le chromosome query
+    g.append('rect')
+        .attr('x', 0)
+        .attr('y', queryY - chromosomeHeight/2)
+        .attr('width', width)
+        .attr('height', chromosomeHeight)
+        .attr('stroke', genomeColors[queryGenome] || '#666')
+        .attr('fill', 'white')
+        .attr('rx', 5);
+
+    // Label chromosome query
+    g.append('text')
+        .attr('x', -10)
+        .attr('y', queryY + 5)
+        .attr('text-anchor', 'end')
+        .attr('font-weight', 'bold')
+        .text(`${queryGenome}`);
+
+    // Créer un tooltip
+    let tooltip = d3.select('.gene-tooltip');
+    if (tooltip.empty()) {
+        tooltip = d3.select('body').append('div')
+            .attr('class', 'gene-tooltip')
+            .style('position', 'absolute')
+            .style('background', 'rgba(0,0,0,0.8)')
+            .style('color', 'white')
+            .style('padding', '8px')
+            .style('border-radius', '4px')
+            .style('font-size', '12px')
+            .style('pointer-events', 'none')
+            .style('visibility', 'hidden')
+            .style('z-index', '1000');
+    }
+
+    // Dessiner les genes et les connection
+    orthologPairs.forEach((d, i) => {
+        drawGene(g, d.ref, refScale, refY, geneHeight, genomeColors[refGenome], 'black', tooltip, 'ref');
+        drawGene(g, d.query, queryScale, queryY, geneHeight, genomeColors[queryGenome], 'black', tooltip, 'query');
+        drawConnection(g, d.ref, d.query, refScale, queryScale, refY, queryY, geneHeight, d.score, tooltip);
+
+    });
+
+
+    // Ajouter des échelles de coordonnées
+    const refAxis = d3.axisTop(refScale)
+        .tickSize(5)
+        .tickFormat(d => (d / 1000000).toFixed(1) + 'M');
+    
+    g.append('g')
+        .attr('class', 'ref-axis')
+        .attr('transform', `translate(0, ${refY - chromosomeHeight/2 - 10})`)
+        .call(refAxis);
+
+    const queryAxis = d3.axisBottom(queryScale)
+        .tickSize(5)
+        .tickFormat(d => (d / 1000000).toFixed(1) + 'M');
+    
+    g.append('g')
+        .attr('class', 'query-axis')
+        .attr('transform', `translate(0, ${queryY + chromosomeHeight/2 + 10})`)
+        .call(queryAxis);
+
+    // Ajouter une légende
+    const legend = g.append('g')
+        .attr('class', 'legend')
+        .attr('transform', `translate(${width - 160}, 20)`);
+
+    return svg.node();
+}
+
+
+function drawGene(g, geneData, scale, y, geneHeight, color, strokeColor, tooltip, position = 'ref') {
+    const x = scale(geneData.start);
+    const geneWidth = Math.max(3, scale(geneData.end) - scale(geneData.start));
+    const strand = geneData.strand || '+';
+
+    const gene = g.append('g').attr('class', `${position}-gene`);
+
+    const arrowSize = Math.min(5, geneWidth / 3);
+    const points = strand === '+' || strand === '1'
+        ? [
+            [x, y - geneHeight/2],
+            [x + geneWidth - arrowSize, y - geneHeight/2],
+            [x + geneWidth, y],
+            [x + geneWidth - arrowSize, y + geneHeight/2],
+            [x, y + geneHeight/2]
+        ]
+        : [
+            [x + arrowSize, y - geneHeight/2],
+            [x + geneWidth, y - geneHeight/2],
+            [x + geneWidth, y + geneHeight/2],
+            [x + arrowSize, y + geneHeight/2],
+            [x, y]
+        ];
+
+    gene.append('polygon')
+        .attr('points', points.map(p => p.join(',')).join(' '))
+        .attr('fill', color)
+        .attr('stroke', strokeColor)
+        .attr('stroke-width', 1);
+
+    // Tooltip
+    gene.style('cursor', 'pointer')
+        .on('mouseover', function(event) {
+            tooltip.style('visibility', 'visible')
+                .html(`<strong>${geneData.name}</strong><br>
+                    ${geneData.chr}:${geneData.start.toLocaleString()}-${geneData.end.toLocaleString()}<br>
+                    Strand: ${strand}`);
+        })
+        .on('mousemove', function(event) {
+            tooltip.style('top', (event.pageY + 10) + 'px')
+                .style('left', (event.pageX + 10) + 'px');
+        })
+        .on('mouseout', function() {
+            tooltip.style('visibility', 'hidden');
+        });
+}
+
+
+
+function drawConnection(g, refGene, queryGene, refScale, queryScale, refY, queryY, geneHeight, score, tooltip) {
+    const refStartX = refScale(refGene.start);
+    const refEndX = refScale(refGene.end);
+    const queryStartX = queryScale(queryGene.start);
+    const queryEndX = queryScale(queryGene.end);
+
+    const refBottom = refY + geneHeight/2;      // Bas du gène de référence
+    const queryTop = queryY - geneHeight/2;                  // Haut du gène query
+
+    const midY = (refBottom + queryTop) / 2;
+
+    const pathData = `
+        M${refStartX},${refBottom}
+        C${refStartX},${midY} ${queryStartX},${midY} ${queryStartX},${queryTop}
+        L${queryEndX},${queryTop}
+        C${queryEndX},${midY} ${refEndX},${midY} ${refEndX},${refBottom}
+        Z
+    `;
+
+    g.append('path')
+        .attr('class', 'ortholog-connection')
+        .attr('d', pathData)
+        .attr('fill', '#ccc')
+        .attr('opacity', 0.7)
+        .style('cursor', 'pointer')
+        .on('mouseover', function() {
+            d3.select(this).attr('opacity', 1);
+            tooltip.style('visibility', 'visible')
+                .html(`<strong>Connexion orthologue</strong><br>
+                    ${refGene.name} ↔ ${queryGene.name}<br>
+                    Score: ${score.toFixed(3)}`);
+        })
+        .on('mousemove', function(event) {
+            tooltip.style('top', (event.pageY + 10) + 'px')
+                .style('left', (event.pageX + 10) + 'px');
+        })
+        .on('mouseout', function() {
+            d3.select(this).attr('opacity', 0.7);
+            tooltip.style('visibility', 'hidden');
+        });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function createSummarySection(lines, refStart, refEnd, queryStart, queryEnd, refGenome, queryGenome) {
     if (!lines || lines.length === 0) return '';
@@ -929,3 +1309,18 @@ function isBandVisible(d) {
     return isVisibleChrom && isVisibleBandType && isVisibleBandPos && isVisibleBandLength;
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
