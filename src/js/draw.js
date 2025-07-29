@@ -784,7 +784,7 @@ async function createAnchorsSection(lines, refStart, refEnd, queryStart, queryEn
 
 
         const anchorsHtml = `
-            <div class="anchors-refquery" style="max-height:300px; overflow-y:auto; border:1px solid #ccc; padding:10px; border-radius:5px;">
+            <div class="anchors-refquery">
                 <h4 style="margin-bottom:10px;">Orthologs found: (${orthologPairs.length})</h4>
                 ${orthologsHtml || '<div style="padding:10px; text-align:center; color:#666;">No orthologs found in this region</div>'}
             </div>
@@ -1082,7 +1082,7 @@ function createOrthologsTable(orthologPairs, refGenome, queryGenome) {
 
     return `
         <div class="table-responsive">
-            <table class="table table-sm table-hover">
+            <table class="table table-hover">
                 <thead class="thead-light">
                     <tr>${headerHtml}</tr>
                 </thead>
