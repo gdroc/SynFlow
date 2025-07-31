@@ -65,8 +65,8 @@ export function createInfoPanel() {
 	// style="padding: 15px; background-color: white; border-radius: 5px; box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 5px;"
 
     const menuItems = [
-        { id: 'anchors', icon: 'fas fa-project-diagram', text: 'Orthology' },
-        { id: 'details', icon: 'fas fa-info-circle', text: 'Band details' }
+        { id: 'details', icon: 'fas fa-info-circle', text: 'Band details' },
+        { id: 'anchors', icon: 'fas fa-project-diagram', text: 'Orthology' }
     ];
 
     const tabs = {};
@@ -147,9 +147,9 @@ export function createInfoPanel() {
     container.appendChild(contentWrapper);
 
     // Onglet par défaut
-    tabs['anchors'].style.backgroundColor = 'black';
-    tabs['anchors'].style.color = 'white';
-    showInfoSection('anchors');
+    tabs['details'].style.backgroundColor = 'black';
+    tabs['details'].style.color = 'white';
+    showInfoSection('details');
 
     return container;
 }
