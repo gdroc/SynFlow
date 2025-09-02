@@ -734,7 +734,6 @@ async function createAnchorsSection(lines, refStart, refEnd, queryStart, queryEn
 
         // Pour chaque gène du bed ref, cherche son orthologue dans le fichier anchors
         const orthologPairs = [];
-        
         refGenesInRegion.forEach(refBedLine => {
             const [refChr, refStart, refEnd, refGeneName, refScore, refStrand] = refBedLine.split('\t');
             
@@ -742,10 +741,9 @@ async function createAnchorsSection(lines, refStart, refEnd, queryStart, queryEn
             const foundAnchors = anchorLines.filter(line => 
                 line.split('\t')[0] === refGeneName
             );
-            
+
             foundAnchors.forEach(anchorLine => {
-                const [refAnchor, queryAnchor, score] = anchorLine.split('\t');
-                
+                const [refAnchor, queryAnchor, score, score2] = anchorLine.split('\t');
                 // Trouve les coordonnées du gène query correspondant
                 const queryBedLine = queryBedLines.find(line => {
                     const bedQueryGeneName = line.split('\t')[3];
@@ -849,6 +847,7 @@ function createZoomedSyntenyView(orthologPairs, refGenome, queryGenome, refStart
         .attr('width', width)
         .attr('height', chromosomeHeight)
         .attr('stroke', genomeColors[refGenome] || '#666')
+        .attr('stroke-width', 2)
         .attr('opacity', 0.7)
         .attr('fill', 'white')
         .attr('rx', 5);
@@ -856,7 +855,8 @@ function createZoomedSyntenyView(orthologPairs, refGenome, queryGenome, refStart
     // Label chromosome ref
     g.append('text')
         .attr('x', 0)
-        .attr('y', refY - 40)
+        .attr('y', refY - 45)
+        .attr('font-weight', 'bold')
         .text(`${refGenome}`);
 
     // Dessiner le chromosome query
@@ -866,6 +866,7 @@ function createZoomedSyntenyView(orthologPairs, refGenome, queryGenome, refStart
         .attr('width', width)
         .attr('height', chromosomeHeight)
         .attr('stroke', genomeColors[queryGenome] || '#666')
+        .attr('stroke-width', 2)
         .attr('opacity', 0.7)
         .attr('fill', 'white')
         .attr('rx', 5);
@@ -873,7 +874,8 @@ function createZoomedSyntenyView(orthologPairs, refGenome, queryGenome, refStart
     // Label chromosome query
     g.append('text')
         .attr('x', 0)
-        .attr('y', queryY + 50)
+        .attr('y', queryY + 55)
+        .attr('font-weight', 'bold')
         .text(`${queryGenome}`);
 
     // Créer un tooltip
@@ -904,7 +906,7 @@ function createZoomedSyntenyView(orthologPairs, refGenome, queryGenome, refStart
     // Ajouter des échelles de coordonnées
     const refAxis = d3.axisTop(refScale)
         .tickSize(5)
-        .tickFormat(d => (d / 1000000).toFixed(1) + 'M');
+        .tickFormat(d => (d / 1000000).toFixed(1) + 'Mb');
     
     g.append('g')
         .attr('class', 'ref-axis')
@@ -913,7 +915,7 @@ function createZoomedSyntenyView(orthologPairs, refGenome, queryGenome, refStart
 
     const queryAxis = d3.axisBottom(queryScale)
         .tickSize(5)
-        .tickFormat(d => (d / 1000000).toFixed(1) + 'M');
+        .tickFormat(d => (d / 1000000).toFixed(1) + 'Mb');
     
     g.append('g')
         .attr('class', 'query-axis')
@@ -1002,7 +1004,7 @@ function drawConnection(g, refGene, queryGene, refScale, queryScale, refY, query
         .attr('class', 'ortholog-connection')
         .attr('d', pathData)
         .attr('fill', '#ccc')
-        .attr('opacity', 0.7)
+        .attr('opacity', 0.5)
         .style('cursor', 'pointer')
         .on('mouseover', function() {
             d3.select(this).attr('opacity', 1);
@@ -1016,7 +1018,7 @@ function drawConnection(g, refGene, queryGene, refScale, queryScale, refY, query
                 .style('left', (event.pageX + 10) + 'px');
         })
         .on('mouseout', function() {
-            d3.select(this).attr('opacity', 0.7);
+            d3.select(this).attr('opacity', 0.5);
             tooltip.style('visibility', 'hidden');
         });
 }

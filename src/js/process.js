@@ -690,7 +690,7 @@ function handleFileUpload(bandFiles, bedFiles) {
     queryGenome = uniqueGenomes[1];
 
     //Si on a des fichiers .bed, on clacule pour chacun la densité d'annotation
-    if (bedFiles.length > 0) {
+    if (bedFiles && bedFiles.length > 0) {
         // Calcule la densité d'annotation pour chaque fichier .bed
         bedFiles.forEach(async bedFile => {
             //si pas null
