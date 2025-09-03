@@ -298,15 +298,43 @@ function updateChromList(globalMaxChromosomeLengths) {
     });
 }
 
+/**
+ * Recalcule globalMaxChromosomeLengths selon le nouvel ordre et genomeData.
+ * @param {Array} newOrder - Tableau des positions (ex: ['8','1','2',...])
+ * @param {Object} genomeData - Données des chromosomes pour chaque génome
+ * @returns {Object} globalMaxChromosomeLengths recalculé
+ */
+function recalculateGlobalMaxChromosomeLengths(newOrder, genomeData) {
+    const globalMaxLengths = {};
+    // Pour chaque position dans le nouvel ordre
+    newOrder.forEach((chromNum, index) => {
+        let maxLength = 0;
+        // Pour chaque génome, on regarde la taille du chromosome à cette position
+        for (const genome in genomeData) {
+            const chrom = genomeData[genome][chromNum];
+            if (chrom && chrom.length > maxLength) {
+                maxLength = chrom.length;
+            }
+        }
+        // On attribue la position (index+1) au max trouvé
+        globalMaxLengths[index + 1] = maxLength;
+    });
+    return globalMaxLengths;
+}
+
 // Redraw avec le nouvel ordre des chromosomes
 function updateChromosomesOrder(newOrder) {
     // Réorganiser globalMaxChromosomeLengths selon le nouvel ordre
-    const reorderedLengths = {};
-    newOrder.forEach((chromNum, index) => {
-        reorderedLengths[index + 1] = globalMaxChromosomeLengths[chromNum];
-    });
-    globalMaxChromosomeLengths = reorderedLengths;
+    // const reorderedLengths = {};
+    // console.log(newOrder);
+    // console.log(globalMaxChromosomeLengths);
+    // newOrder.forEach((chromNum, index) => {
+    //     reorderedLengths[index + 1] = globalMaxChromosomeLengths[chromNum];
+    // });
+    // globalMaxChromosomeLengths = reorderedLengths;
 
+    globalMaxChromosomeLengths = recalculateGlobalMaxChromosomeLengths(newOrder, genomeData);
+    
     // Réorganiser genomeData pour chaque génome
     for (const genome in genomeData) {
         const reorderedGenomeData = {};
@@ -327,6 +355,116 @@ function updateChromosomesOrder(newOrder) {
 
     // Relancer le traitement depuis le début
     readFileInChunks(currentFile, true);
+}
+
+
+////////////////////////////////////////
+// rempli la div chrom-controler
+function updateChromControler() {
+    const chromControlerDiv = document.getElementById('chrom-controler');
+    chromControlerDiv.innerHTML = '';
+    chromControlerDiv.style.overflowX = 'auto'; // Scroll si le contenu dépasse
+
+    // Récupère la liste des génomes et le nombre max de chromosomes
+    const genomes = Object.keys(genomeData);
+    const maxChromCount = Math.max(...genomes.map(g => Object.keys(genomeData[g]).length));
+
+    // Crée la grille
+    const grid = document.createElement('div');
+    grid.style.padding = '15px';
+    grid.style.display = 'grid';
+    grid.style.gridTemplateColumns = `repeat(${maxChromCount + 1}, 1fr)`; // +1 pour le nom du génome
+    grid.style.gap = '8px';
+
+    // Ligne d'entête (positions)
+    const headerRow = document.createElement('div');
+    headerRow.style.display = 'contents';
+    const genomeHeader = document.createElement('div');
+    genomeHeader.textContent = 'Genome';
+    genomeHeader.style.fontWeight = 'bold';
+    genomeHeader.style.textAlign = 'center';
+
+    headerRow.appendChild(genomeHeader);
+    for (let i = 1; i <= maxChromCount; i++) {
+        const col = document.createElement('div');
+        col.textContent = `${i}`;
+        col.style.fontWeight = 'bold';
+        col.style.textAlign = 'center';
+        headerRow.appendChild(col);
+    }
+    grid.appendChild(headerRow);
+
+    // Pour chaque génome, crée une ligne
+    genomes.forEach(genome => {
+        console.log(genome);
+        const row = document.createElement('div');
+        row.style.display = 'contents';
+
+        const color = genomeColors[genome] || '#000'; // Couleur de départ
+
+        // Nom du génome
+        const genomeCell = document.createElement('div');
+        genomeCell.textContent = genome;
+        genomeCell.style.fontWeight = 'bold';
+        genomeCell.style.whiteSpace = 'nowrap'; // Empêche le retour à la ligne
+        genomeCell.style.maxWidth = '250px';   
+        genomeCell.style.verticalAlign = 'middle';
+        genomeCell.style.padding = '2px 4px';
+
+        row.appendChild(genomeCell);
+
+        // Chromosomes (draggables)
+        const chromCells = [];
+        for (let i = 1; i <= maxChromCount; i++) {
+            const chrom = genomeData[genome][i];
+            const chromCell = document.createElement('div');
+            chromCell.style.border = `2px solid ${color}`;
+            chromCell.style.borderRadius = '30px';
+            chromCell.style.padding = '2px 4px';
+            chromCell.style.cursor = 'grab';
+            chromCell.style.textAlign = 'center';
+            chromCell.setAttribute('draggable', 'true');
+            chromCell.dataset.genome = genome;
+            chromCell.dataset.position = i;
+            chromCell.textContent = chrom ? chrom.name : '-';
+
+            chromCell.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', i);
+                chromCell.classList.add('dragging');
+            });
+            chromCell.addEventListener('dragend', () => {
+                chromCell.classList.remove('dragging');
+                // Récupère le nouvel ordre des chromosomes pour ce génome
+                const parentRow = chromCell.parentNode;
+                const newOrder = Array.from(parentRow.querySelectorAll('[draggable]'))
+                    .map(cell => cell.dataset.position);
+                // Met à jour l'ordre global si le drag a changé quelque chose
+                if (newOrder.length > 1) {
+                    updateChromosomesOrder(newOrder);
+                }
+            });
+            chromCell.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+            chromCell.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const fromPos = parseInt(e.dataTransfer.getData('text/plain'));
+                const toPos = i;
+                if (fromPos === toPos) return;
+                // Swap chromosomes dans genomeData
+                const temp = genomeData[genome][fromPos];
+                genomeData[genome][fromPos] = genomeData[genome][toPos];
+                genomeData[genome][toPos] = temp;
+                updateChromControler(); // Refresh
+            });
+
+            row.appendChild(chromCell);
+            chromCells.push(chromCell);
+        }
+        grid.appendChild(row);
+    });
+
+    chromControlerDiv.appendChild(grid);
 }
 
 
@@ -365,6 +503,9 @@ function allDone() {
 
     // Create the bar chart to display band size distribution
     createLengthChart(allBandLengths);
+
+    //chromosomes controler avant le show control panel
+    updateChromControler();
 
     //Affiche la légende
     showControlPanel();   
@@ -846,8 +987,8 @@ async function calculateChromosomeDataFromBandFiles(orderedFileObjects, uniqueGe
             genomeData[queryGenome][i] = queryLengths[queryIndex];
         }
     }
-    // console.log("genomeData ");
-    // console.log(genomeData);
+    console.log("genomeData ");
+    console.log(genomeData);
     return genomeData;
 }
 

@@ -103,12 +103,36 @@ export function createControlPanel() {
     paramsSection.innerHTML = '<h5><i class="fas fa-cog"></i> Parameters</h5>';
     paramsSection.appendChild(createParametersContent());
 
+
+    // Créer le conteneur pour le controleur de chromosomes
+    const chromControlContent = document.createElement('div');
+    chromControlContent.setAttribute('id', 'chrom-control-content');
+    chromControlContent.style.cssText = `
+        padding: 0 20px 20px 20px;
+        background-color: #f5f5f5;
+    `;
+
+    const chromControlSection = document.createElement('div');
+    chromControlSection.style.cssText = `
+        padding: 15px;
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    `;
+    chromControlSection.innerHTML = '<h5><i class="fas fa-list-ul"></i> Chromosomes</h5>';
+
+    const chromControler = document.createElement('div');
+    chromControler.setAttribute('id', 'chrom-controler');
+    chromControlSection.appendChild(chromControler);
+
     // Ajout des sections à la grille
     gridContainer.appendChild(legendSection);
     gridContainer.appendChild(filtersSection);
     gridContainer.appendChild(paramsSection);
+    chromControlContent.appendChild(chromControlSection);
     // Ajout de la grille au contenu
     panelContent.appendChild(gridContainer);
+    panelContent.appendChild(chromControlContent);
     // Assemblage final
     controlPanel.appendChild(headerBar);
     controlPanel.appendChild(panelContent);
