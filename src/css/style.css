@@ -216,6 +216,28 @@
     cursor: grabbing;
 }
 
+/* drag and drop chromosome controler */
+#chrom-controler div[draggable="true"] {
+    transition: background 0.2s, border 0.2s, opacity 0.2s;
+}
+
+.dragging, .dragging-header {
+    opacity: 0.5;
+    background: #ffe082 !important;
+    border: 2px dashed #ff9800 !important;
+    z-index: 10;
+}
+.drop-target {
+    background: #b3e5fc !important;
+    border: 2px solid #0288d1 !important;
+}
+
+.drag-col {
+    background: #fffde7 !important;
+    border-color: #ffd600 !important;
+}
+
+
 #genome-list > div:hover {
     background-color: rgba(0, 0, 0, 0.05);
 }
