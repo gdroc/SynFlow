@@ -357,6 +357,57 @@ function updateChromosomesOrder(newOrder, targetGenome = null) {
     readFileInChunks(currentFile, true);
 }
 
+//Fonction d'animation du swap des chromosomes
+function animateSwap(container) {
+    // Sauvegarder les positions initiales (utilise le nom du chromosome comme clé stable)
+    const oldCells = Array.from(container.querySelectorAll('[draggable="true"]'));
+    const positions = new Map();
+
+    oldCells.forEach(cell => {
+        const key = cell.dataset.id || cell.textContent.trim();
+        if (key) {
+            positions.set(key, cell.getBoundingClientRect());
+        }
+    });
+
+    // Redraw
+    updateChromControler();
+
+    // Récupérer les nouvelles cellules après redraw
+    const newCells = Array.from(container.querySelectorAll('[draggable="true"]'));
+
+    // Appliquer la position initiale aux nouvelles cellules
+    newCells.forEach(cell => {
+        const key = cell.dataset.id || cell.textContent.trim();
+        const oldRect = positions.get(key);
+        if (!oldRect) return;
+
+        const newRect = cell.getBoundingClientRect();
+        const dx = oldRect.left - newRect.left;
+        const dy = oldRect.top - newRect.top;
+
+        if (dx !== 0 || dy !== 0) {
+            cell.style.transform = `translate(${dx}px, ${dy}px)`;
+        }
+    });
+
+    // Lancer l'animation de transition
+    requestAnimationFrame(() => {
+        newCells.forEach(cell => {
+            cell.style.transition = 'transform 0.3s ease';
+            cell.style.transform = '';
+        });
+
+        // Nettoyer après animation
+        setTimeout(() => {
+            newCells.forEach(cell => {
+                cell.style.transition = '';
+            });
+        }, 300);
+    });
+}
+
+
 
 
 ////////////////////////////////////////
@@ -398,16 +449,18 @@ function updateChromControler() {
         col.addEventListener('dragstart', (e) => {
             e.dataTransfer.setData('col-drag', i);
             col.classList.add('dragging');
+            // Ajoute la classe à toute la colonne
+            document.querySelectorAll(`[data-position="${i}"]`).forEach(cell => {
+                cell.classList.add('drag-col');
+            });
         });
 
         col.addEventListener('dragend', () => {
+            // Nettoyage visuel uniquement
             col.classList.remove('dragging');
-            const parentRow = col.parentNode;
-            const newOrder = Array.from(parentRow.querySelectorAll('[draggable]'))
-                .map(cell => cell.dataset.position);
-            if (newOrder.length > 1) {
-                updateChromosomesOrder(newOrder);
-            }
+            document.querySelectorAll('.drag-col').forEach(cell => {
+                cell.classList.remove('drag-col');
+            });
         });
 
         col.addEventListener('dragover', (e) => {
@@ -417,11 +470,17 @@ function updateChromControler() {
             }
         });
 
-        col.addEventListener('dragleave', () => col.classList.remove('drop-target'));
+        col.addEventListener('dragleave', () => {
+            col.classList.remove('drop-target');
+        });
 
         col.addEventListener('drop', (e) => {
             e.preventDefault();
             col.classList.remove('drop-target');
+            document.querySelectorAll('.drag-col').forEach(cell => {
+                cell.classList.remove('drag-col');
+            });
+
             const fromPos = parseInt(e.dataTransfer.getData('col-drag'));
             const toPos = i;
             if (fromPos === toPos) return;
@@ -431,7 +490,18 @@ function updateChromControler() {
                 genomeData[genome][fromPos] = genomeData[genome][toPos];
                 genomeData[genome][toPos] = temp;
             }
-            updateChromControler();
+            // updateChromControler();
+            const chromControlerDiv = document.getElementById('chrom-controler');
+            animateSwap(chromControlerDiv);
+            // Redraw complet
+            resetDrawGlobals();
+            d3.select('#zoomGroup').selectAll('*:not(defs)').remove();
+            currentFile = orderedFileObjects[0];
+            refGenome = uniqueGenomes[0];
+            queryGenome = uniqueGenomes[1];
+            globalMaxChromosomeLengths = calculateGlobalMaxChromosomeLengths(genomeData);
+            scale = calculateScale(globalMaxChromosomeLengths);
+            readFileInChunks(currentFile, true);
         });
 
         headerRow.appendChild(col);
@@ -464,6 +534,8 @@ function updateChromControler() {
             chromCell.dataset.genome = genome;
             chromCell.dataset.position = i;
             chromCell.textContent = chrom ? chrom.name : '-';
+            chromCell.dataset.id = chrom ? `${genome}-${chrom.name}` : `empty-${i}`;
+
 
             chromCell.addEventListener('dragstart', (e) => {
                 currentDrag = { genome, pos: i };
@@ -485,17 +557,14 @@ function updateChromControler() {
 
             chromCell.addEventListener('dragleave', () => chromCell.classList.remove('drop-target'));
 
+            // Dans le dragend event (juste le nettoyage)
             chromCell.addEventListener('dragend', () => {
                 chromCell.classList.remove('dragging');
                 chromCell.classList.remove('drop-target');
                 currentDrag = null;
-                const parentRow = chromCell.parentNode;
-                const newOrder = Array.from(parentRow.querySelectorAll('[draggable]')).map(cell => cell.dataset.position);
-                if (newOrder.length > 1) {
-                    updateChromosomesOrder(newOrder, genome);
-                }
             });
 
+            // Dans le drop event (faire le swap et le redraw)
             chromCell.addEventListener('drop', (e) => {
                 e.preventDefault();
                 chromCell.classList.remove('drop-target');
@@ -507,16 +576,28 @@ function updateChromControler() {
                         const toPos = parseInt(chromCell.dataset.position, 10);
 
                         if (!isNaN(fromPos) && !isNaN(toPos) && fromPos !== toPos) {
+                            // Swap dans genomeData
                             const temp = genomeData[genome][fromPos];
                             genomeData[genome][fromPos] = genomeData[genome][toPos];
                             genomeData[genome][toPos] = temp;
+                            
+                            // Anime le changement
+                            const chromControlerDiv = document.getElementById('chrom-controler');
+                            animateSwap(chromControlerDiv);
+                            
+                            // Redraw complet
+                            resetDrawGlobals();
+                            d3.select('#zoomGroup').selectAll('*:not(defs)').remove();
+                            currentFile = orderedFileObjects[0];
+                            refGenome = uniqueGenomes[0];
+                            queryGenome = uniqueGenomes[1];
+                            globalMaxChromosomeLengths = calculateGlobalMaxChromosomeLengths(genomeData);
+                            scale = calculateScale(globalMaxChromosomeLengths);
+                            readFileInChunks(currentFile, true);
                         }
-
-                        // Redraw toujours quand c'est le bon génome
-                        updateChromControler();
                     }
                 } catch {
-                    // Rien, on ignore les erreurs
+                    // Ignore les erreurs
                 }
                 currentDrag = null;
             });
@@ -1287,6 +1368,7 @@ function orderFilesByGenomes(files, genomes) {
 }
 
 function calculateGlobalMaxChromosomeLengths(genomeData) {
+    console.log("Calculating global max chromosome lengths from genome data:");
     const globalMaxLengths = {};
 
     for (const genome in genomeData) {
@@ -1302,7 +1384,7 @@ function calculateGlobalMaxChromosomeLengths(genomeData) {
             }
         }
     }
-
+    console.log(globalMaxLengths);
     return globalMaxLengths;
 }
 

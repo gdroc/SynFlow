@@ -221,15 +221,30 @@
     transition: background 0.2s, border 0.2s, opacity 0.2s;
 }
 
+#chrom-controler .chromosome-cell,
+#chrom-controler .column-header {
+    transition: transform 0.3s ease, background 0.2s, border 0.2s, opacity 0.2s;
+}
+
 .dragging, .dragging-header {
-    opacity: 0.5;
+    opacity: 0.7;
     background: #ffe082 !important;
     border: 2px dashed #ff9800 !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transform: scale(1.05);
     z-index: 10;
 }
+
 .drop-target {
     background: #b3e5fc !important;
     border: 2px solid #0288d1 !important;
+    box-shadow: inset 0 0 8px rgba(2, 136, 209, 0.4);
+    animation: pulse 0.4s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.03); }
 }
 
 .drag-col {
