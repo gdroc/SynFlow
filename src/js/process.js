@@ -493,6 +493,9 @@ function updateChromControler() {
             // updateChromControler();
             const chromControlerDiv = document.getElementById('chrom-controler');
             animateSwap(chromControlerDiv);
+            // Lance le spinner
+            var target = document.getElementById('spinner');
+            spinner.spin(target); 
             // Redraw complet
             resetDrawGlobals();
             d3.select('#zoomGroup').selectAll('*:not(defs)').remove();
@@ -584,6 +587,10 @@ function updateChromControler() {
                             // Anime le changement
                             const chromControlerDiv = document.getElementById('chrom-controler');
                             animateSwap(chromControlerDiv);
+
+                            // Lance le spinner
+                            var target = document.getElementById('spinner');
+                            spinner.spin(target); 
                             
                             // Redraw complet
                             resetDrawGlobals();
