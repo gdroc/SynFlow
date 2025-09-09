@@ -857,7 +857,8 @@ function createZoomedSyntenyView(orthologPairs, refGenome, queryGenome, refStart
         .attr('x', 0)
         .attr('y', refY - 45)
         .attr('font-weight', 'bold')
-        .text(`${refGenome}`);
+        //ajoute une majuscule au premier caractère du nom du génome
+        .text(`${refGenome.charAt(0).toUpperCase() + refGenome.slice(1)} - ${orthologPairs[0].ref.chr}`);
 
     // Dessiner le chromosome query
     g.append('rect')
@@ -876,7 +877,8 @@ function createZoomedSyntenyView(orthologPairs, refGenome, queryGenome, refStart
         .attr('x', 0)
         .attr('y', queryY + 55)
         .attr('font-weight', 'bold')
-        .text(`${queryGenome}`);
+        //ajoute une majuscule au premier caractère du nom du génome
+        .text(`${queryGenome.charAt(0).toUpperCase() + queryGenome.slice(1)} - ${orthologPairs[0].query.chr}`);
 
     // Créer un tooltip
     let tooltip = d3.select('.gene-tooltip');
