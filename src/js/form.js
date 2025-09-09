@@ -1311,8 +1311,8 @@ function populateGenomeList(genomes, listDiv){
         genomeDiv.classList.add('genome-item');
         genomeDiv.dataset.fileName = genome; // vrai nom de fichier
 
-        //affiche le nom sans tiret
-        genomeDiv.textContent = genome.replace(/-/g, ' ');
+        //affiche le nom sans tiret et avec une majuscule en première lettre
+        genomeDiv.textContent = genome.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase());
 
         genomeDiv.addEventListener('click', () => {
             const idx = selectedGenomes.indexOf(genome);
