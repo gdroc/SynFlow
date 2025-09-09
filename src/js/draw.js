@@ -1000,8 +1000,11 @@ function drawConnection(g, refGene, queryGene, refScale, queryScale, refY, query
         Z
     `;
 
+    const bandId = `conn-${CSS.escape(refGene.name)}-${CSS.escape(queryGene.name)}`;
+
     g.append('path')
         .attr('class', 'ortholog-connection')
+        .attr('id', bandId) // Ajoute un ID unique pour chaque bande pour le survol
         .attr('d', pathData)
         .attr('fill', '#ccc')
         .attr('opacity', 0.5)
@@ -1023,6 +1026,27 @@ function drawConnection(g, refGene, queryGene, refScale, queryScale, refY, query
         });
 }
 
+
+
+// Fonction pour highlight des bandes entre les genes orthologues au survol du tableau
+function highlightBand(bandId) {
+    // Sauvegarde l'opacité d'origine
+    const band = d3.select(`#${CSS.escape(bandId)}`);
+    if (!band.empty()) {
+        band
+            .style('opacity', 1)
+            .raise(); // Amène la bande au premier plan
+    }
+}
+
+function unhighlightBand(bandId) {
+    const band = d3.select(`#${CSS.escape(bandId)}`);
+    if (!band.empty()) {
+        band
+            .style('opacity', 0.5)
+    }
+}
+
 function createOrthologsTable(orthologPairs, refGenome, queryGenome) {
     const headers = [
         { key: 'refName', label: 'Ref gene' },
@@ -1041,6 +1065,8 @@ function createOrthologsTable(orthologPairs, refGenome, queryGenome) {
     const rowsHtml = orthologPairs.map((pair, i) => {
         const isEven = i % 2 === 0;
         const backgroundColor = isEven ? '#f9f9f9' : '#ffffff';
+        // ID unique pour chaque bande pour le survol
+        const bandId = `conn-${CSS.escape(pair.ref.name)}-${CSS.escape(pair.query.name)}`;
 
         // liens JBrowse (si dispo)
         let refLink = '', queryLink = '';
@@ -1070,7 +1096,8 @@ function createOrthologsTable(orthologPairs, refGenome, queryGenome) {
         }
 
         return `
-            <tr style="background-color:${backgroundColor};">
+            <tr style="background-color:${backgroundColor};"
+                data-band-id="${bandId}">
                 <td>${pair.ref.name}</td>
                 <td>${pair.ref.chr}:${pair.ref.start.toLocaleString()}-${pair.ref.end.toLocaleString()}</td>
                 <td>${refLink}</td>
@@ -1081,6 +1108,15 @@ function createOrthologsTable(orthologPairs, refGenome, queryGenome) {
             </tr>
         `;
     }).join('');
+
+    // Ajoute les event listeners après avoir inséré le tableau
+    setTimeout(() => {
+        document.querySelectorAll('tr[data-band-id]').forEach(row => {
+            const bandId = row.dataset.bandId;
+            row.addEventListener('mouseover', () => highlightBand(bandId));
+            row.addEventListener('mouseout', () => unhighlightBand(bandId));
+        });
+    }, 0);
 
     return `
         <div class="table-responsive">
@@ -1095,7 +1131,6 @@ function createOrthologsTable(orthologPairs, refGenome, queryGenome) {
         </div>
     `;
 }
-
 
 
 
