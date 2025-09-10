@@ -95,6 +95,10 @@ export function createGraphSection() {
         overflow: hidden;
         max-height: 1000px;
         padding: 20px;
+        width: 95vw;          /* Prend toute la largeur de la fenêtre */
+        margin-left: 50%;      /* Décale de 50% vers la droite */
+        transform: translateX(-50%); /* Recentre en décalant de -50% */
+        position: relative;    /* Nécessaire pour le positionnement */
     `;
 
     // Créer le conteneur pour la visualisation
