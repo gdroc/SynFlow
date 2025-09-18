@@ -218,14 +218,8 @@ function createParametersContent() {
     const resetButton = document.createElement('button');
     resetButton.textContent = 'Reset Colors';
     resetButton.className = 'reset-colors-btn';
-    resetButton.style.cssText = `
-        margin: 10px 0;
-        padding: 5px 10px;
-        background-color: #f5f5f5;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        cursor: pointer;
-    `;
+    resetButton.setAttribute('type', 'button');
+    resetButton.classList.add('btn-simple');
     
     resetButton.addEventListener('click', () => {
         // Réinitialiser les couleurs
@@ -349,6 +343,8 @@ export function createLegendContainer() {
 
     const jbrowseButton = document.createElement('button');
     jbrowseButton.textContent = 'JBrowse Links';
+    jbrowseButton.setAttribute('type', 'button');
+    jbrowseButton.classList.add('btn-simple');
     jbrowseButton.style.marginLeft = '10px';   
     jbrowseButton.addEventListener('click', configJBrowse);
 

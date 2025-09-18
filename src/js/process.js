@@ -724,8 +724,9 @@ function allDone() {
 
     const downloadSvgButton = document.createElement('button');
     downloadSvgButton.id = 'download-svg';
+    downloadSvgButton.setAttribute('type', 'button');
+    downloadSvgButton.classList.add('btn-simple');
     downloadSvgButton.textContent = 'Download SVG';
-    downloadSvgButton.style.marginLeft = "10px";
     formContainer.appendChild(downloadSvgButton);
     downloadSvgButton.addEventListener('click', function(event) {
         event.preventDefault();
