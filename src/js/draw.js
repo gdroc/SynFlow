@@ -196,10 +196,7 @@ export function drawMiniChromosome(genome, svg) {
 
 export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, isFirstFile, scale) {
     console.log("Draw chromosomes"); 
-    console.log(refGenome, queryGenome);
-
     const svgGroup = d3.select('#zoomGroup');
-    const width = +d3.select('#viz').attr('width');
     const height = 300;
     
     const margin = { top: 30, bottom: 30, left: 50, right: 50 };
@@ -210,54 +207,74 @@ export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, 
     const totalLength = Object.values(maxLengths).reduce((a, b) => a + b, 0);
     const totalWidth = (totalLength / scale) + spaceBetween * (Object.keys(maxLengths).length) + margin.left + margin.right;
 
-    // d3.select('#viz').attr('width', totalWidth);
     d3.select('#viz')
-    .attr('viewBox', `0 0 ${totalWidth} ${height}`)
-    .attr('width', totalWidth);
+        .attr('viewBox', `0 0 ${totalWidth} ${height}`)
+        .attr('width', totalWidth);
 
-    const radius = 5; // Exemple de radius pour les extrémités des chromosomes, moitié de la hauteur
-
-    let currentX = margin.left; // Position de départ en X
+    const radius = 5;
+    let currentX = margin.left;
     const chromPositions = {};
-    // console.log(genomeData);
-    // console.log(genomeData[refGenome]);
-    for (const chrom in genomeData[refGenome]) {
-        //chrom est le numéro du chromosome ex: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-        const refWidth = (genomeData[refGenome][chrom].length || 0) / scale;
-        const queryWidth = (genomeData[queryGenome][chrom].length || 0) / scale;
-        const chromWidth = maxLengths[chrom] / scale;
 
-        // console.log(chrom, refWidth, queryWidth, chromWidth);
+    // Dessiner d'abord tous les chromosomes ref
+    if (isFirstFile) {
+        for (const chrom in genomeData[refGenome]) {
+            const refData = genomeData[refGenome][chrom];
+            const refWidth = refData.length / scale;
+            const chromWidth = maxLengths[chrom] / scale;
 
-        if (!isNaN(chromWidth) && chromWidth > 0) {
-            if (isFirstFile) {
-                drawChromPathNoArm(currentX, yRefPosition, refWidth, radius, chrom, genomeData[refGenome][chrom].name + "_ref", refGenome, svgGroup, scale);
-                // Ajouter les noms des chromosomes
-                if (isFirstFile) {
-                    svgGroup.append('text')
-                        .attr('x', currentX + chromWidth / 2)
-                        .attr('y', yRefPosition - 10) // Position au-dessus des chromosomes de référence
-                        .attr('text-anchor', 'middle')
-                        .attr('class', 'chrom-title')
-                        .attr("data-chrom-num", chrom)
-                        .text(genomeData[refGenome][chrom].name);
-                }
+            if (!isNaN(chromWidth) && chromWidth > 0) {
+                drawChromPathNoArm(currentX, yRefPosition, refWidth, radius, chrom, 
+                    refData.name + "_ref", refGenome, svgGroup, scale);
+                
+                // Ajouter le nom du chromosome
+                svgGroup.append('text')
+                    .attr('x', currentX + chromWidth / 2)
+                    .attr('y', yRefPosition - 10)
+                    .attr('text-anchor', 'middle')
+                    .attr('class', 'chrom-title')
+                    .attr("data-chrom-num", chrom)
+                    .text(refData.name);
+
+                chromPositions[chrom] = {
+                    refX: currentX,
+                    refY: yRefPosition,
+                    queryX: currentX,
+                    queryY: yQueryPosition
+                };
+
+                currentX += chromWidth + spaceBetween;
             }
-            drawChromPathNoArm(currentX, yQueryPosition, queryWidth, radius, chrom, genomeData[queryGenome][chrom].name + "_query", queryGenome, svgGroup, scale);
-
-            //change le format de chromPositions pour integrer le numéro du chromosome
-            // ancien format = {chromName: {refX: currentX, queryX: currentX, refY: yRefPosition, queryY: yQueryPosition}}
-            // nouveau format = {chromNum: {refX: currentX, queryX: currentX, refY: yRefPosition, queryY: yQueryPosition}}
-            chromPositions[chrom] = { refX: currentX, queryX: currentX, refY: yRefPosition, queryY: yQueryPosition };
-            currentX += chromWidth + spaceBetween; // Ajouter un espace entre les chromosomes
-        } else {
-            console.error(`Invalid chromosome width for ${genomeData[refGenome][chrom].name}: ${chromWidth}`);
         }
     }
 
-    currentYOffset = yQueryPosition - 90; // Mettre à jour la position Y pour le fichier suivant
-    // console.log(chromPositions);
-    return chromPositions; // Retourner les positions des chromosomes
+    // Réinitialiser currentX pour les chromosomes query
+    currentX = margin.left;
+
+    // Dessiner tous les chromosomes query
+    for (const chrom in genomeData[queryGenome]) {
+        const queryData = genomeData[queryGenome][chrom];
+        const queryWidth = queryData.length / scale;
+        const chromWidth = maxLengths[chrom] / scale || queryWidth;
+
+        if (!isNaN(chromWidth) && chromWidth > 0) {
+            drawChromPathNoArm(currentX, yQueryPosition, queryWidth, radius, chrom, 
+                queryData.name + "_query", queryGenome, svgGroup, scale);
+
+            if (!chromPositions[chrom]) {
+                chromPositions[chrom] = {
+                    refX: currentX,
+                    refY: yRefPosition,
+                    queryX: currentX,
+                    queryY: yQueryPosition
+                };
+            }
+
+            currentX += chromWidth + spaceBetween;
+        }
+    }
+
+    currentYOffset = yQueryPosition - 90;
+    return chromPositions;
 }
 
 export function drawStackedChromosomes(genomeData, maxLengths, fileIndex, totalGenomes, scale) {
@@ -498,6 +515,7 @@ function drawOneBand(svgGroup, d, chromPositions, refGenome, queryGenome) {
     //Si c'est un redraw alors on vérifie les filtres de bandes
     if(!isFirstDraw){
         if (!isBandVisible(d)) {
+            console.log(`Band of type ${d.type} between ${d.refChr} and ${d.queryChr} is hidden by filter.`);
             display = 'none';
         }
     }
@@ -610,7 +628,7 @@ function drawOneBand(svgGroup, d, chromPositions, refGenome, queryGenome) {
                 
                 const summary = createSummarySection(linesInRange, d.refStart, d.refEnd, d.queryStart, d.queryEnd, refGenome, queryGenome);
                 d3.select('#summary').html(`<div class="summary-section"><h4>Summary</h4>${summary}</div>`);
-               
+
                 const tableBadges = createTableBadges(linesInRange);
                 
                 const table = createDetailedTable(linesInRange, refGenome, queryGenome);
@@ -785,13 +803,16 @@ async function createAnchorsSection(lines, refStart, refEnd, queryStart, queryEn
 }
 
 function isBandVisible(d) {
-    // Types visibles
-    const eyeIcons = document.querySelectorAll('i[data-type]');
-    const selectedTypes = Array.from(eyeIcons)
-        .filter(icon => !icon.classList.contains('fa-eye-slash'))
-        .map(icon => icon.getAttribute('data-type'));
+    // Types visibles - vérifier si les éléments existent
+    let selectedTypes = ['SYN', 'INV', 'TRANS', 'DUP', 'INVTR']; // Types par défaut
+    const typeIcons = document.querySelectorAll('i[data-type]');
+    if (typeIcons.length > 0) {
+        selectedTypes = Array.from(typeIcons)
+            .filter(icon => !icon.classList.contains('fa-eye-slash'))
+            .map(icon => icon.getAttribute('data-type'));
+    }
 
-    // Dépendances de types (copie depuis legend.js si besoin)
+    // Dépendances de types
     const typeDependencies = {
         'INVTR': ['INV', 'TRANS'],
         'SYN': ['SYN'],
@@ -800,35 +821,43 @@ function isBandVisible(d) {
         'DUP': ['DUP']
     };
 
-    // Chromosomes visibles
+    // Chromosomes visibles - vérifier si les éléments existent
+    let visibleChromosomes = [];
     const chromEyeIcons = document.querySelectorAll('i.chrom-eye-icon');
-    const visibleChromosomes = Array.from(chromEyeIcons)
-        .filter(icon => icon.classList.contains('fa-eye'))
-        .map(icon => icon.getAttribute('data-chrom'));
+    if (chromEyeIcons.length > 0) {
+        visibleChromosomes = Array.from(chromEyeIcons)
+            .filter(icon => icon.classList.contains('fa-eye'))
+            .map(icon => icon.getAttribute('data-chrom'));
+    } else {
+        // Si pas d'icônes, considérer tous les chromosomes comme visibles
+        visibleChromosomes = Object.keys(genomeData[refGenome]).map(String);
+    }
 
-    // Inter/intra
-    const showIntra = !document.getElementById('intrachromosomal-filter').classList.contains('fa-eye-slash');
-    const showInter = !document.getElementById('interchromosomal-filter').classList.contains('fa-eye-slash');
+    // Inter/intra - vérifier si les éléments existent
+    const intraFilter = document.getElementById('intrachromosomal-filter');
+    const interFilter = document.getElementById('interchromosomal-filter');
+    const showIntra = !intraFilter || !intraFilter.classList.contains('fa-eye-slash');
+    const showInter = !interFilter || !interFilter.classList.contains('fa-eye-slash');
 
-    // Slider
+    // Slider - utiliser des valeurs par défaut si non définies
     const bandLength = d.refEnd - d.refStart;
     const min = window.sliderMinValue ?? 0;
     const max = window.sliderMaxValue ?? Infinity;
 
-    // Numéros de chromosomes (attention à la conversion)
+    // Numéros de chromosomes
     const refChromNum = Object.values(genomeData[refGenome]).findIndex(item => item.name === d.refChr) + 1;
     const queryChromNum = Object.values(genomeData[queryGenome]).findIndex(item => item.name === d.queryChr) + 1;
 
     // Vérifications
-    const isVisibleChrom = visibleChromosomes.includes(String(refChromNum)) && visibleChromosomes.includes(String(queryChromNum));
+    const isVisibleChrom = chromEyeIcons.length === 0 || 
+        (visibleChromosomes.includes(String(refChromNum)) && visibleChromosomes.includes(String(queryChromNum)));
     const isVisibleBandType = selectedTypes.some(type => type === d.type) ||
         (typeDependencies[d.type] && typeDependencies[d.type].every(parentType => selectedTypes.includes(parentType)));
     const bandPos = refChromNum === queryChromNum ? 'intra' : 'inter';
     const isVisibleBandPos = (bandPos === 'intra' && showIntra) || (bandPos === 'inter' && showInter);
-    
     const isVisibleBandLength = bandLength >= min && bandLength <= max;
-    return isVisibleChrom && isVisibleBandType && isVisibleBandPos && isVisibleBandLength;
 
+    return isVisibleChrom && isVisibleBandType && isVisibleBandPos && isVisibleBandLength;
 }
 
 

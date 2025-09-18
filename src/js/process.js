@@ -711,7 +711,7 @@ function allDone() {
     });
 
 
-    updateChromList(globalMaxChromosomeLengths);
+    // updateChromList(globalMaxChromosomeLengths);
     
     // Add download buttons
     const formContainer = document.getElementById('file-upload');
@@ -1102,49 +1102,75 @@ function handleFileUpload(bandFiles, bedFiles) {
 // Calcule la taille des chromosomes à partir des fichiers band
 // Format : genomeData[genomeName][index] = { name: chrName, length: chrLength };
 async function calculateChromosomeDataFromBandFiles(orderedFileObjects, uniqueGenomes) {
-    //format des données
-    //genomeData[genomeName][index] = { name: chrName, length: chrLength };
     const genomeData = {};
-
+    
     for (let i = 0; i < orderedFileObjects.length; i++) {
         let currentFile = orderedFileObjects[i];
         let refGenome = uniqueGenomes[i];
         let queryGenome = uniqueGenomes[i + 1];
     
-        // Lire les longueurs des chromosomes à partir du fichier band
         const { refLengths, queryLengths, alignments } = await readChromosomeLengthsFromBandFile(currentFile);
-        //format des données
-        //refLengths = { "1": { name: "chr1", length: 70856583 }, "2": { name: "chr2", length: 54676892 }, ... }
-        //queryLengths = { "1": { name: "chr1", length: 70856583 }, "2": { name: "chr2", length: 54676892 }, ... }
-        //alignments = { "chr1": { "chr1": 1000, "chr2": 2000, ... }, "chr2": { "chr1": 3000, "chr2": 4000, ... }, ... }
-        // console.log(refLengths);
-        // console.log(queryLengths);
-        // console.log(alignments);
-
-        //Crée la structure de données finale
-        //pour chaque chromosome ref
-        for (let i=1; i<=Object.keys(refLengths).length; i++) {
-            //contient chr1 : chr1 : 68465168415, chr2 : 68465168415, ...
+        
+        // Initialiser les structures de données
+        if (!genomeData[refGenome]) genomeData[refGenome] = {};
+        if (!genomeData[queryGenome]) genomeData[queryGenome] = {};
+        
+        // Set pour suivre les chromosomes query déjà assignés
+        const assignedQueryChrs = new Set();
+        
+        // 1. D'abord, traiter tous les chromosomes ref et trouver leurs meilleurs binômes
+        for (let i = 1; i <= Object.keys(refLengths).length; i++) {
             let refChr = refLengths[i].name;
-            //cherche son binome = le chromosome query qui à l'alignement le plus long
-            let queryChr = Object.keys(alignments[refChr]).reduce((a, b) => alignments[refChr][a] > alignments[refChr][b] ? a : b);
-            // console.log("binome de ", refChr, " est ", queryChr);
-            //cherche l'index de queryChr dans queryLengths
-            let queryIndex = Object.keys(queryLengths).find(key => queryLengths[key].name === queryChr);
-            // console.log("index de ", queryChr, " est ", queryIndex);
             
-            //sauvegarde les données finales
-            if (!genomeData[refGenome]) {
-                genomeData[refGenome] = {};
+            // Chercher le meilleur binôme s'il existe
+            let bestQueryChr = null;
+            let maxAlignment = 0;
+            
+            if (alignments[refChr]) {
+                for (let queryChr in alignments[refChr]) {
+                    if (alignments[refChr][queryChr] > maxAlignment) {
+                        maxAlignment = alignments[refChr][queryChr];
+                        bestQueryChr = queryChr;
+                    }
+                }
             }
+            
+            // Sauvegarder le chromosome ref
             genomeData[refGenome][i] = refLengths[i];
-            if (!genomeData[queryGenome]) {
-                genomeData[queryGenome] = {};
+            
+            // Si un binôme a été trouvé
+            if (bestQueryChr) {
+                let queryIndex = Object.keys(queryLengths).find(key => 
+                    queryLengths[key].name === bestQueryChr);
+                    
+                if (queryIndex) {
+                    genomeData[queryGenome][i] = queryLengths[queryIndex];
+                    assignedQueryChrs.add(bestQueryChr);
+                } else {
+                    // Ajouter un chromosome vide si pas de correspondance
+                    genomeData[queryGenome][i] = { name: bestQueryChr, length: 0 };
+                }
+            } else {
+                // Ajouter un chromosome vide côté query
+                genomeData[queryGenome][i] = { name: "-", length: 0 };
             }
-            genomeData[queryGenome][i] = queryLengths[queryIndex];
+        }
+        
+        // 2. Ajouter les chromosomes query non assignés
+        let nextIndex = Object.keys(genomeData[refGenome]).length + 1;
+        for (let queryIndex in queryLengths) {
+            let queryChr = queryLengths[queryIndex].name;
+            if (!assignedQueryChrs.has(queryChr)) {
+                // Ajouter le chromosome query non assigné avec un nouvel index
+                genomeData[queryGenome][nextIndex] = queryLengths[queryIndex];
+                // Ajouter un chromosome vide correspondant côté ref
+                genomeData[refGenome][nextIndex] = { name: "-", length: 0 };
+                nextIndex++;
+            }
         }
     }
-    console.log("genomeData ");
+    
+    console.log("genomeData avec chromosomes vides :");
     console.log(genomeData);
     return genomeData;
 }
@@ -1382,6 +1408,7 @@ function calculateGlobalMaxChromosomeLengths(genomeData) {
     for (const genome in genomeData) {
         const chromosomes = genomeData[genome];
         for (const index in chromosomes) {
+            console.log(`Processing genome: ${genome}, chromosome index: ${index}`);
             const chrData = chromosomes[index];
             if (!globalMaxLengths[index]) {
                 globalMaxLengths[index] = chrData.length;
