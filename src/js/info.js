@@ -456,6 +456,7 @@ export function createZoomedSyntenyView(orthologPairs, refGenome, queryGenome, r
     const svg = d3.select('#zoomed-synteny')
         .html('') // Nettoyer le contenu précédent
         .append('svg')
+        .attr('id', 'anchor-viz')
         .attr('width', width + margin.left + margin.right)
         .attr('height', height + margin.top + margin.bottom);
 

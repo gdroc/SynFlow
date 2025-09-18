@@ -728,9 +728,11 @@ function allDone() {
     downloadSvgButton.classList.add('btn-simple');
     downloadSvgButton.textContent = 'Download SVG';
     formContainer.appendChild(downloadSvgButton);
+    const svgElement = document.getElementById('viz');
+
     downloadSvgButton.addEventListener('click', function(event) {
         event.preventDefault();
-        downloadSvg();
+        downloadSvg(svgElement);
     });
 
     isFirstDraw = false;
@@ -1226,9 +1228,7 @@ function readChromosomeLengthsFromBandFile(file) {
 
 
 
-function downloadSvg() {
-    const svgElement = document.getElementById('viz');
-    const zoomGroup = document.getElementById('zoomGroup');
+export function downloadSvg(svgElement) {
     const serializer = new XMLSerializer();
 
     // Utilise le bounding box du SVG entier pour être sûr d'inclure tout

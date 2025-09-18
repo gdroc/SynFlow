@@ -1,5 +1,5 @@
 import { showInfoPanel, showInfoUpdatedMessage, createDetailedTable, initializeTableFiltering, createTableBadges, createSummarySection, createZoomedSyntenyView, createOrthologsTable} from "./info.js";
-import { refGenome, queryGenome, genomeColors, genomeData, scale, allParsedData, isFirstDraw } from "./process.js";
+import { refGenome, queryGenome, genomeColors, genomeData, scale, allParsedData, isFirstDraw, downloadSvg } from "./process.js";
 import { anchorsFiles, bedFiles, jbrowseLinks } from "./form.js";
 
 export let currentYOffset = 0; // Définir globalement
@@ -631,6 +631,26 @@ function drawOneBand(svgGroup, d, chromPositions, refGenome, queryGenome) {
                 const orthologPairs = anchorsResult.data;
                 createZoomedSyntenyView(orthologPairs, refGenome, queryGenome, d.refStart, d.refEnd, d.queryStart, d.queryEnd);
                 
+                //// Remove existing download button if it exists
+                const zoomedSynteny = document.getElementById('zoomed-synteny');
+
+                const existingDownloadButton = document.getElementById('download-anchor-svg');
+                if (existingDownloadButton) {
+                    formContainer.removeChild(existingDownloadButton);
+                }
+
+                const downloadAnchorSvgButton = document.createElement('button');
+                downloadAnchorSvgButton.id = 'download-anchor-svg';
+                downloadAnchorSvgButton.setAttribute('type', 'button');
+                downloadAnchorSvgButton.classList.add('btn-simple');
+                downloadAnchorSvgButton.textContent = 'Download SVG';
+                zoomedSynteny.appendChild(downloadAnchorSvgButton);
+                const svgElement = document.getElementById('anchor-viz');
+                downloadAnchorSvgButton.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    downloadSvg(svgElement);
+                });
+
             });
         ;
     }else {
