@@ -1,6 +1,7 @@
 import { fileUploadMode } from "./form.js";
 import { uniqueGenomes } from "./process.js";
 import { jbrowseLinks } from "./form.js";
+import { bandeTypeColors, currentBandTypeColors } from "./draw.js";
 
 //Fonction pour les contrôles et paramètres
 export function createControlPanel() {
@@ -213,6 +214,38 @@ function createParametersContent() {
         }
     });
 
+    // Ajouter le bouton de réinitialisation des couleurs
+    const resetButton = document.createElement('button');
+    resetButton.textContent = 'Reset Colors';
+    resetButton.className = 'reset-colors-btn';
+    resetButton.style.cssText = `
+        margin: 10px 0;
+        padding: 5px 10px;
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
+    `;
+    
+    resetButton.addEventListener('click', () => {
+        // Réinitialiser les couleurs
+        Object.assign(currentBandTypeColors, bandeTypeColors);
+
+        // Mettre à jour les couleurs des mini-bandes
+        Object.entries(bandeTypeColors).forEach(([type, color]) => {
+            const miniBand = document.querySelector(`path[data-type="${type}"]`);
+            if (miniBand) {
+                miniBand.setAttribute('fill', color);
+            }
+        });
+        
+        // Mettre à jour les bandes dans la visualisation
+        Object.entries(bandeTypeColors).forEach(([type, color]) => {
+            d3.selectAll(`path.band[data-type="${type}"]`)
+                .style('fill', color);
+        });
+    });
+
     // Zone d'upload
     const uploadDiv = document.createElement('div');
     uploadDiv.id = 'file-upload';
@@ -220,6 +253,7 @@ function createParametersContent() {
 
     // Ajout au conteneur principal
     params.appendChild(stackDiv);
+    params.appendChild(resetButton);
     params.appendChild(uploadDiv);
 
     return params;
@@ -234,7 +268,52 @@ function createParametersContent() {
 
 
 
+// Au début du fichier, ajoutez ces variables globales
+let globalColorPicker = null;
+let currentColorChangeCallback = null;
 
+// Fonction pour afficher le color picker
+function createColorPickerDialog(element, currentColor, onColorChange, event) {
+    // Si le color picker existe déjà, mettre à jour ses propriétés
+    if (!globalColorPicker) {
+        globalColorPicker = document.createElement('input');
+        globalColorPicker.type = 'color';
+        globalColorPicker.style.cssText = `
+            position: fixed;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 9999;
+        `;
+        document.body.appendChild(globalColorPicker);
+
+        // Ajouter l'écouteur d'événement une seule fois
+        globalColorPicker.addEventListener('change', (e) => {
+            const newColor = e.target.value;
+            if (currentColorChangeCallback) {
+                currentColorChangeCallback(newColor);
+                
+                // Mettre à jour la variable currentBandTypeColors
+                const bandType = element.getAttribute('data-type');
+                if (bandType) {
+                    currentBandTypeColors[bandType] = newColor;
+                }
+            }
+            globalColorPicker.style.visibility = 'hidden';
+        });
+    }
+
+    // Positionner le color picker à la position de la souris
+    globalColorPicker.style.left = `${event.clientX}px`;
+    globalColorPicker.style.top = `${event.clientY}px`;
+    
+    // Mettre à jour la couleur et le callback
+    globalColorPicker.value = currentColor;
+    currentColorChangeCallback = onColorChange;
+
+    // Afficher le color picker
+    globalColorPicker.style.visibility = 'visible';
+    globalColorPicker.click();
+}
 
 
 
@@ -487,10 +566,10 @@ export function generateBandTypeFilters() {
     // typeColumn.innerHTML = '<h5 style="margin-bottom: 10px;">Types de bandes</h5>';
 
     const colors = [
-        { type: 'Syntenic region', color: '#d3d3d3', attr: 'SYN' },
-        { type: 'Inverted region', color: '#ffa500', attr: 'INV' },
-        { type: 'Translocated region', color: '#008000', attr: 'TRANS' },
-        { type: 'Duplicated region', color: '#0000ff', attr: 'DUP' }
+        { type: 'Syntenic region', color: currentBandTypeColors['SYN'], attr: 'SYN' },
+        { type: 'Inverted region', color: currentBandTypeColors['INV'], attr: 'INV' },
+        { type: 'Translocated region', color: currentBandTypeColors['TRANS'], attr: 'TRANS' },
+        { type: 'Duplicated region', color: currentBandTypeColors['DUP'], attr: 'DUP' }
     ];
 
     colors.forEach(entry => {
@@ -550,7 +629,25 @@ export function generateBandTypeFilters() {
         const miniBand = document.createElementNS("http://www.w3.org/2000/svg", "path");
         miniBand.setAttribute("d", pathData);
         miniBand.setAttribute("fill", entry.color);
+        miniBand.setAttribute("data-type", entry.attr); // Ajout de l'attribut data-type
         miniBand.setAttribute("opacity", 0.5);
+        miniBand.style.cursor = 'pointer';
+        
+        // Ajouter l'événement click pour changer la couleur
+        miniBand.addEventListener('click', (e) => {
+            e.preventDefault();
+            createColorPickerDialog(miniBand, miniBand.getAttribute("fill"), (newColor) => {
+                // Mettre à jour la couleur de la mini-bande
+                miniBand.setAttribute("fill", newColor);
+                
+                // Mettre à jour les bandes dans la visualisation
+                d3.selectAll(`path.band[data-type="${entry.attr}"]`)
+                    .style('fill', newColor);
+                
+                // Mettre à jour la variable currentBandTypeColors
+                currentBandTypeColors[entry.attr] = newColor;
+            }, e);
+        });
 
         miniBandSvg.appendChild(miniBand);
 

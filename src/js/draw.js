@@ -13,6 +13,9 @@ export const bandeTypeColors = {
     'DUP': '#0000ff', // bleu
 };
 
+// Couleurs actuelles
+export let currentBandTypeColors = { ...bandeTypeColors };
+
 export const typeColors = {
     // Synténies (gris)
     'SYN': '#d3d3d3',
@@ -537,7 +540,7 @@ function drawOneBand(svgGroup, d, chromPositions, refGenome, queryGenome) {
         const refEndX = refX + (d.refEnd / scale);
         let queryStartX = queryX + (d.queryStart / scale);
         let queryEndX = queryX + (d.queryEnd / scale);
-        const color = bandeTypeColors[d.type] || '#ccc'; // Utiliser la couleur définie ou gris clair par défaut
+        const color = currentBandTypeColors[d.type] || '#ccc'; // Utiliser la couleur définie ou gris clair par défaut
 
         const refY = chromPositions[[refChromNum]]?.refY + 10; // Ajuster pour aligner sur le chromosome de référence
         // const queryY = chromPositions[d.queryChr]?.queryY; // Ajuster pour aligner sur le chromosome de requête
