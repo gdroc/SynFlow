@@ -232,6 +232,8 @@ export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, 
                     .attr('y', yRefPosition - 10)
                     .attr('text-anchor', 'middle')
                     .attr('class', 'chrom-title')
+                    .attr("data-genome", refGenome)
+                    .attr("data-chrom-name", refData.name)
                     .attr("data-chrom-num", chrom)
                     .text(refData.name);
 
