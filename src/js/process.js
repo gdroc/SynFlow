@@ -1408,7 +1408,6 @@ function calculateGlobalMaxChromosomeLengths(genomeData) {
     for (const genome in genomeData) {
         const chromosomes = genomeData[genome];
         for (const index in chromosomes) {
-            console.log(`Processing genome: ${genome}, chromosome index: ${index}`);
             const chrData = chromosomes[index];
             if (!globalMaxLengths[index]) {
                 globalMaxLengths[index] = chrData.length;

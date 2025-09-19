@@ -222,7 +222,8 @@ export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, 
             const refWidth = refData.length / scale;
             const chromWidth = maxLengths[chrom] / scale;
 
-            if (!isNaN(chromWidth) && chromWidth > 0) {
+            if (!isNaN(chromWidth) && chromWidth > 0 && refWidth > 0) {
+                console.log(`Drawing ref chromosome ${refData.name} at x=${currentX}, width=${chromWidth}`);
                 drawChromPathNoArm(currentX, yRefPosition, refWidth, radius, chrom, 
                     refData.name + "_ref", refGenome, svgGroup, scale);
                 
@@ -242,8 +243,9 @@ export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, 
                     queryY: yQueryPosition
                 };
 
-                currentX += chromWidth + spaceBetween;
             }
+            currentX += chromWidth + spaceBetween;
+
         }
     }
 
@@ -256,7 +258,7 @@ export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, 
         const queryWidth = queryData.length / scale;
         const chromWidth = maxLengths[chrom] / scale || queryWidth;
 
-        if (!isNaN(chromWidth) && chromWidth > 0) {
+        if (!isNaN(chromWidth) && chromWidth > 0 && queryWidth > 0) {
             drawChromPathNoArm(currentX, yQueryPosition, queryWidth, radius, chrom, 
                 queryData.name + "_query", queryGenome, svgGroup, scale);
 
@@ -269,8 +271,9 @@ export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, 
                 };
             }
 
-            currentX += chromWidth + spaceBetween;
         }
+        currentX += chromWidth + spaceBetween;
+
     }
 
     currentYOffset = yQueryPosition - 90;
