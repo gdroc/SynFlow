@@ -446,6 +446,7 @@ function updateChromControler() {
         col.setAttribute('draggable', 'true');
         col.dataset.position = i;
 
+        //drag and drop colonne
         col.addEventListener('dragstart', (e) => {
             e.dataTransfer.setData('col-drag', i);
             col.classList.add('dragging');
@@ -536,9 +537,27 @@ function updateChromControler() {
             chromCell.setAttribute('draggable', 'true');
             chromCell.dataset.genome = genome;
             chromCell.dataset.position = i;
+            chromCell.dataset.visible = 'true';
             chromCell.textContent = chrom ? chrom.name : '-';
             chromCell.dataset.id = chrom ? `${genome}-${chrom.name}` : `empty-${i}`;
 
+            //click pour show/hide
+            chromCell.addEventListener('click', (e) => {
+                if (e.target === chromCell) { // Vérifier que le clic est sur la cellule
+                    const isVisible = chromCell.dataset.visible === 'true';
+                    chromCell.dataset.visible = !isVisible;
+                    
+                    if (isVisible) {
+                        chromCell.style.opacity = '0.5';
+                        chromCell.style.backgroundColor = '#f5f5f5';
+                    } else {
+                        chromCell.style.opacity = '1';
+                        chromCell.style.backgroundColor = 'white';
+                    }
+                    
+                    updateBandsVisibility();
+                }
+            });
 
             chromCell.addEventListener('dragstart', (e) => {
                 currentDrag = { genome, pos: i };

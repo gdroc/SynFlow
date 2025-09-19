@@ -223,7 +223,6 @@ export function drawChromosomes(genomeData, maxLengths, refGenome, queryGenome, 
             const chromWidth = maxLengths[chrom] / scale;
 
             if (!isNaN(chromWidth) && chromWidth > 0 && refWidth > 0) {
-                console.log(`Drawing ref chromosome ${refData.name} at x=${currentX}, width=${chromWidth}`);
                 drawChromPathNoArm(currentX, yRefPosition, refWidth, radius, chrom, 
                     refData.name + "_ref", refGenome, svgGroup, scale);
                 
@@ -372,7 +371,8 @@ function drawChromPathNoArm(x, y, width, radius, chromNum, chromName, genome, sv
     svg.append("path")
         .attr("d", path)
         .attr("class", "chrom") // Ajoute une classe chrom
-        .attr("id", chromName)
+        .attr("data-genome", genome)
+        .attr("data-chrom-name", chromName)
         .attr("data-chrom-num", chromNum)
         .style("stroke", genomeColors[genome]) // Utiliser la couleur du génome
         // .style("fill", "rgba(0, 0, 0, 0)")

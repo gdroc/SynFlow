@@ -749,74 +749,85 @@ export function updateBandsVisibility() {
     const showIntra = !document.getElementById('intrachromosomal-filter').classList.contains('fa-eye-slash');
     const showInter = !document.getElementById('interchromosomal-filter').classList.contains('fa-eye-slash');
 
+    // Types de bandes visibles
     const eyeIcons = document.querySelectorAll('i[data-type]');
     const selectedTypes = Array.from(eyeIcons)
         .filter(icon => !icon.classList.contains('fa-eye-slash'))
         .map(icon => icon.getAttribute('data-type'));
-
-    const chromEyeIcons = document.querySelectorAll('i.chrom-eye-icon');
-    const visibleChromosomes = Array.from(chromEyeIcons)
-        .filter(icon => icon.classList.contains('fa-eye'))
-        .map(icon => icon.getAttribute('data-chrom'));
         
+    // Chromosomes visibles - utiliser les chromCells
+    const chromCells = document.querySelectorAll('[data-genome][data-position]');
+    const visibleChromosomes = Array.from(chromCells)
+        .filter(cell => cell.dataset.visible === 'true')
+        .map(cell => ({
+            genome: cell.dataset.genome,
+            position: cell.dataset.position
+        }));
+
     // Définir les dépendances des types
     const typeDependencies = {
-        'INVTR': ['INV', 'TRANS'],  // INVTR nécessite que INV ET TRANS soient visibles
+        'INVTR': ['INV', 'TRANS'],
         'SYN': ['SYN'],
         'INV': ['INV'],
         'TRANS': ['TRANS'],
         'DUP': ['DUP']
     };
 
+    // Mise à jour de la visibilité des chromosomes
+    d3.selectAll('.chrom').each(function() {
+        const chrom = d3.select(this);
+        const chromGenome = chrom.attr('data-genome');
+        const chromNum = chrom.attr('data-chrom-num');
+        
+        const isVisible = visibleChromosomes.some(vc => 
+            vc.genome === chromGenome && vc.position === chromNum
+        );
+        chrom.attr('display', isVisible ? null : 'none');
+    });
+
+    // Mise à jour de la visibilité des bandes
     d3.selectAll('path.band').each(function() {
         const band = d3.select(this);
         const bandPosType = band.attr('data-pos');
         const bandType = band.attr('data-type');
-        const bandRef = band.attr('data-ref');
+        const bandRefGenome = band.attr('data-ref-genome');
+        const bandQueryGenome = band.attr('data-query-genome');
         const bandRefNum = band.attr('data-ref-num');
-        const bandQuery = band.attr('data-query');
         const bandQueryNum = band.attr('data-query-num');
         const bandLength = parseInt(band.attr('data-length'));
 
-        //modif pour fix bug = bandRefNum au lieu de bandRef
-        const isVisibleChrom = visibleChromosomes.includes(bandRefNum) && visibleChromosomes.includes(bandQueryNum);
-        // const isVisibleBandType = selectedTypes.includes(bandType);
-        // Dans updateBandsVisibility()
-        const isVisibleBandType = selectedTypes.some(type => type === bandType) || // Type directement visible
-            (typeDependencies[bandType] && // Si c'est un type dépendant
-            typeDependencies[bandType].every(parentType => // TOUS ses parents doivent être visibles
+        // Vérifier si les deux chromosomes sont visibles
+        const isVisibleChrom = visibleChromosomes.some(vc => 
+            vc.genome === bandRefGenome && vc.position === bandRefNum
+        ) && visibleChromosomes.some(vc => 
+            vc.genome === bandQueryGenome && vc.position === bandQueryNum
+        );
+
+        const isVisibleBandType = selectedTypes.some(type => type === bandType) || 
+            (typeDependencies[bandType] && 
+            typeDependencies[bandType].every(parentType => 
                 selectedTypes.includes(parentType)
             ));
-        const isVisibleBandPos = (bandPosType === 'intra' && showIntra) || (bandPosType === 'inter' && showInter);
-        const isVisibleBandLength = bandLength >= sliderMinValue && bandLength <= sliderMaxValue;
 
-        if (isVisibleChrom && isVisibleBandType && isVisibleBandPos && isVisibleBandLength) {
-            band.attr('display', null);
-        } else {
-            band.attr('display', 'none');
-        }
+        const isVisibleBandPos = (bandPosType === 'intra' && showIntra) || 
+                                (bandPosType === 'inter' && showInter);
+        const isVisibleBandLength = bandLength >= sliderMinValue && 
+                                  bandLength <= sliderMaxValue;
+        
+        band.attr('display', isVisibleChrom && isVisibleBandType && 
+                           isVisibleBandPos && isVisibleBandLength ? null : 'none');
     });
-    d3.selectAll('.chrom').each(function() {
-        const chrom = d3.select(this);
-        // const chromName = chrom.attr('id').split('_')[0];
-        const chromNum = chrom.attr('data-chrom-num');
 
-        // if (visibleChromosomes.includes(chromName)) {
-        if (visibleChromosomes.includes(chromNum)) {
-            chrom.attr('display', null);
-        } else {
-            chrom.attr('display', 'none');
-        }
-    });
-    //cache aussi le nom du chromosome
+    // Mise à jour de la visibilité des titres des chromosomes
     d3.selectAll('.chrom-title').each(function() {
         const title = d3.select(this);
+        const chromGenome = title.attr('data-genome');
         const chromNum = title.attr('data-chrom-num');
-        if (visibleChromosomes.includes(chromNum)) {
-            title.attr('display', null);
-        } else {
-            title.attr('display', 'none');
-        }
+        
+        const isVisible = visibleChromosomes.some(vc => 
+            vc.genome === chromGenome && vc.position === chromNum
+        );
+        title.attr('display', isVisible ? null : 'none');
     });
 }
 
