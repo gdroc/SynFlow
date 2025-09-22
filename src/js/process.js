@@ -432,7 +432,7 @@ function updateChromControler() {
     const headerRow = document.createElement('div');
     headerRow.style.display = 'contents';
     const genomeHeader = document.createElement('div');
-    genomeHeader.textContent = 'Genome';
+    // genomeHeader.textContent = 'Genome';
     genomeHeader.style.fontWeight = 'bold';
     genomeHeader.style.textAlign = 'center';
     headerRow.appendChild(genomeHeader);
