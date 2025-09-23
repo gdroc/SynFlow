@@ -1134,62 +1134,56 @@ async function calculateChromosomeDataFromBandFiles(orderedFileObjects, uniqueGe
         if (!genomeData[refGenome]) genomeData[refGenome] = {};
         if (!genomeData[queryGenome]) genomeData[queryGenome] = {};
         
-        // Set pour suivre les chromosomes query déjà assignés
+        // Set pour suivre les chromosomes déjà assignés
         const assignedQueryChrs = new Set();
+        const assignedRefChrs = new Set();
         
-        // 1. D'abord, traiter tous les chromosomes ref et trouver leurs meilleurs binômes
+        // 1. D'abord, traiter tous les chromosomes ref
         for (let i = 1; i <= Object.keys(refLengths).length; i++) {
             let refChr = refLengths[i].name;
-            
-            // Chercher le meilleur binôme s'il existe
-            let bestQueryChr = null;
-            let maxAlignment = 0;
-            
-            if (alignments[refChr]) {
-                for (let queryChr in alignments[refChr]) {
-                    if (alignments[refChr][queryChr] > maxAlignment) {
-                        maxAlignment = alignments[refChr][queryChr];
-                        bestQueryChr = queryChr;
-                    }
-                }
-            }
-            
-            // Sauvegarder le chromosome ref
-            genomeData[refGenome][i] = refLengths[i];
-            
-            // Si un binôme a été trouvé
-            if (bestQueryChr) {
-                let queryIndex = Object.keys(queryLengths).find(key => 
-                    queryLengths[key].name === bestQueryChr);
-                    
-                if (queryIndex) {
-                    genomeData[queryGenome][i] = queryLengths[queryIndex];
-                    assignedQueryChrs.add(bestQueryChr);
-                } else {
-                    // Ajouter un chromosome vide si pas de correspondance
-                    genomeData[queryGenome][i] = { name: bestQueryChr, length: 0 };
-                }
-            } else {
-                // Ajouter un chromosome vide côté query
-                genomeData[queryGenome][i] = { name: "-", length: 0 };
+            if (!assignedRefChrs.has(refChr)) {
+                genomeData[refGenome][i] = refLengths[i];
+                assignedRefChrs.add(refChr);
             }
         }
-        
-        // 2. Ajouter les chromosomes query non assignés
-        let nextIndex = Object.keys(genomeData[refGenome]).length + 1;
-        for (let queryIndex in queryLengths) {
-            let queryChr = queryLengths[queryIndex].name;
-            if (!assignedQueryChrs.has(queryChr)) {
-                // Ajouter le chromosome query non assigné avec un nouvel index
-                genomeData[queryGenome][nextIndex] = queryLengths[queryIndex];
-                // Ajouter un chromosome vide correspondant côté ref
-                genomeData[refGenome][nextIndex] = { name: "-", length: 0 };
-                nextIndex++;
+
+        // 2. Traiter les chromosomes query avec leurs meilleurs alignements
+        for (let i = 1; i <= Object.keys(queryLengths).length; i++) {
+            let queryChr = queryLengths[i].name;
+            if (assignedQueryChrs.has(queryChr)) continue;
+
+            // Trouver le meilleur alignement pour ce chromosome query
+            let bestRefChr = null;
+            let maxAlignment = 0;
+
+            for (let refChr in alignments) {
+                if (alignments[refChr]?.[queryChr] > maxAlignment) {
+                    maxAlignment = alignments[refChr][queryChr];
+                    bestRefChr = refChr;
+                }
+            }
+
+            // Si on trouve un bon alignement, utiliser la même position que le ref
+            if (bestRefChr) {
+                const refPos = Object.entries(genomeData[refGenome])
+                    .find(([_, data]) => data.name === bestRefChr)?.[0];
+                
+                if (refPos) {
+                    genomeData[queryGenome][refPos] = queryLengths[i];
+                    assignedQueryChrs.add(queryChr);
+                    continue;
+                }
+            }
+
+            // Sinon, mettre à la même position que dans queryLengths
+            if (!genomeData[queryGenome][i]) {
+                genomeData[queryGenome][i] = queryLengths[i];
+                assignedQueryChrs.add(queryChr);
             }
         }
     }
     
-    console.log("genomeData avec chromosomes vides :");
+    console.log("genomeData :");
     console.log(genomeData);
     return genomeData;
 }
