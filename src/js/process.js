@@ -1122,68 +1122,80 @@ function handleFileUpload(bandFiles, bedFiles) {
 // Format : genomeData[genomeName][index] = { name: chrName, length: chrLength };
 async function calculateChromosomeDataFromBandFiles(orderedFileObjects, uniqueGenomes) {
     const genomeData = {};
+    const usedChromosomes = {};
     
+    // Initialisation
+    uniqueGenomes.forEach(genome => {
+        genomeData[genome] = {};
+        usedChromosomes[genome] = new Set();
+    });
+    
+    // Traiter chaque paire de génomes
     for (let i = 0; i < orderedFileObjects.length; i++) {
-        let currentFile = orderedFileObjects[i];
-        let refGenome = uniqueGenomes[i];
-        let queryGenome = uniqueGenomes[i + 1];
-    
+        const currentFile = orderedFileObjects[i];
+        const refGenome = uniqueGenomes[i];
+        const queryGenome = uniqueGenomes[i + 1];
+        
         const { refLengths, queryLengths, alignments } = await readChromosomeLengthsFromBandFile(currentFile);
         
-        // Initialiser les structures de données
-        if (!genomeData[refGenome]) genomeData[refGenome] = {};
-        if (!genomeData[queryGenome]) genomeData[queryGenome] = {};
-        
-        // Set pour suivre les chromosomes déjà assignés
-        const assignedQueryChrs = new Set();
-        const assignedRefChrs = new Set();
-        
-        // 1. D'abord, traiter tous les chromosomes ref
-        for (let i = 1; i <= Object.keys(refLengths).length; i++) {
-            let refChr = refLengths[i].name;
-            if (!assignedRefChrs.has(refChr)) {
-                genomeData[refGenome][i] = refLengths[i];
-                assignedRefChrs.add(refChr);
-            }
+        // 1. Initialiser le génome ref s'il est vide
+        if (Object.keys(genomeData[refGenome]).length === 0) {
+            Object.entries(refLengths).forEach(([pos, data]) => {
+                genomeData[refGenome][pos] = data;
+                usedChromosomes[refGenome].add(data.name);
+            });
         }
 
-        // 2. Traiter les chromosomes query avec leurs meilleurs alignements
-        for (let i = 1; i <= Object.keys(queryLengths).length; i++) {
-            let queryChr = queryLengths[i].name;
-            if (assignedQueryChrs.has(queryChr)) continue;
+        // 2. Trouver les meilleures correspondances
+        const matches = new Map();
+        const usedQueryChrs = new Set();
 
-            // Trouver le meilleur alignement pour ce chromosome query
-            let bestRefChr = null;
+        // Pour chaque chromosome ref, trouver sa meilleure correspondance
+        Object.entries(genomeData[refGenome]).forEach(([refPos, refData]) => {
+            if (!refData || !alignments[refData.name]) return;
+
+            let bestMatch = null;
             let maxAlignment = 0;
 
-            for (let refChr in alignments) {
-                if (alignments[refChr]?.[queryChr] > maxAlignment) {
-                    maxAlignment = alignments[refChr][queryChr];
-                    bestRefChr = refChr;
-                }
-            }
+            Object.entries(alignments[refData.name]).forEach(([queryName, alignLength]) => {
+                // Trouver le chromosome query correspondant
+                const queryEntry = Object.entries(queryLengths).find(([_, data]) => data.name === queryName);
+                if (!queryEntry || usedQueryChrs.has(queryName)) return;
 
-            // Si on trouve un bon alignement, utiliser la même position que le ref
-            if (bestRefChr) {
-                const refPos = Object.entries(genomeData[refGenome])
-                    .find(([_, data]) => data.name === bestRefChr)?.[0];
-                
-                if (refPos) {
-                    genomeData[queryGenome][refPos] = queryLengths[i];
-                    assignedQueryChrs.add(queryChr);
-                    continue;
+                if (alignLength > maxAlignment) {
+                    maxAlignment = alignLength;
+                    bestMatch = {
+                        queryPos: queryEntry[0],
+                        queryData: queryEntry[1],
+                        alignLength
+                    };
                 }
-            }
+            });
 
-            // Sinon, mettre à la même position que dans queryLengths
-            if (!genomeData[queryGenome][i]) {
-                genomeData[queryGenome][i] = queryLengths[i];
-                assignedQueryChrs.add(queryChr);
+            if (bestMatch) {
+                matches.set(refPos, bestMatch);
+                usedQueryChrs.add(bestMatch.queryData.name);
             }
-        }
+        });
+
+        // 3. Placer les chromosomes query appariés
+        matches.forEach((match, refPos) => {
+            genomeData[queryGenome][refPos] = match.queryData;
+            usedChromosomes[queryGenome].add(match.queryData.name);
+        });
+
+        // 4. Ajouter les chromosomes query non appariés à la fin
+        let nextPos = Math.max(...Object.keys(genomeData[queryGenome]).map(Number), 0);
+        Object.entries(queryLengths).forEach(([_, queryData]) => {
+            if (!usedChromosomes[queryGenome].has(queryData.name)) {
+                nextPos++;
+                genomeData[queryGenome][nextPos] = queryData;
+                usedChromosomes[queryGenome].add(queryData.name);
+            }
+        });
     }
-    
-    console.log("genomeData :");
+
+    console.log("genomeData mis à jour :");
     console.log(genomeData);
     return genomeData;
 }
