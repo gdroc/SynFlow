@@ -4,7 +4,9 @@
   "description": "## Description",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "server": "env GALAXY_API_KEY='4692c14f5672dfdecf89d3a462aa9e20' nodemon --watch src/serveur.js src/serveur.js"
+
   },
   "repository": {
     "type": "git",
@@ -21,6 +23,8 @@
     "express": "^4.19.2",
     "fs": "^0.0.1-security",
     "https": "^1.0.0",
-    "socket.io": "^4.7.5"
+    "socket.io": "^4.7.5",
+    "multer": "^1.4.5-lts.1",
+    "nodemon": "^2.0.22"
   }
 }
