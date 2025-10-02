@@ -751,7 +751,7 @@ async function createAnchorsSection(lines, refStart, refEnd, queryStart, queryEn
                 // Trouve les coordonnées du gène query correspondant
                 const queryBedLine = queryBedLines.find(line => {
                     const bedQueryGeneName = line.split('\t')[3];
-                    const cleanQueryAnchor = queryAnchor;
+                    const cleanQueryAnchor = queryAnchor.trim().replace(/[\r\n]+/g, '');
                     return bedQueryGeneName === cleanQueryAnchor || bedQueryGeneName === queryAnchor;
                 });
                 

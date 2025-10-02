@@ -387,59 +387,12 @@ async function createExistingFilesForm() {
             return new File([text], file, { type: 'text/plain' });
         }));
 
-        //Cherche s'il y a un fichier .bed pour chaque genome et si oui, le télécharge
-        bedFiles = await Promise.all(selectedGenomes.map(async genome => {
-            const bedFilePath = `${folder}${genome}.bed`;
-            //si le fichier existe on le télécharge
-            try {
-                const response = await fetch(bedFilePath);
-                if (response.ok) {
-                    const text = await response.text();
-                    return new File([text], `${genome}.bed`, { type: 'text/plain' });
-                }
-            } catch (error) {
-                console.log(`Error fetching bed file for ${genome}:`, error);
-            }
-            
-            return null;
-        }));
-
-    
-        //Cherche les fichiers .anchors correspondant aux fichiers .out sélectionnés
-        anchorsFiles = [];
-        files.forEach(async file => {
-            const anchorsFileName = file.name.replace('.out', '.anchors');
-            const anchorsFilePath = `${folder}${anchorsFileName}`;
-            try {
-                const response = await fetch(anchorsFilePath);
-                if (response.ok) {
-                    const text = await response.text();
-                    anchorsFiles.push(new File([text], anchorsFileName, { type: 'text/plain' }));
-                }
-            } catch (error) {
-                console.log(`Error fetching anchors file for ${file.name}:`, error);
-            }
-        });
-        console.log('Anchors files:', anchorsFiles);
+        //cherche les fichiers anchors, bed et jbrowse associés
+        await searchAdditionalFiles(selectedGenomes, files, folder);
 
         // Simule un input file multiple pour handleFileUpload
         const dataTransfer = new DataTransfer();
         files.forEach(file => dataTransfer.items.add(file));
-
-        //cherche s'il y a un fichier jbrowse_links.json dans le dossier et si oui, le télécharge
-        const jbrowseFileName = 'jbrowse_link.json';
-        const jbrowseFilePath = `${folder}${jbrowseFileName}`;
-        
-        try {
-            const jbrowseResponse = await fetch(jbrowseFilePath);
-            if (jbrowseResponse.ok) {
-                jbrowseLinks = await jbrowseResponse.json();   
-                console.log(jbrowseLinks);         
-            }
-        } catch (error) {
-            console.log("No jbrowse links");
-        }
-        
         handleFileUpload(dataTransfer.files, bedFiles);
     });
 
@@ -686,7 +639,6 @@ function createUploadSection() {
             // Nettoie les espaces autour des noms de fichiers
             const files = document.getElementById('band-files').files;
             const allFilesTrimmed = Array.from(files).map(f => f.name.trim());
-
             // Construit la liste des fichiers nécessaires pour la chaîne
             const neededFiles = [];
             let missingFiles = [];
@@ -753,14 +705,13 @@ function createUploadSection() {
 
 
 
-
-
-
-
-
-
-
-
+//
+//      ///////////    /////////////    ////////////
+//     //                  //          //        //
+//    /////               //          ////////////
+//   //                  //          //    
+//  //                  //          //
+//
 
 export function createFTPSection() {
     // Section principale
@@ -781,6 +732,7 @@ export function createFTPSection() {
     // Champ d'URL FTP
     const ftpInput = document.createElement('input');
     ftpInput.setAttribute('type', 'text');
+    ftpInput.setAttribute('id', 'ftp-input');
     ftpInput.setAttribute('placeholder', 'Paste FTP folder URL here');
     ftpInput.style.width = '100%';
     ftpInput.style.marginBottom = '5px';
@@ -806,6 +758,7 @@ export function createFTPSection() {
     // Bouton pour charger la liste des fichiers
     const fetchButton = document.createElement('button');
     fetchButton.setAttribute('type', 'button');
+    fetchButton.setAttribute('id', 'fetch-ftp-button');
     fetchButton.classList.add('btn-simple');
     fetchButton.textContent = 'Fetch Files';
     fetchButton.style.marginBottom = '10px';
@@ -859,9 +812,19 @@ export function createFTPSection() {
                 return;
             }
             const genomes = extractAllGenomes(files);
+            
             // Mode all vs all ou chaîne
             const expectedFileCount = genomes.length * (genomes.length - 1);
-            if (files.length === expectedFileCount) {
+            
+            if (files.length === 1 && genomes.length === 2) {
+                // Mode chaîne avec 2 génomes
+                console.log(files, genomes);
+                //mets les genomes dans l'ordre d'apparition du nom du fichier out
+                const file = files[0];
+                const parts = file.replace('.out', '').split('_').map(part => part.trim());
+                ftpSelectedGenomes = parts;
+                updateChainDivFTP(chainDiv, ftpSelectedGenomes);
+            } else if (files.length === expectedFileCount) {
                 // Mode all vs all
                 fileListDiv.innerHTML = '<div style="margin-bottom:8px;color:#555;font-style:italic;">Select genomes in the desired order for the chain.</div>';
                 populateGenomeListFTP(genomes, fileListDiv, ftpSelectedGenomes, chainDiv);
@@ -939,6 +902,7 @@ export function createFTPSection() {
 
         const folder = ftpInput.value.trim();
         const allFiles = await fetchRemoteFileList(folder);
+        //nettoie les espaces autour des noms de fichiers
         const allFilesTrimmed = allFiles.map(f => f.trim());
 
         // Construit la liste des fichiers nécessaires pour la chaîne
@@ -946,10 +910,12 @@ export function createFTPSection() {
         let missingFiles = [];
         for (let i = 0; i < ftpSelectedGenomes.length - 1; i++) {
             const fileName = `${ftpSelectedGenomes[i]}_${ftpSelectedGenomes[i+1]}.out`;
-            if (allFilesTrimmed.includes(fileName)) {
-                neededFiles.push(fileName);
+            //nettoie les espaces autour des noms de fichiers
+            const fileNameTrimmed = fileName.trim();
+            if (allFilesTrimmed.includes(fileNameTrimmed)) {
+                neededFiles.push(fileNameTrimmed);
             } else {
-                missingFiles.push(fileName);
+                missingFiles.push(fileNameTrimmed);
             }
         }
 
@@ -961,11 +927,17 @@ export function createFTPSection() {
 
         // Télécharge les fichiers nécessaires et crée des objets File
         const files = await Promise.all(neededFiles.map(async file => {
-            const filePath = `${folder}${file}`;
+
+            //ajoute un slash à la fin du folder si pas présent
+            const folderWithSlash = folder.endsWith('/') ? folder : folder + '/';
+            const filePath = `${folderWithSlash}${file}`;
             const response = await fetch(filePath);
             const text = await response.text();
             return new File([text], file, { type: 'text/plain' });
         }));
+
+        //cherche les fichiers anchors, bed et jbrowse associés
+        await searchAdditionalFiles(ftpSelectedGenomes, files, folder);
 
         // Simule un input file multiple pour handleFileUpload
         const dataTransfer = new DataTransfer();
@@ -1396,4 +1368,55 @@ async function loadTestData() {
 
     // Update the file lists
     updateFileList(bandInput, document.getElementById('band-file-list'));
+}
+
+async function searchAdditionalFiles(selectedGenomes, files, folder) {
+    const folderWithSlash = folder.endsWith('/') ? folder : folder + '/';
+
+    //Cherche s'il y a un fichier .bed pour chaque genome et si oui, le télécharge
+    bedFiles = await Promise.all(selectedGenomes.map(async genome => {
+        const bedFilePath = `${folderWithSlash}${genome}.bed`;
+        //si le fichier existe on le télécharge
+        try {
+            const response = await fetch(bedFilePath);
+            if (response.ok) {
+                const text = await response.text();
+                return new File([text], `${genome}.bed`, { type: 'text/plain' });
+            }
+        } catch (error) {
+            console.log(`Error fetching bed file for ${genome}:`, error);
+        }
+        
+        return null;
+    }));
+
+    //Cherche les fichiers .anchors correspondant aux fichiers .out sélectionnés
+    anchorsFiles = [];
+    files.forEach(async file => {
+        const anchorsFileName = file.name.replace('.out', '.anchors');
+        const anchorsFilePath = `${folderWithSlash}${anchorsFileName}`;
+        try {
+            const response = await fetch(anchorsFilePath);
+            if (response.ok) {
+                const text = await response.text();
+                anchorsFiles.push(new File([text], anchorsFileName, { type: 'text/plain' }));
+            }
+        } catch (error) {
+            console.log(`Error fetching anchors file for ${file.name}:`, error);
+        }
+    });
+    
+    //cherche s'il y a un fichier jbrowse_links.json dans le dossier et si oui, le télécharge
+    const jbrowseFileName = 'jbrowse_link.json';
+    const jbrowseFilePath = `${folderWithSlash}${jbrowseFileName}`;
+
+    try {
+        const jbrowseResponse = await fetch(jbrowseFilePath);
+        if (jbrowseResponse.ok) {
+            jbrowseLinks = await jbrowseResponse.json();   
+            console.log(jbrowseLinks);         
+        }
+    } catch (error) {
+        console.log("No jbrowse links");
+    }
 }

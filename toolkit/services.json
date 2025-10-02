@@ -37,7 +37,7 @@
 			"label": "Synflow",
 			"service": "opal",
 			"command": "python2 /opt/OpalPythonClient/opal-py-2.4.1/GenericServiceClient.py",
-			"url": "http://193.52.26.138:8080/opal2/services/synflow",
+			"url": "http://io-biomaj.meso.umontpellier.fr:8080/opal2/services/synflow",
 			"action": "launchJob",
 			"arguments": {
 				"inputs": [
@@ -64,7 +64,7 @@
 			"label": "Synflow",
 			"service": "opal",
 			"command": "python2 /opt/OpalPythonClient/opal-py-2.4.1/GenericServiceClient.py",
-			"url": "http://193.52.26.138:8080/opal2/services/synflow",
+			"url": "http://io-biomaj.meso.umontpellier.fr:8080/opal2/services/synflow",
 			"action": "launchJob",
 			"arguments": {
 				"inputs": [
@@ -78,6 +78,13 @@
 							"/NAS/muse/web/HUBs/coffea/opal/DH.fasta"
 						],
 						"required": true
+					},
+					{
+						"name": "gff",
+						"label": "Corresponding gff files",
+						"type": "file[]",
+						"flag": "-g",
+						"required": false
 					},
 					{
 						"name": "workflow",
@@ -94,7 +101,7 @@
 			"label": "BLAST",
 			"service": "opal",
 			"command": "python2 /opt/OpalPythonClient/opal-py-2.4.1/GenericServiceClient.py",
-			"url": "http://193.52.26.138:8080/opal2/services/ncbi-blastn",
+			"url": "http://io-biomaj.meso.umontpellier.fr:8080/opal2/services/ncbi-blastn",
 			"action": "launchJob",
 			"arguments": {
 				"inputs": [

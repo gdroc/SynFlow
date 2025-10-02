@@ -151,25 +151,30 @@ export function initSocketConnection() {
         const toolkitID = event.detail;
         console.log('Toolkit ID reçu:', toolkitID);
         socket.emit('getToolkitFiles', toolkitID);
+        socket.emit('toolkitFTP', toolkitID);
 
     });
 
     //recupère les fichier de toolkitID
     socket.on('toolkitFilesResults', (data) => {
-        // Ajouter le message à la console
-        console.log(`${data}`);
-        //transforme le path en URL
-        //exemple : path = /opt/projects/gemo.southgreen.fr/prod/tmp/toolkit_run/toolkit_mPyhtgJXDWApk9wvAAAL/ref_querry.out
-        //exemple url = https://gemo.southgreen.fr/tmp/toolkit_run/toolkit_mPyhtgJXDWApk9wvAAAL/ref_querry.out
-        let outputFilesPath = [];
-        data.forEach(file => {
+        let outputFilesPath = data.map(file => {
             const toolkitID = file.split('/')[7];
             const fileName = file.split('/')[8];
-            outputFilesPath.push(`https://gemo.southgreen.fr/tmp/toolkit_run/${toolkitID}/${fileName}`);
-            // Créer et déclencher un événement personnalisé
-            const event = new CustomEvent('toolkitFilesFromID', { detail: outputFilesPath });
-            document.dispatchEvent(event);
+            return `https://synflow.southgreen.fr/tmp/toolkit_run/${toolkitID}/${fileName}`;
         });
+
+        // Un seul event avec tous les fichiers
+        const event = new CustomEvent('toolkitFilesFromID', { detail: outputFilesPath });
+        document.dispatchEvent(event);
+    });
+
+    //envoie l'url du ftp contenant les fichiers output
+    socket.on('toolkitFTP', (toolkitID) => {
+        return `https://synflow.southgreen.fr/tmp/toolkit_run/${toolkitID}`;
+
+        // Un seul event avec tous les fichiers
+        const event = new CustomEvent('toolkitFilesFromID', { detail: outputFilesPath });
+        document.dispatchEvent(event);
     });
 
     // //receptionne la liste des fichiers à partie du toolkitID
@@ -235,6 +240,22 @@ export function initSocketConnection() {
     // });
 }
 
+const config = {
+    development: {
+        servicesPath: '/synflow/toolkit/services.json',
+        baseUrl: 'https://dev-synflow.southgreen.fr'
+    },
+    production: {
+        servicesPath: '/toolkit/services.json',
+        baseUrl: 'https://synflow.southgreen.fr'
+    }
+};
+
+function getEnvironmentConfig() {
+    // Détection de l'environnement basée sur l'URL
+    const isDevelopment = window.location.hostname.includes('dev-');
+    return isDevelopment ? config.development : config.production;
+}
 
 /**
  * Loads the services and databases from the specified JSON file.
@@ -242,19 +263,18 @@ export function initSocketConnection() {
  */
 export function loadServices() {
     return new Promise((resolve, reject) => {
-        // Fetch the services and databases from the JSON file
-        fetch('/synflow/toolkit/services.json')
-            .then(response => response.json())  // Parse the JSON response
+        const { servicesPath } = getEnvironmentConfig();
+        
+        fetch(servicesPath)
+            .then(response => response.json())
             .then(data => {
-                // Store the parsed services and databases in global variables
                 servicesData = data.services;
                 databasesData = data.databases;
-                console.log(servicesData);
+                console.log('Services chargés depuis:', servicesPath);
                 resolve();
             })
             .catch(error => {
-                // Log any errors that occur during the fetch operation
-                console.error('Error loading services:', error);
+                console.error('Erreur lors du chargement des services:', error);
                 reject(error);
             });
     });
