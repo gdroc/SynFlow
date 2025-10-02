@@ -1,4 +1,6 @@
 FROM condaforge/mambaforge:latest  
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe/Paris
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     openssl \
